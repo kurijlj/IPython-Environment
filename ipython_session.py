@@ -30,3 +30,13 @@ from nmrgraphs import *
 fig1, ax1 = plt.subplots()
 t1_relax_graph(ax1, 10, 1, 1, 2)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py apend')
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+from matplotlib import pyplot as plt
+from nmrgraphs import *
+fig1, ax1 = plt.subplots()
+t1_relax_graph(ax1, 8, 1, 1, 2)
+quit()
