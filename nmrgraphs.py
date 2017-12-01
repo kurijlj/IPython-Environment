@@ -21,8 +21,9 @@ def t1_relax_graph(ax, rng, amp, toa, tob):
     ax.axvline(2, 0, 1, ls='dashed')
     ax.axvline(6, 0, 1, ls='dashed')
 
-    ax.plot(x, y1, label='$T_{1a}$', color='#a4c122', linewidth=3)
-    ax.plot(x, y2, label='$T_{1b}$', color='#c122a4', linewidth=3)
+    ax.plot(x, y1, label='$T_{1a}$', color='#d358ae', linewidth=3)
+    ax.plot(x, y2, label='$T_{1b}$', color='#aed358', linewidth=3)
+    ax.plot([], [], ' ', label=r'$T_{1a}<T_{1b}$')
 
     ax.grid('on')
     ax.minorticks_on()
@@ -70,10 +71,12 @@ def t1_relax_graph(ax, rng, amp, toa, tob):
             round(t1_relax(2, amp, tob) + (t1_relax(2, amp, toa) - t1_relax(2, amp, tob)) / 2, 2),
             u'Dobar\nkontrast',
             weight='bold',
-            size='large')
+            size='large',
+	    verticalalignment='center')
     ax.text(6.0 + 0.1,
             round(t1_relax(6, amp, tob) + (t1_relax(6, amp, toa) - t1_relax(6, amp, tob)) / 2, 2),
             u'Loš\nkontrast',
             weight='bold',
-            size='large')
+            size='large',
+	    verticalalignment='center')
     ax.legend()
