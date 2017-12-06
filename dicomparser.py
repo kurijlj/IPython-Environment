@@ -12,10 +12,11 @@
 import logging
 import numpy as np
 import util
+import io
 from dicom import read_file
 from dicom.dataset import Dataset
 #import random
-#from numbers import Number
+from numbers import Number
 #from six import PY2, iterkeys, string_types, BytesIO
 #from six.moves import range
 #from dicompylercore import dvh, util
@@ -29,13 +30,13 @@ class DicomParser:
 
         if isinstance(dataset, Dataset):
             self.ds = dataset
-        elif isinstance(dataset, (string_types, BytesIO)):
+        elif isinstance(dataset, (str, io.BytesIO)):
             try:
-                self.ds = \
+                self.ds = read_file(dataset, defer_size=100, force=True)
                     # defer_size means if a data element value is larger than
                     # defer_size, then the value is not read into memory until
                     # it is accessed in code.
-                    read_file(dataset, defer_size=100, force=True)
+
             except:
                 # Raise the error for the calling method to handle
                 raise
@@ -291,9 +292,8 @@ class DicomParser:
             self.ds.pixel_array
         except:
             if size is None:
-                return np.zeros(1, dtype=np.uint16)
-            else:
-                return np.zeros(size, dtype=np.uint16)
+                return np.zeros(1, dtype=np.uint)
+                return np.zeros(size, dtype=np.uint8)
 
         # Samples per pixel are > 1 & RGB format
         if (self.ds.SamplesPerPixel > 1) and \
@@ -301,8 +301,8 @@ class DicomParser:
 
             # Little Endian
             if self.ds.file_meta.TransferSyntaxUID.is_little_endian:
-                im = Image.frombuffer('RGB', (self.ds.Columns, self.ds.Rows),
-                                      self.ds.PixelData, 'raw', 'RGB', 0, 1)
+                im = np.frombuffer(self.ds.PixelData, dtype=np.uint8).\
+                     reshape((self.ds.Columns, self.ds.Rows))
             # Big Endian
             else:
                 im = np.rollaxis(self.ds.pixel_array.transpose(), 0, 2)
@@ -321,19 +321,19 @@ class DicomParser:
 
             rescaled_image = pixel_array * slope + intercept
 
-            image = self.GetLUTValue(rescaled_image, window, level)
-            im = Image.fromarray(image).convert('L')
+            im = self.GetLUTValue(rescaled_image, window, level).\
+                 reshape((self.ds.Columns, self.ds.Rows))
 
         # Resize the image if a size is provided
-        if size:
-            im.thumbnail(size, Image.ANTIALIAS)
+        #if size:
+        #    im.thumbnail(size, Image.ANTIALIAS)
 
         # Add a black background if requested
-        if background:
-            bg = Image.new('RGBA', size, (0, 0, 0, 255))
-            bg.paste(im, ((size[0] - im.size[0]) / 2,
-                     (size[1] - im.size[1]) / 2))
-            return bg
+        #if background:
+        #    bg = Image.new('RGBA', size, (0, 0, 0, 255))
+        #    bg.paste(im, ((size[0] - im.size[0]) / 2,
+        #             (size[1] - im.size[1]) / 2))
+        #    return bg
 
         return im
 
@@ -373,7 +373,7 @@ class DicomParser:
     def GetLUTValue(self, data, window, level):
         """Apply the RGB Look-Up Table for the data and window/level value."""
 
-        lutvalue =  .piecewise(data,
+        lutvalue = util.piecewise(data,
                                 [data <= (level - 0.5 - (window - 1) / 2),
                                  data > (level - 0.5 + (window - 1) / 2)],
                                 [0, 255, lambda data:

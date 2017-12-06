@@ -66,3 +66,23 @@ get_ipython().run_line_magic('logstart', './ipython_session.py append')
 get_ipython().run_line_magic('matplotlib', '')
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+from matplotlib import pyplot as plt
+import dicomparser
+import dicomparser
+import dicomparser
+import dicomparser
+img = dicomparser.DicomParser('./IMG-0001-00001.dcm')
+img = dicomparser.DicomParser('./IMG-0001-00001.dcm')
+fig, ax = plt.subplots(num="MRI_demo")
+ax.imshow(img.GetImage(), cmap=cm.gray)
+ax.imshow(img.GetImage(), cmap=cm.gray)
+import matplotlib.cm as cm
+ax.imshow(img.GetImage(), cmap=cm.gray)
+ax.cla()
+img = dicomparser.DicomParser('./IMG-0002-00001.dcm')
+ax.imshow(img.GetImage(), cmap=cm.gray)
+quit()
