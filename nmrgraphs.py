@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
+import matplotlib.patches as ptchs
 import numpy as np
 import math as m
 
@@ -11,12 +12,10 @@ ArrowLine = namedtuple('ArrowLine',
 
 def t1_relax(t, amp, to):
     """Calculates value of the longitudinal magnetization decay.
-
       @t: Float representing point in time for which to calculate value of
           longitudinal magnetization decay.
     @amp: Float representing T1 longitudinal magnetization amplitude.
      @to: Float representing tissue's T1 relaxation time.
-
     Returns: Default
     """
 
@@ -25,11 +24,9 @@ def t1_relax(t, amp, to):
 
 def t2_relax(t, tt):
     """Calculates value of the transversal magnetization decay.
-
       @t: Float representing point in time for which to calculate value of
           transverzal magnetization decay.
      @tt: Float representing tissue's T2 relaxation time.
-
     Returns: Default
     """
 
@@ -39,7 +36,6 @@ def t2_relax(t, tt):
 def linear_rise(x, m, b):
     """Calculates linear rise for given value run, slope/gradient and
     y-intercept.
-
     @x: Run value for which to calculate raise.
     @m: Slope/gradient of line.
     @b: y-intercept of a line.
@@ -50,7 +46,6 @@ def linear_rise(x, m, b):
 
 def t1_relax_plot(ax, rng, amp, toa, tob, tro, trt):
     """Plots figure elements for T1 relaxation graph.
-
      @ax: An Axes object to put figure elements on.
     @rng: Float representing upper data bound.
     @amp: Float representing T1 longitudinal magnetization amplitude.
@@ -58,7 +53,6 @@ def t1_relax_plot(ax, rng, amp, toa, tob, tro, trt):
     @tob: Float representing second's tissue T1 relaxation time.
     @tro: Float representing first TR constant (good contrast).
     @tro: Float representing second TR constant (bad contrast).
-
     Returns: Default
     """
 
@@ -161,14 +155,12 @@ def t1_relax_plot(ax, rng, amp, toa, tob, tro, trt):
 
 def t2_relax_plot(ax, rng, tta, ttb, teo, tet):
     """Plots figure elements for T2 relaxation graph.
-
      @ax: An Axes object to put figure elements on.
     @rng: Float representing upper data bound.
     @tta: Float representing first's tissue T2 relaxation time.
     @ttb: Float representing second's tissue T2 relaxation time.
     @teo: Float representing first TE constant (bad contrast).
     @teo: Float representing second TE constant (good contrast).
-
     Returns: Default
     """
 
@@ -271,12 +263,10 @@ def t2_relax_plot(ax, rng, tta, ttb, teo, tet):
 
 def gradient_field_plot(ax, rng, gz, bz):
     """Plots figure elements for linear magnetic field gradient graph.
-
      @ax: An Axes object to put figure elements on.
     @rng: Positive float value representing data range [-rng, +rng].
      @gz: Float representing slope/gradient of magnetic field.
      @bz: Float representing value B0 of constant magnetic field.
-
     Returns: Default
     """
 
@@ -337,3 +327,100 @@ def gradient_field_plot(ax, rng, gz, bz):
                                                  rad=0'
                                 )
                 )
+
+
+def gtvctvptv_plot(ax):
+    """Plots GTV, CTV, PTV, Treated Volume and Irradiated Volume relations
+    diagram.
+
+     @ax: An Axes object to put figure elements on.
+
+    Returns: Default
+    """
+
+    ax.add_patch(
+            ptchs.FancyBboxPatch(
+                            (0.25, 0.15),
+                            0.5,
+                            0.7,
+                            boxstyle=ptchs.BoxStyle(
+                                                "Round",
+                                                pad=0.02,
+                                                rounding_size=0.04
+                                                ),
+                            fc='#3f8cc6',
+                            ec='#3f48c6',
+                            zorder=0
+                            )
+            )
+    ax.add_patch(
+            ptchs.FancyBboxPatch(
+                            (0.3, 0.2),
+                            0.4,
+                            0.6,
+                            boxstyle=ptchs.BoxStyle(
+                                                "Round",
+                                                pad=0.02,
+                                                rounding_size=0.04
+                                                ),
+                            fc='#3fb4c6',
+                            ec='#3f71c6',
+                            zorder=1)
+            )
+    ax.add_patch(
+            ptchs.Ellipse(
+                        (0.5, 0.5),
+                        0.35,
+                        0.5,
+                        fc='#c66780',
+                        ec='#c67d67',
+                        ls='dotted',
+                        zorder=2
+                        )
+            )
+    ax.add_patch(
+            ptchs.Ellipse(
+                        (0.5, 0.5),
+                        0.25,
+                        0.38,
+                        fc='#c63f63',
+                        ec='#c65f3f',
+                        ls='dashed',
+                        zorder=3
+                        )
+            )
+    ax.add_patch(
+            ptchs.Ellipse(
+                        (0.5, 0.5),
+                        0.15,
+                        0.26,
+                        fc='#c61746',
+                        ec='#c64017',
+                        zorder=4
+                        )
+            )
+    ax.text(0.5,
+            0.15,
+            u'ozračeni volumen',
+            size='large',
+            horizontalalignment='center')
+    ax.text(0.5,
+            0.2,
+            u'tretirani volumen',
+            size='large',
+            horizontalalignment='center')
+    ax.text(0.5,
+            0.27,
+            u'PTV',
+            size='large',
+            horizontalalignment='center')
+    ax.text(0.5,
+            0.34,
+            u'CTV',
+            size='large',
+            horizontalalignment='center')
+    ax.text(0.5,
+            0.5,
+            u'GTV',
+            size='large',
+            horizontalalignment='center')
