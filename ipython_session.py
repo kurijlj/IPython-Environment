@@ -113,3 +113,29 @@ fig1, ax1 = plt.subplots()
 ax.imshow(prsr2.GetImage(), cmap=cm.gray)
 ax1.imshow(prsr2.GetImage(), cmap=cm.gray)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from matplotlib import pyplot as plt
+import matplotlib.patches as ptchs
+import matplotlib.cm as cm
+from enum import Enum
+class PatientSex(Enum):
+    other = 'o'
+    male = 'm'
+    female = 'f'
+fig1, ax1 = plt.subplots()
+plt.axis('off')
+ax1.add_patch(ptchs.FancyBboxPatch((0.25, 0.15), 0.5, 0.7, boxstyle=ptchs.BoxStyle("Round", pad=0.02, rounding_size=0.04), fc='#3f8cc6', ec='#3f48c6', zorder=0))
+ax1.add_patch(ptchs.FancyBboxPatch((0.3, 0.2), 0.4, 0.6, boxstyle=ptchs.BoxStyle("Round", pad=0.02, rounding_size=0.04), fc='#3fb4c6', ec='#3f71c6', zorder=1))
+ax1.add_patch(ptchs.Ellipse((0.5, 0.5), 0.35, 0.5, fc='#c66780', ec='#c67d67', ls='dotted', zorder=2))
+ax1.add_patch(ptchs.Ellipse((0.5, 0.5), 0.25, 0.38, fc='#c63f63', ec='#c65f3f', ls='dashed', zorder=3))
+ax1.add_patch(ptchs.Ellipse((0.5, 0.5), 0.15, 0.26, fc='#c61746', ec='#c64017', zorder=4))
+ax1.text(0.5, 0.15, u'ozračeni volumen', size='large', horizontalalignment='center')
+ax1.text(0.5, 0.2, u'tretirani volumen', size='large', horizontalalignment='center')
+ax1.text(0.5, 0.27, u'PTV', size='large', horizontalalignment='center')
+ax1.text(0.5, 0.34, u'CTV', size='large', horizontalalignment='center')
+ax1.text(0.5, 0.5, u'GTV', size='large', horizontalalignment='center')
+quit()
