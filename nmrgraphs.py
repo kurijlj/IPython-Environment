@@ -403,24 +403,34 @@ def gtvctvptv_plot(ax):
             0.15,
             u'ozračeni volumen',
             size='large',
-            horizontalalignment='center')
+            horizontalalignment='center',
+            zorder=5
+            )
     ax.text(0.5,
             0.2,
             u'tretirani volumen',
             size='large',
-            horizontalalignment='center')
+            horizontalalignment='center',
+            zorder=5
+            )
     ax.text(0.5,
             0.27,
             u'PTV',
             size='large',
-            horizontalalignment='center')
+            horizontalalignment='center',
+            zorder=5
+            )
     ax.text(0.5,
             0.34,
             u'CTV',
             size='large',
-            horizontalalignment='center')
+            horizontalalignment='center',
+            zorder=5
+            )
     ax.text(0.5,
             0.5,
             u'GTV',
             size='large',
-            horizontalalignment='center')
+            horizontalalignment='center',
+            zorder=5
+            )

@@ -139,3 +139,17 @@ ax1.text(0.5, 0.27, u'PTV', size='large', horizontalalignment='center')
 ax1.text(0.5, 0.34, u'CTV', size='large', horizontalalignment='center')
 ax1.text(0.5, 0.5, u'GTV', size='large', horizontalalignment='center')
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from matplotlib import pyplot as plt
+import matplotlib.cm as cm
+from nmrgraphs import gtvctvptv_plot
+fig1, ax1 = plt.subplots()
+plt.axis('off')
+gtvctvptv_plot(ax1)
+ax1.text(0.5, 0.5, u'GTV', size='large', horizontalalignment='center', zorder=5)
+ax1.cla()
+quit()
