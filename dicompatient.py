@@ -30,7 +30,7 @@ class QualityControlSubject(Enum):
     yes = 1
 
 
-class DicomPatient:
+class DicomPatient(object):
     """Class representing DICOM Patient IE (information entity) objects.
     The Patient IE defines the characteristics of a patient who is subject of
     one or more medical studies.
@@ -54,7 +54,7 @@ class DicomPatient:
         self.studies = list()
 
 
-class DicomGeneralStudy:
+class DicomGeneralStudy(object):
     """Class representing DICOM General Study objects. General Study objects
     represent attributes that describe and identify the Study performed upon
     the Patient.
@@ -74,7 +74,7 @@ class DicomGeneralStudy:
         self.studydesc = str()
 
 
-class DicomPatientStudy:
+class DicomPatientStudy(object):
     """Class representing DICOM Patient Study objects. Patient Study objects
     represent attributes that provide information about the Patient at the time
     the Study started.
@@ -91,7 +91,7 @@ class DicomPatientStudy:
         self.admtdgsdesc = str()
 
 
-class DicomStudy:
+class DicomStudy(object):
     """Class representing DICOM Study IE (information entity) objects.
     The Study IE defines the characteristics of a medical study performed on
     a patient. A study is a collection of one or more series of medical images,
@@ -109,7 +109,7 @@ class DicomStudy:
         self.series = list()
 
 
-class DicomSeries:
+class DicomSeries(object):
     """Class representing DICOM Series IE (information entity) objects.
     The Series IE defines the Attributes that are used to group composite
     instances into distinct logical sets. Each series is associated with
@@ -153,7 +153,7 @@ class DicomSeries:
         self.images = list()
 
 
-class DicomEquipment:
+class DicomEquipment(object):
     """Class representing DICOM Equipment IE (information entity) objects. The
     Equipment IE describes the particular device that produced the series of
     composite instances. A device may produce one or more series within
@@ -164,10 +164,66 @@ class DicomEquipment:
     """
 
     def __init__(self):
-        pass
+        # Manufacturer of the equipment that produced the composite instances.
+        # Attribute requirement type 2
+        self.manufacturer = str()
+        # Institution where the equipment that produced the composite instances
+        # is located. Attribute requirement type 3
+        self.institutionname = str()
+        # Mailing address of the institution where the equipment that produced
+        # the composite instances is located. Attribute requirement type 3
+        self.institutionaddress = str()
+        # User defined name identifying the machine that produced the composite
+        # instances. Attribute requirement type 3
+        self.stationname = str()
+        # Department in the institution where the equipment that produced the
+        # composite instances is located. Attribute requirement type 3
+        self.deptname = str()
+        # Manufacturer's model name of the equipment that produced the
+        # composite instances. Attribute requirement type 3
+        self.modelname = str()
+        # Manufacturer's serial number of the equipment that produced the
+        # composite instances. Attribute requirement type 3
+        self.devicesno = str()
+        # Manufacturer's designation of software version of the equipment that
+        # produced the composite instances. Attribute requirement type 3
+        self.softwarever = str()
+        # Identifier of the gantry or positioner. Attribute requirement type 3
+        self.gantryid = str()
+        # The inherent limiting resolution in mm of the acquisition equipment
+        # for high contrast objects for the data gathering and reconstruction
+        # technique chosen. Attribute requirement type 3
+        self.spatialresolution = float()
+        # Date and time when the image acquisition device calibration was last
+        # changed in any way. Multiple entries may be used. Attribute
+        # requirement type 3
+        self.calibrationtime = list()
+        # Single pixel value or one limit (inclusive) of a range of pixel
+        # values used in an image to pad to rectangular format or to signal
+        # background that may be suppressed. Attribute requirement type 1C
+        self.pixelpaddingval = int()
 
 
-class DicomFrameOfReference:
+class CalibrationTime(object):
+    """Class representing date and time when the image acquisition device
+    calibration was last changed in any way. The Attribute Date of Last
+    Calibration may be supported alone, however, Time of Last Calibration
+    Attribute has no meaning unless Attribute Date of Last Calibration is also
+    supported. The order for each Attribute shall be from the oldest
+    date/time to the most recent date/time. When the Attributes are both
+    supported they shall be provided as pairs.
+    """
+
+    def __init__(self):
+        # Date when the image acquisition device calibration was last changed
+        # in any way. Attribute requirement type 3
+        self.date = date()
+        # Time when the image acquisition device calibration was last changed
+        # in any way. Attribute requirement type 3
+        self.time = time()
+
+
+class DicomFrameOfReference(object):
     """Class representing DICOM Frame of Reference IE (information entity)
     objects. The Frame of Reference IE identifies the coordinate system that
     conveys spatial and/or temporal information of composite instances in
@@ -183,10 +239,15 @@ class DicomFrameOfReference:
     """
 
     def __init__(self):
-        pass
+        # Uniquely identifies the frame of reference for a Series. Attribute
+        # requirement type 3
+        self.foruid = str()
+        # Part of the imaging target used as a reference. Attribute
+        # requirement type 3
+        self.prindicator = str()
 
 
-class DicomImage:
+class DicomImage(object):
     """Class representing DICOM Image IE (information entity) objects.
     The Image IE defines the Attributes that describe the pixel data of
     an image. The pixel data may be generated as a direct result of patient
@@ -213,7 +274,7 @@ class DicomImage:
         pass
 
 
-class DicomModalityLUT:
+class DicomModalityLUT(object):
     """Class representing DICOM Modality LUT IE (information entity) objects.
     The Modality LUT IE defines the Attributes that describe the transformation
     of manufacturer dependent pixel values into pixel values that are
