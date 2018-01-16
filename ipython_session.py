@@ -221,3 +221,31 @@ ax2.imshow(im2)
 ax1.axis('off')
 ax2.axis('off')
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+print(True)
+str(True)
+import dosimetry as dsm
+cnds0 = dsm.EnvConds()
+cnds0
+cnds = dsm.EnvComds(t=22.5, p=99.1, ref=False)
+cnds = dsm.EnvConds(t=22.5, p=99.1, ref=False)
+cnds
+dir(cnds)
+import dosimetry as dsm
+dir(cnds)
+cnds = dsm.EnvConds(t=22.5, p=99.1, ref=False)
+dir(cnds)
+cnds.p
+cnds.t
+cnds.RH
+cnds.asdict()
+cnds0 = dsm.EnvConds()
+cnds0.p
+cnds0.t
+cnds0.RH
+cnds0.asdict()
+quit()
