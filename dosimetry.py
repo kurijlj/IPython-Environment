@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
+from datetime import date
+
+
 class EnvConds(object):
     """
     """
@@ -60,8 +63,8 @@ class EnvConds(object):
             return {'t': self._t, 'p': self._p, 'RH': self._RH}
 
 
-class Instrument(object):
-    """
+class CalibratedInstrument(object):
+    """Abstract class.
     """
 
     def __init__(self,
@@ -72,6 +75,7 @@ class Instrument(object):
         self._mnfc = mnfc
         self._model = model
         self._SNo = SNo
+        self._certificate = None
 
     @property
     def mnfc(self):
@@ -94,6 +98,13 @@ class Instrument(object):
 
         return self._SNo
 
+    @property
+    def certificate(self):
+        """
+        """
+
+        return self._certificate
+
     def asdict(self):
         """
         """
@@ -101,3 +112,44 @@ class Instrument(object):
         return {'Manufacturer': self._mnfc,
                 'Model': self._model,
                 'Serial Number': self._SNo}
+
+
+class CalibrationCertificate(object):
+    """Abstract class.
+    """
+
+    def __init__(self,
+                 lab: str = 'Unknown',
+                 dt: date = date.today(),
+                 factor: float = 1.0):
+        self._lab = lab
+        self._date = dt
+        self._factor = factor
+
+    @property
+    def lab(self):
+        """
+        """
+
+        return self._lab
+
+    @property
+    def date(self):
+        """
+        """
+
+        return self._date
+
+    @property
+    def factor(self):
+        """
+        """
+
+        return self._factor
+
+    def asdict(self):
+        """I am an abstract class. Subclasses must override this.
+        """
+
+        raise TypeError('I am an abstract class. ' +
+                        'Subclasses must override this.')

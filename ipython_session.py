@@ -249,3 +249,38 @@ cnds0.t
 cnds0.RH
 cnds0.asdict()
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+help error
+help(error)
+type(ValueError)
+get_ipython().run_line_magic('pinfo', 'ValueError')
+dir(ValueError)
+ValueError.__class__
+ValueError.__class__.__name__
+dir(ValueError.__class__)
+import dosimetry
+dir(dosimetry)
+crt = CalibrationCertificate()
+crt = dosimetry.CalibrationCertificate()
+crt.lab()
+crt.lab
+crt.date
+crt.factor
+crt.asdict()
+crtn = dosimetry.CalibrationCertificate()
+crtn.asdict()
+crtm = dosimetry.CalibrationCertificate()
+crtm.asdict()
+inst = dosimetry.CalibratedInstrument()
+inst.asdict()
+inst.mnfc
+inst.model
+inst.SNo
+clsa
+get_ipython().run_line_magic('cls', '')
+get_ipython().run_cell_magic('cls', '', '')
+quit()
