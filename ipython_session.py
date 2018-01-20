@@ -226,61 +226,89 @@ get_ipython().run_line_magic('matplotlib', '')
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('clear', '')
-print(True)
-str(True)
-import dosimetry as dsm
-cnds0 = dsm.EnvConds()
-cnds0
-cnds = dsm.EnvComds(t=22.5, p=99.1, ref=False)
-cnds = dsm.EnvConds(t=22.5, p=99.1, ref=False)
-cnds
-dir(cnds)
-import dosimetry as dsm
-dir(cnds)
-cnds = dsm.EnvConds(t=22.5, p=99.1, ref=False)
-dir(cnds)
-cnds.p
-cnds.t
-cnds.RH
-cnds.asdict()
-cnds0 = dsm.EnvConds()
-cnds0.p
-cnds0.t
-cnds0.RH
-cnds0.asdict()
+import filmdosimetry as fd
+from matplotlib import pyplot as plt
+img = fd.open_image('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+imgG = fd.image_channel(img, fd.RGB.green)
+fig, axes = plt.subplots(1, 2, num='RGB - Extracting Color Channels')
+axes[0].axis('off')
+axes[1].axis('off')
+axes[0].imshow(img)
+axes[1].imshow(imgG, cmap='Greys')
 quit()
 get_ipython().run_line_magic('logstart', './ipython_session.py append')
 get_ipython().run_line_magic('matplotlib', '')
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('clear', '')
-help error
-help(error)
-type(ValueError)
-get_ipython().run_line_magic('pinfo', 'ValueError')
-dir(ValueError)
-ValueError.__class__
-ValueError.__class__.__name__
-dir(ValueError.__class__)
-import dosimetry
-dir(dosimetry)
-crt = CalibrationCertificate()
-crt = dosimetry.CalibrationCertificate()
-crt.lab()
-crt.lab
-crt.date
-crt.factor
-crt.asdict()
-crtn = dosimetry.CalibrationCertificate()
-crtn.asdict()
-crtm = dosimetry.CalibrationCertificate()
-crtm.asdict()
-inst = dosimetry.CalibratedInstrument()
-inst.asdict()
-inst.mnfc
-inst.model
-inst.SNo
-clsa
-get_ipython().run_line_magic('cls', '')
-get_ipython().run_cell_magic('cls', '', '')
+from matplotlib import pyplot as plt
+import matplotlib.image as mpimg
+import numpy as np
+fig, axes = plt.subplots(1, 2, num='RGB - Extracting Color Channels')
+axes[0].axis('off')
+axes[1].axis('off')
+image = mpimg.imread('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+image_G = 255 - image[:,:,0]
+axes[0].imshow(image)
+axes[1].imshow(image_G, cmap='Greys')
+image_G = 255 - image[:,:,1]
+axes[1].imshow(image_G, cmap='Greys')
+image_G = 255 - image[:,:,2]
+axes[1].imshow(image_G, cmap='Greys')
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+red = image.getchannel('R')
+green = image.getchannel('G')
+blue = image.getchannel('B')
+images = [image, np.asarray(red), np.asarray(green), np.asarray(blue)]
+titles = ['Original', 'Red Channel', 'Green Channel', 'Blue Channel']
+cmaps = [None, 'gray', 'gray', 'gray']
+fig, axes = plt.subplots(1, 4, num='Image Color Bands')
+objects = zip(axes, titles, images, cmaps)
+fd.display_objects(objects)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+green = image.getchannel('G')
+greenhist = np.array(green.histogram())
+np.argmax(greenhist)
+greenhist / greenhist[149]
+len(green.histogram())
+[i for i in range(len(green.histogram()))]
+fig, axes = plt.subplots(1, 2, num='Green Channel Histogram')
+axes[0].axis('off')
+axes[1].axis('off')
+axes[0].imshow(green, cmap='gray')
+axes[1].bar([x for x in range(256)], greenhist / greenhist[149], width=1.0)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+fd.show_channels(image)
+fd.plot_histogram(image, 'G')
+fd.show_topography(image, 'R', blur_radius=5, vert_exag=0.7)
+fd.show_topography(image, 'R', vert_exag=10)
 quit()
