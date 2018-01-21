@@ -363,3 +363,138 @@ import filmdosimetry as fd
 image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
 fd.plot_3d_histogram(image)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+fd.plot_3d_histogram(image)
+fd.show_channels()
+fd.show_channels(image)
+fd.show_topography(image, 'R', blur_radius=3, vert_exag=0.7)
+fd.plot_channel_histogram(image, 'G')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+fd.edge_detect(image)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+from skimage import measure
+rarr = np.asarray(image.getchannel('R'))
+cntrs = measure.find_contours(rarr, 0.8)
+fig = plt.figure(figsize=(4, 6))
+ax = fig.add_subplot(1, 1, 1)
+ax.imshow(rarr, cmap=plt.cm.gray)
+for n, cnt in enumerate(cntrs):
+    ax.plot(contour[:, 1], contour[:, 0], linewidth=1)
+    
+for n, cnt in enumerate(cntrs):
+    ax.plot(cnt[:, 1], cnt[:, 0], linewidth=1)
+    
+    
+cntrs = measure.find_contours(rarr, 0.1)
+for n, cnt in enumerate(cntrs):
+    ax.plot(cnt[:, 1], cnt[:, 0], linewidth=1)
+    
+cntrs = measure.find_contours(rarr, 5.0)
+for n, cnt in enumerate(cntrs):
+    ax.plot(cnt[:, 1], cnt[:, 0], linewidth=1)
+    
+fd.plot_channel_histogram('R')
+fd.plot_channel_histogram(image, 'R')
+cntrs = measure.find_contours(rarr, 150.0)
+for n, cnt in enumerate(cntrs):
+    ax.plot(cnt[:, 1], cnt[:, 0], linewidth=1)
+    
+fd.channel_threshold(image, 'R', 150)
+fd.channel_threshold(image, 'R', 150)
+fd.channel_threshold(image, 'R', 15)
+fd.channel_threshold(image, 'R', 100)
+fd.plot_channel_histogram(image, 'R')
+fd.show_channel_threshold(image, 'R', 35)
+fd.show_channel_threshold(image, 'R', 40)
+green = np.asarray(image.getchannel('G'))
+green
+fd.plot_channel_histogram(image, 'G')
+len(green)
+green[586]
+fig = plt.figure()
+ax = fig.add_subplot()
+ax.plot(255 - green[586])
+ax = fig.add_subplot(1, 1, 1)
+ax.plot(255 - green[586])
+ax.plot(255 - green[586][50:103])
+ax.plot(255 - green[586][50:890])
+from scipy import interpolate as intpol
+spline = intpol.interp1d([x for x in range(890-50)], 255 - green[586][50:890], kind='cubic')
+ax.plot(spline, '--'))
+ax.plot(spline, '--')
+x = [x for x in range(890-50)]
+spline = intpol.interp1d(x, 255 - green[586][50:890], kind='cubic')
+ax.plot(spline(x), '--')
+ax.cla()
+ax.plot(255 - green[586][50:890])
+spline = intpol.BarycentricInterpolator(x, 255 - green[586][50:890])
+spline = intpol.KroghInterpolator(x, 255 - green[586][50:890])
+ax.plot(spline(x))
+ax.plot(spline)
+ax.cla()
+ax.plot(255 - green[586][50:890])
+spline = intpol.CubicSpline(x, 255 - green[586][50:890])
+ax.plot(spline(x))
+ax.cla()
+ax.plot(255 - green[586][50:890])
+ax.plot(spline(x), '--')
+ax.plot(fd.smooth(255 - green[586][50:890]), ':')
+ax.cla()
+ax.plot(255 - green[586][50:890])
+ax.plot(fd.smooth(255 - green[586][50:890]), ':')
+ax.plot(fd.smooth(255 - green[586][50:890], window_len=20), '--')
+ax.plot(fd.smooth(255 - green[586][50:890], window_len=30), '-.')
+230-106
+230-62
+255-168
+fd.show_channel_threshold(image, 'R', 62)
+green.dim()
+green.dim
+np.dim(green)
+dir(green)
+green.size()
+green.size
+green.ndim()
+green.ndim
+green.shape()
+green.shape
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60)
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60)
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60)
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60)
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60)
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='hamming')
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='bartlett')
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='bartlett', wl=20)
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='blackman', wl=20)
+fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='blackman', wl=20)
+quit()
