@@ -7,6 +7,7 @@ import numpy as np
 from PIL import ImageFilter
 from matplotlib import pyplot as plt
 from matplotlib.colors import LightSource
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def display_objects(objs):
@@ -64,7 +65,7 @@ def show_topography(img, chnl, blur_radius=0, vert_exag=0.5):
     axes[1].imshow(elevated)
 
 
-def plot_histogram(img, chnl):
+def plot_channel_histogram(img, chnl):
     imgc = img.getchannel(chnl)
     hst = np.array(imgc.histogram())
     maxvalindex = np.argmax(hst)
@@ -89,3 +90,37 @@ def plot_histogram(img, chnl):
     axes[1].grid('on', linestyle='--')
     axes[1].set_facecolor('#e6e6e6')
     axes[1].bar([x for x in range(hst.size)], hst, width=1.0, color='#297ae5')
+
+
+def plot_3d_histogram(img):
+    hst = dict()
+    c = img.getchannel('R')
+    hst['R'] = np.array(c.histogram())
+    maxi = np.argmax(hst['R'])
+    hst['R'] = hst['R'] / hst['R'][maxi]
+    c = img.getchannel('G')
+    hst['G'] = np.array(c.histogram())
+    maxi = np.argmax(hst['G'])
+    hst['G'] = hst['G'] / hst['G'][maxi]
+    c = img.getchannel('B')
+    hst['B'] = np.array(c.histogram())
+    maxi = np.argmax(hst['B'])
+    hst['B'] = hst['B'] / hst['B'][maxi]
+
+    fig = plt.figure(figsize=(9.0, 4.0))
+    fig.canvas.set_window_title('3D Color Histogram - ' + img.filename)
+    axes = []
+    axes.append(fig.add_subplot(1, 2, 1))
+    axes.append(fig.add_subplot(1, 2, 2, projection='3d'))
+    axes[0].axis('off')
+    axes[0].set_title('Source Image')
+    axes[0].imshow(img)
+    axes[1].axis(xmin=0, xmax=255, ymin=0, ymax=4)
+    axes[1].bar([x for x in range(hst['R'].size)], hst['R'], zs=1, color='red',
+                zdir='y', alpha=0.8, width=1.0)
+    axes[1].bar([x for x in range(hst['G'].size)], hst['G'], zs=2,
+                color='green', zdir='y', alpha=0.8, width=1.0)
+    axes[1].bar([x for x in range(hst['B'].size)], hst['B'], zs=3,
+                color='blue', zdir='y', alpha=0.8, width=1.0)
+    axes[1].set_yticks([1, 2, 3])
+    axes[1].set_title('3D Color Histogram')

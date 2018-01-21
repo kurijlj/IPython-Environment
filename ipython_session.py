@@ -312,3 +312,54 @@ fd.plot_histogram(image, 'G')
 fd.show_topography(image, 'R', blur_radius=5, vert_exag=0.7)
 fd.show_topography(image, 'R', vert_exag=10)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+from mpl_toolkits.mplot3d import Axes3D
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+red = image.getchannel('R')
+redh = np.array(red.histogram())
+redmaxi = np.argmax(redh)
+green = image.getchannel('G')
+greenh = np.array(green.histogram())
+greenmaxi = np.argmax(greenh)
+blue = image.getchannel('B')
+blueh = np.array(blue.histogram())
+bluemaxi = np.argmax(blueh)
+redh = rehd / redh[redmaxi]
+redh = redh / redh[redmaxi]
+greenh = greenh / greenh[greenmaxi]
+blueh = blueh / blueh[bluemaxi]
+fig = plt.figure(figsize=(9.0, 4.0))
+axes = []
+axes.append(fig.add_subplot(1, 2, 1))
+axes.append(fig.add_subplot(1, 2, 2, projection='3d'))
+axes[0].axis('off')
+fig.canvas.set_window_title('3D Color Histogram - ' + image.filename)
+axes[0].imshow(image)
+axes[0].set_title('Source Image')
+axes[1].axis(xmin=0, xmax=255, ymin=0, ymax=4)
+axes[1].bar([x for x in range(redh.size)], redh, zs=1, color='red', zdir='y', alpha=0.8, width=1.0)
+axes[1].bar([x for x in range(greenh.size)], greenh, zs=2, color='green', zdir='y', alpha=0.8, width=1.0)
+axes[1].bar([x for x in range(blueh.size)], blueh, zs=3, color='blue', zdir='y', alpha=0.8, width=1.0)
+axes[1].set_yticks([1, 2, 3])
+axes[1].set_title('3D Color Histogram')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK profile [XZ 20160327].jpg')
+fd.plot_3d_histogram(image)
+quit()
