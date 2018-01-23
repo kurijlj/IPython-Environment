@@ -498,3 +498,141 @@ fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='bartlett', wl=20)
 fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='blackman', wl=20)
 fd.plot_chnl_row_profile(image, 'R', 585, pad=60, wnd='blackman', wl=20)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK E2E Patient QA 002 [fractionated XZ 20180116].tif')
+fd.show_channels(image)
+fd.plot_3d_histogram(image)
+fd.plot_channel_histogram(image, 'R')
+fd.show_topography(image, 'R', blur_radius=10, vert_exag=0.7)
+fd.edge_detect(image)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+image = Image.open('/home/ljubak/Downloads/KCS GK E2E Patient QA 002 RQ [fractionated XZ 20180116].jpg')
+fd.show_channels(image)
+fd.plot_3d_histogram(image)
+fd.plot_channel_histogram(image, 'R')
+fd.show_topography(image, 'R', blur_radius=10, vert_exag=0.7)
+fd.show_topography(image, 'R', blur_radius=10, vert_exag=5)
+fd.show_topography(image, 'R', blur_radius=10, vert_exag=2)
+fd.show_topography(image, 'R', blur_radius=10, vert_exag=1)
+fd.edge_detect(image)
+fd.plot_channel_histogram(image, 'R')
+fd.plot_chnl_row_profile(image, 'R', 652, pad=70)
+fd.show_channel_threshold(image, 'R', 100)
+fd.show_channel_threshold(image, 'R', 40)
+fd.show_channel_threshold(image, 'R', 150)
+fd.show_topography(image, 'R', blur_radius=10, vert_exag=1)
+fd.show_topography(image, 'R', blur_radius=5, vert_exag=0.7)
+fd.plot_channel_histogram(image, 'R')
+fd.edge_detect(image)
+fd.plot_channel_histogram(image, 'R')
+fd.show_channel_threshold(image, 'R', 142)
+fd.show_channel_threshold(image, 'R', 120)
+fd.show_channel_threshold(image, 'R', 110)
+fd.show_channel_threshold(image, 'R', 40)
+255 - 80
+(255 - 80)/2
+255 - (255 - 80)/2
+fd.show_channel_threshold(image, 'R', 167)
+fd.plot_chnl_row_profile(image, 'R', 652, pad=70)
+176-120
+(176-120)/2
+fd.plot_channel_histogram(image, 'R')
+fd.plot_chnl_row_profile(image, 'R', 698, pad=70)
+(176-110)/2
+255 - 176 + 33
+fd.show_channel_threshold(image, 'R', 112)
+from mpl_toolkits.mplot3d import Axes3D
+r_chnl = np.asarray(image.getchannel('R'))
+r_chnl.size
+r_chnl.ndim
+dir(r_chnl)
+r_chnl.shape
+X = [x for x in range(r_chnl.shape[0])]
+Y = [y for y in range(r_chnl.shape[1])]
+fig = plt.figure()
+ax = Axes3D(fig)
+ax.plot_surface(X, Y, r_chnl, rstride=1, cstride=1, cmap=cm.viridis)
+ax.plot_surface(X, Y, r_chnl, rstride=1, cstride=1, cmap=plt.cm.viridis)
+X, Y = np.mgrid[:r_chnl.shape[0],:r_chnl.shape[1]]
+Z = r_chnl[::1,::1]
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.viridis)
+r_chnl = image.getchannel('R')
+r_chnl.size
+r_chnl.size * 0.5
+nsz = (r_chnl.size[0] * 0.5, r_chnl.size[1] * 0.5)
+nsz
+r_rsz = r_chnl.resize(nsz)
+nsz = (int(r_chnl.size[0] * 0.5), int(r_chnl.size[1] * 0.5))
+nsz
+r_rsz = r_chnl.resize(nsz)
+r_rsz = np.asarray(r_chnl.resize(nsz))
+Z = r_rsz[::1,::1]
+X, Y = np.mgrid[:Z.shape[0],:Z.shape[1]]
+fig = plt.figure()
+ax = Axes3D(fig)
+Z = 255 - Z
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.viridis)
+fig = plt.figure()
+ax = Axes3D(fig)
+ax.view_init(60, 90)
+ax.view_init(30, 90)
+ax.view_init(60, 90)
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.nipy_spectral)
+ax.view_init(60, 0)
+ax.cla()
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.nipy_spectral)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+from mpl_toolkits.mplot3d import Axes3D
+image = Image.open('/home/ljubak/Downloads/KCS GK E2E Patient QA 002 RQ [fractionated XZ 20180116].jpg')
+cropbox = (70, 70, image.size[0] - 70, image.size[1] - 70)
+newsize = (int((image.size[0] - 140) * 0.5), int((image.size[1] - 140) * 0.5))
+imagersz = image.crop(cropbox).resize(newsize, resample=Image.BICUBIC)
+Z = 255 - np.asarray(imagersz.getchannel('R'))[::1, ::1]
+X, Y = np.mgrid[:Z.shape[0],:Z.shape[1]]
+fig = plt.figure()
+ax = Axes3D(fig)
+ax.view_init(75, 0)
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.nipy_spectral)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
+from mpl_toolkits.mplot3d import Axes3D
+image = Image.open('/home/ljubak/Downloads/KCS GK E2E Patient QA 002 RQ [fractionated XZ 20180116].jpg')
+cropbox = (70, 70, image.size[0] - 70, image.size[1] - 70)
+newsize = (int((image.size[0] - 140) * 0.5), int((image.size[1] - 140) * 0.5))
+imagersz = image.crop(cropbox).resize(newsize, resample=Image.BICUBIC)
+fd.chnl_3d_heat_plot(imagersz, 'G')
+fd.chnl_3d_heat_plot(imagersz, 'R')

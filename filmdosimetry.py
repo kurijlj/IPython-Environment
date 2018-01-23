@@ -34,11 +34,11 @@ def show_channels(img):
     display_objects(objects)
 
 
-def show_topography(img, chnl, blur_radius=0, vert_exag=0.5, cm=0):
+def show_topography(img, chnl, br=0, ve=0.5, cm=0):
     cmaps = [plt.cm.nipy_spectral, plt.cm.terrain, plt.cm.gist_earth]
     filtered = None
-    if 0 != blur_radius:
-        blured = img.filter(ImageFilter.GaussianBlur(blur_radius))
+    if 0 != br:
+        blured = img.filter(ImageFilter.GaussianBlur(br))
         filtered = np.asarray(blured.getchannel(chnl))
     imgc = np.asarray(img.getchannel(chnl))
     title = 'Unknown'
@@ -61,12 +61,12 @@ def show_topography(img, chnl, blur_radius=0, vert_exag=0.5, cm=0):
     axes[1].axis('off')
     axes[1].set_title(title +
                       ' Channel Topography [BR:' +
-                      (str(blur_radius) if filtered is not None else 'None') +
-                      ', VE:' + str(vert_exag) + ']')
+                      (str(br) if filtered is not None else 'None') +
+                      ', VE:' + str(ve) + ']')
     elevated = ls.shade((filtered if filtered is not None else imgc),
                         cmap=cmaps[cm],
                         blend_mode='overlay',
-                        vert_exag=vert_exag)
+                        vert_exag=ve)
     axes[1].imshow(elevated)
 
 
@@ -90,7 +90,7 @@ def plot_channel_histogram(img, chnl):
     fig, axes = plt.subplots(1, 2, figsize=(9.0, 4.0))
     # fig.tight_layout()
     fig.canvas.set_window_title(title + 'Channel Histogram - ' + img.filename)
-    axes[0].axis('off')
+    # axes[0].axis('off')
     axes[0].set_title(title + 'Channel')
     axes[0].imshow(np.asarray(imgc), cmap='gray')
     axes[1].set_title('Channel Histogram')
@@ -139,23 +139,23 @@ def edge_detect(img):
     filt = ndimage.sobel(np.asarray(img))
     fig, axes = plt.subplots(1, 2)
     fig.canvas.set_window_title('Sobel Edge Detect - ' + img.filename)
-    axes[0].axis('off')
+    # axes[0].axis('off')
     axes[0].set_title('Source Image')
     axes[0].imshow(img)
-    axes[1].axis('off')
+    # axes[1].axis('off')
     axes[1].set_title('Sobel Edge Detect')
     axes[1].imshow(filt)
 
 
 def show_channel_threshold(img, chnl, val):
     data = np.asarray(img.getchannel(chnl))
-    mask = data < val
+    mask = data > val
     fig, axes = plt.subplots(1, 2)
     fig.canvas.set_window_title('Threshold - ' + img.filename)
-    axes[0].axis('off')
+    # axes[0].axis('off')
     axes[0].set_title(chnl + ' Channel')
     axes[0].imshow(data, cmap=plt.cm.gray)
-    axes[1].axis('off')
+    # axes[1].axis('off')
     axes[1].set_title('Mask')
     axes[1].imshow(mask, cmap=plt.cm.gray)
 
@@ -222,12 +222,70 @@ def plot_chnl_row_profile(img, chnl, row, wl=11, wnd='hanning', pad=0):
     c = np.asarray(img.getchannel(chnl))
     prof = 255 - c[row][pad:c.shape[1] - pad]
     smtd = smooth1d(prof, wl, wnd)
+    title = 'Unknown'
+    if chnl is 'R':
+        title = 'Red '
+    elif chnl is 'G':
+        title = 'Green '
+    elif chnl is 'B':
+        title = 'Blue '
+    else:
+        pass
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-    fig.canvas.set_window_title(chnl + ' Channel Row Profile - '
+    fig.canvas.set_window_title(title + ' Channel Row Profile - '
                                 + img.filename)
-    axes[0].set_title(chnl + ' Channel')
+    axes[0].set_title(title + ' Channel')
+    # axes[0].imshow(c, cmap=plt.cm.gray,
+    #                extent=[0, img.size[0], 0, img.size[1]])
     axes[0].imshow(c, cmap=plt.cm.gray)
+
+    # Draw row position indicator
+    axes[0].plot([0, img.size[0] - 2], [row, row], '-', linewidth=0.8,
+                 color='green')
+
     axes[1].set_title('Row Profile [' + str(row) + ']')
     axes[1].plot(prof)
     axes[1].plot(smtd, ':')
+
+
+def chnl_3d_heat_plot(img, chnl):
+    Z = 255 - np.asarray(img.getchannel(chnl))[::1, ::1]
+    X, Y = np.mgrid[:Z.shape[0], :Z.shape[1]]
+    title = 'Unknown'
+    if chnl is 'R':
+        title = 'Red '
+    elif chnl is 'G':
+        title = 'Green '
+    elif chnl is 'B':
+        title = 'Blue '
+    else:
+        pass
+
+    fig = plt.figure()
+    fig.canvas.set_window_title(title + ' Channel 3D Heat Plot')
+    ax = Axes3D(fig)
+    ax.view_init(75, 0)
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.nipy_spectral)
+    ax.set_title(title + ' Channel 3D Heat Plot')
+
+
+def plot_channel_heatmap(img, chnl):
+    imgc = np.asarray(img.getchannel(chnl))
+    heatmap = 255 - np.asarray(img.getchannel(chnl))
+    title = 'Unknown'
+    if chnl is 'R':
+        title = 'Red '
+    elif chnl is 'G':
+        title = 'Green '
+    elif chnl is 'B':
+        title = 'Blue '
+    else:
+        pass
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.0, 4.0))
+    fig.canvas.set_window_title(title + 'Channel Heatmap - ' + img.filename)
+    axes[0].set_title(title + 'Channel')
+    axes[0].imshow(imgc, cmap=plt.cm.gray)
+    axes[1].set_title(title + 'Channel Heatmap')
+    axes[1].imshow(heatmap, cmap=plt.cm.nipy_spectral)
