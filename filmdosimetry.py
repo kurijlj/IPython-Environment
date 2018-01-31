@@ -147,6 +147,10 @@ def edge_detect(img):
     axes[1].imshow(filt)
 
 
+def channel_threshold(img, chnl, val):
+    return np.asarray(img.getchannel(chnl)) > val
+
+
 def show_channel_threshold(img, chnl, val):
     data = np.asarray(img.getchannel(chnl))
     mask = data > val
