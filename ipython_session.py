@@ -654,83 +654,6 @@ get_ipython().run_line_magic('logstart', './ipython_session.py append')
 get_ipython().run_line_magic('matplotlib', '')
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('clear', '')
-get_ipython().run_line_magic('cls', '')
-from PIL import Image
-from matplotlib import pyplot as plt
-import numpy as np
-import filmdosimetry as fd
-img1 = Image.open('C:\Users\Physicist\Documents\TagSpaces\Work In Progress\KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180116 RQ600dpi].jpg')
-img1 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180116 RQ600.dpi].jpg')
-img1 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180116 RQ600dpi].jpg')
-img1 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180123 RQ600dpi].jpg')
-img1 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180116 RQ600dpi].jpg')
-img2 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180123 RQ600dpi].jpg')
-img3 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated LstFr XZ irr20180123 scn20180123 RQ600dpi].jpg')
-fd.show_channels(img1)
-fd.show_channel_threshold(img1, 'R', 110)
-fd.show_channel_threshold(img3, 'R', 100)
-fd.show_channel_threshold(img1, 'R', 96)
-fd.show_channel_threshold(img3, 'R', 80)
-fd.show_channels(img1)
-fd.show_channel_threshold(img2, 'R', 110)
-fd.show_channel_threshold(img2, 'R', 100)
-fd.plot_chnl_row_profile(img1, 'R', 778)
-fd.plot_chnl_row_profile(img3, 'R', 778)
-255-110
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('cls', '')
-img1 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180116 RQ600dpi].jpg')
-from PIL import Image
-from matplotlib import pyplot as plt
-import numpy as np
-import filmdosimetry as fd
-img1 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180116 RQ600dpi].jpg')
-img2 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated FrstFr XZ irr20180116 scn20180123 RQ600dpi].jpg')
-img3 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated LstFr XZ irr20180123 scn20180123 RQ600dpi].jpg')
-fd.chnl_3d_heat_plot(img1, 'R')
-cropbox = (70, 70, img1.size[0] - 70, img1.size[1] - 70)
-newsize = (int((img1.size[0] - 140) * 0.5), int((img1.size[1] - 140) * 0.5))
-img1rsz = img1.crop(cropbox).resize(newsize, resample=Image.BICUBIC)
-fd.chnl_3d_heat_plot(img1rsz, 'R')
-cropbox = (70, 70, img3.size[0] - 70, img3.size[1] - 70)
-newsize = (int((img3.size[0] - 140) * 0.5), int((img1.size[1] - 140) * 0.5))
-img3rsz = img3.crop(cropbox).resize(newsize, resample=Image.BICUBIC)
-fd.chnl_3d_heat_plot(img3rsz, 'R')
-fd.show_channel_threshold(img3, 'R', 100)
-fd.show_channel_threshold(img1, 'R', 110)
-img1iso = fd.channel_threshold(img1, 'R', 110)
-img3iso = fd.channel_threshold(img3, 'R', 110)
-diff = img1iso - img3iso
-diff = img1iso ^ img3iso
-diff = img1iso ^ img3iso[1:,]
-fig, ax = plt.addsubplots()
-fig, ax = plt.subplots()
-ax.imshow(diff)
-ax.imshow(diff, cmap=plt.cm.gray)
-fig, ax = plt.subplots()
-ax.imshow(diff, cmap=plt.cm.gray)
-diff = 255 - (img1iso ^ img3iso[1:,])
-fig, ax = plt.subplots()
-ax.imshow(diff, cmap=plt.cm.gray)
-diff = img1iso ^ img3iso[1:,]
-fig, ax = plt.subplots()
-ax.imshow(diff, cmap=plt.cm.gray)
-img1iso = fd.channel_threshold(img1, 'R', 96)
-img3iso = fd.channel_threshold(img3, 'R', 80)
-diff = img1iso ^ img3iso[1:,]
-fig, ax = plt.subplots()
-ax.imshow(diff, cmap=plt.cm.gray)
-diff
-ax.imshow(diff)
-255 - diff
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('cls', '')
 from PIL import Image
 from matplotlib import pyplot as plt
@@ -741,21 +664,17 @@ img2 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS G
 img3 = Image.open('C:/Users/Physicist/Documents/TagSpaces/Work In Progress/KCS GK E2E Patient QA [fractionated LstFr XZ irr20180123 scn20180123 RQ600dpi].jpg')
 img1iso = []
 img3iso = []
+diff = []
 img1iso.append(fd.channel_threshold(img1, 'R', 110))
 img1iso.append(fd.channel_threshold(img1, 'R', 96))
 img1iso.append(fd.channel_threshold(img1, 'R', 86))
 img3iso.append(fd.channel_threshold(img3, 'R', 100))
 img3iso.append(fd.channel_threshold(img3, 'R', 80))
 img3iso.append(fd.channel_threshold(img3, 'R', 66))
-img1iso
-img3iso
-diff = []
 diff.append(img1iso[0] ^ img3iso[0])
 diff.append(img1iso[0] ^ img3iso[0][1:,])
 diff.append(img1iso[1] ^ img3iso[1][1:,])
 diff.append(img1iso[2] ^ img3iso[2][1:,])
-diff
-fig, ax = plt.subplots()
 fig, ax = plt.subplots(1, 3)
 ax[0].imshow(diff[0], plt.cm.gray)
 ax[1].imshow(diff[1], plt.cm.gray)
@@ -770,34 +689,22 @@ from PIL import Image
 from matplotlib import pyplot as plt
 import numpy as np
 import filmdosimetry as fd
-m1 = np.array([[False, True, False], [True, True, True], [False, True, False]])
-m2 = np.array([[True, False, True], [False, False, False], [True, False, True]])
-fig, axs = plt.subplots(1, 2)
-axs[0].imshow(m1)
-axs[0].imshow(m2)
-axs[0].cla()
-axs[1].cla()
-axs[0].imshow(m1)
-axs[1].imshow(m2)
-fig, axs = plt.subplots(1, 2)
-axs[0].imshow(m1, cmap=plt.cm.bw)
-axs[0].imshow(m1, cmap=plt.cm.gray)
-axs[1].imshow(m2, cmap=plt.cm.gray)
 m1 = np.array([[True, False, False], [False, False, False], [False, False, False]])
 m2 = np.array([[True, True, ], [True, True]])
-fig, axs = plt.subplots(1, 2)
-axs[0].imshow(m1, cmap=plt.cm.gray)
-axs[1].imshow(m2, cmap=plt.cm.gray)
-fig, axs = plt.subplots(1, 2)
-axs[0].imshow(m1, cmap=plt.cm.gray)
-axs[1].imshow(m2, cmap=plt.cm.gray)
-np.copyto(mu, m1)
 mu = np.array(m1)
-mu
-mu[1:,1:] = m1[1:,1:] + m2
-mu
+np.copyto(mu, m1)
 fig, axs = plt.subplots(1, 3)
 axs[0].imshow(m1, cmap=plt.cm.gray)
 axs[1].imshow(m2, cmap=plt.cm.gray)
 axs[2].imshow(mu, cmap=plt.cm.gray)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from PIL import Image
+from matplotlib import pyplot as plt
+import numpy as np
+import filmdosimetry as fd
 quit()
