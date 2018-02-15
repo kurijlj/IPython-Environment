@@ -702,9 +702,188 @@ get_ipython().run_line_magic('logstart', './ipython_session.py append')
 get_ipython().run_line_magic('matplotlib', '')
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
+<<<<<<< Updated upstream
 get_ipython().run_line_magic('cls', '')
 from PIL import Image
 from matplotlib import pyplot as plt
 import numpy as np
 import filmdosimetry as fd
+=======
+get_ipython().run_line_magic('clear', '')
+from sys import float_info
+print(float_info)
+int.bit_length(255)
+(255).to_bytes(2,byteorder='big')
+(255).to_bytes(2,byteorder='little')
+(0.5).as_integer_ratio()
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+form environment import *
+from environment import *
+ls('/user/ljubak/Dropbox/TagSpaces')
+ls('/home/ljubak/Dropbox/TagSpaces')
+ListDirectory.list('/home/ljubak/Dropbox/TagSpaces')
+ts = ListDirectory()
+ts.list('/home/ljubak/Dropbox/TagSpaces')
+ts = ListDirectory('/home/ljubak/Dropbox/TagSpaces')
+ts = ListDirectory('/home/ljubak/Dropbox/TagSpaces')
+get_ipython().run_line_magic('cls', '')
+get_ipython().run_line_magic('clear', '')
+ts = ListDirectory()
+ts = ListDirectory('/home/ljubak/Dropbox/TagSpaces')
+ts = IsTrue('')
+ts = IsTrue()
+dir(ts)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+form environment import *
+from environment import *
+ts = ListDirectory('/home/ljubak/Dropbox/TagSpaces')
+'
+ts = ListDirectory('/home/ljubak/Dropbox/TagSpaces')
+ts.test()
+ts.list()
+test = IsTrue('')
+test.test()
+test = IsTrue([])
+test.test()
+test = IsTrue('hello')
+test.test()
+import secrets
+dir(secrets)
+from os import stat
+si = os.stat('.')
+si
+cwd = OsDirectory()
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+cwd = OsDirectory()
+from environment import *
+cwd = OsDirectory()
+cwd.exists()
+cwd.isdir()
+cwd.list()
+dir(cwd)
+cwd
+dir(cwd.__repr__)
+get_ipython().run_line_magic('pinfo', 'cwd.__repr__')
+get_ipython().run_line_magic('pinfo', 'cwd.__str__')
+cwd
+get_ipython().run_line_magic('pinfo', 'cwd.__str__')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+cwd = OsDirectory()
+from environment import *
+cwd = OsDirectory()
+cwd
+get_ipython().run_line_magic('pinfo', 'cwd.__str__')
+get_ipython().run_line_magic('pinfo', 'cwd.__init__')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from environment import *
+cwd = OsDirectory()
+get_ipython().run_line_magic('pinfo', 'cwd.__init__')
+get_ipython().run_line_magic('pinfo', 'cwd.__repr__')
+cwd
+str(cwd)
+cwd.list()
+dir1 = OsDirectory(1)
+dir1
+str(dir1)
+dir1.exists()
+dir1.isdir()
+dir1.list()
+type(1)
+dir(OSDirectory)
+dir(OsDirectory)
+get_ipython().run_line_magic('pinfo', 'OsDirectory.__init__')
+type('')
+dir1 = OsDirectory(1)
+dir1 = OsDirectory('123')
+str(type(''))
+type('').__class__
+a = type('')
+a.__class__
+dir(a)
+'' is str
+type('') is str
+dir1 = OsDirectory('123')
+dir1.exists()
+dir1
+dir1.list()
+dir1.list()
+dir1 = OsDirectory(345)
+test = IsTrue('hello')
+test
+get_ipython().run_line_magic('pinfo', 'test.__repr__')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from environment import *
+test = IsTrue('hello')
+test
+str(test)
+str(test)
+test.type()
+test.evaluate()
+test = IsTrue('')
+test.evaluate()
+test.type()
+str(test)
+test
+test = IsTrue((1))
+test
+str(test)
+test.evaluate()
+test.evaluate(())
+test.evaluate([])
+test = IsTrue(())
+test.evaluate([])
+test.evaluate()
+test
+str(test)
+str.type()
+test.type()
+test = IsTrue(None)
+test
+str(test)
+test.type()
+test.evaluate()
+test
+test = IsTrue(False)
+test
+test.type()
+test.evaluate()
+str(test)
+test = IsTrue(True)
+test
+test = IsTrue(range(0))
+test
+str(test)
+test.type()
+test.evaluate()
+>>>>>>> Stashed changes
 quit()
