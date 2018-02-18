@@ -2,11 +2,6 @@ from os import listdir
 from os.path import isdir, exists
 
 
-def ls(path):
-    for file in listdir(path):
-        print(file)
-
-
 class OsDirectory(object):
     """Wrapper for common os module directory functions.
 
