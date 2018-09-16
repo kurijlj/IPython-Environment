@@ -887,3 +887,59 @@ test.type()
 test.evaluate()
 >>>>>>> Stashed changes
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from matplotlib import pyplot as plt
+import matlpotlib.cm as cm
+import numpy as np
+import py3ddose as dose3d
+df1 = dose3d.DoseFile("./H2O_phantom_with_test_cavity_IAEA_Co60_10x10.3ddose")
+pdd1 = df1.dose[:, 30, 30]/df1.max()
+plt.plot(pdd1)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+data = open("./H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant", "r", encoding="utf-8").read().split('\n')
+cur_line = 0
+m = map(int, data[cur_line].split())
+m
+print m
+print(m)
+dir(m)
+m = int(data[cur_line].split())
+data[cur_line].split()
+m = int(data[cur_line].split().pop())
+m
+cur_line += 1
+str(data[cur_line].split())
+data[cur_line].split().pop()
+data[cur_line].split().pop().__class__
+mtup = (1, 2, 3)
+mtup
+print(mtup)
+print(1, mtup)
+print(tuple(1, mtup))
+print(map(1, mtup))
+print(tuple(map(1, mtup)))
+dir(mtup)
+dir(list())
+mtup[:]
+mtup[1:]
+print(tuple(1) + mtup)
+print((1,) + mtup)
+materials[1] = data[cur_line].split().pop()
+materials = []
+materials[1] = data[cur_line].split().pop()
+materials = {}
+materials[1] = data[cur_line].split().pop()
+cur_line += 1
+materials[2] = data[cur_line].split().pop()
+materials
+print(materials)
+quit()
