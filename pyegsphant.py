@@ -50,39 +50,45 @@ class DoseFile(object):
 
         assert len(self.resolution) == 3, "Non-linear resolution in either x, y or z."
 
-        dose = []
-        while len(dose) < self.size:
-            line_data = list(map(float, data[cur_line].split()))
-            dose += line_data
-            cur_line += 1
-        self.dose = numpy.array(dose)
-        assert len(self.dose) == self.size, "len of dose = {} (expect {})".format(len(self.dose), self.size)
-        
-        self.dose = self.dose.reshape((self.shape))
-        assert self.dose.size == self.size, "Dose array size does not match that specified."
-        
-        if load_uncertainty:
-            uncertainty = []
-            while len(uncertainty) < self.size:
-                line_data = list(map(float, data[cur_line].split()))
-                uncertainty += line_data
+        voxelsmaterial = []
+        for k in range(0, self.shape[0]):
+            for j in range(0, self.shape[1]):
+                for i in range(0, self.shape[2]):
+                    voxelsmaterial += int(data[cur_line][i])
                 cur_line += 1
-            self.uncertainty = numpy.array(uncertainty)
-            assert len(self.uncertainty) == self.size, "len of uncertainty = {} (expected {})".format(len(self.uncertainty), self.size)
-            
-            self.uncertainty = self.uncertainty.reshape((self.shape))
-            assert self.uncertainty.size == self.size, "uncertainty array size does not match that specified."
-            
+            cur_line += 1
+
+        self.voxelsmaterial = numpy.array(voxelsmaterial)
+        assert len(self.voxelsmaterial) == self.size, "len of voxelsmaterial = {} (expect {})".format(len(self.voxelsmaterial), self.size)
+        
+        self.voxelsmaterial = self.voxelsmaterial.reshape((self.shape))
+        assert self.voxelsmaterial.size == self.size, "Voxels material array size does not match that specified."
+
+        voxelsdensity = []
+        for k in range(0, self.shape[0]):
+            for j in range(0, self.shape[1]):
+                line_data = list(map(float, data[cur_line].split()))
+                voxelsdensity += line_data
+                cur_line += 1
+            cur_line += 1
+
+        self.voxelsdensity = numpy.array(voxelsdensity)
+        assert len(self.voxelsdensity) == self.size, "len of voxelsdensity = {} (expect {})".format(len(self.voxelsdensity), self.size)
+        
+        self.voxelsdensity = self.voxelsdensity.reshape((self.shape))
+        assert self.voxelsdensity.size == self.size, "Voxels density array size does not match that specified."
+
+        
     def dump(self, file_name):
-        numpy.savez(file_name, dose=self.dose, uncertainty=self.uncertainty,
+        numpy.savez(file_name, materials=self.materials, voxelmaterial=self.voxelmaterial, voxeldensity=self.voxeldensity,
             x_positions=self.positions[0], y_positions=self.positions[1],
             z_positions=self.positions[2])
 
-    def max(self):
-        return self.dose.max()
+    def maxdensity(self):
+        return self.voxelsdensity.max()
         
-    def min(self):
-        return self.dose.min()
+    def mindensity(self):
+        return self.voxelsdensity.min()
 
     @property
     def x_extent(self):
