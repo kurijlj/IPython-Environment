@@ -949,3 +949,32 @@ get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('cls', '')
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from matplotlib import pyplot as plt
+import numpy as np
+import py3ddose as dose
+import pyegsphant as egsphant
+phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
+phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
+phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
+profile1 = phantom.voxelsmaterial[:,:,31]
+profile2 = phantom.voxelsdensity[:,:,31]
+fig, ax = plt.subplots(ncols=2)
+ax[0].imshow(profile1, cmap=cm.viridis)
+import matplotlib.cm as cm
+ax[0].imshow(profile1, cmap=cm.viridis)
+ax[1].imshow(profile1, cmap=cm.viridis)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from matplotlib import pyplot as plt
+import numpy as np
+import py3ddose as dose
+quit()
