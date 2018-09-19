@@ -978,3 +978,19 @@ from matplotlib import pyplot as plt
 import numpy as np
 import py3ddose as dose
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+from matplotlib import pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+import py3ddose as dose3d
+import egsphant as phantom
+import pyegsphant as phantom
+phnt1 = phantom.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
+fig, ax = plt.subplots(1, 1)
+ax.imshow(phnt1.voxelsdensity, cmap=cm.gray)
+ax.imshow(phnt1.voxelsdensity[:,:,31], cmap=cm.gray)
+quit()
