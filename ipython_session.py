@@ -994,3 +994,45 @@ fig, ax = plt.subplots(1, 1)
 ax.imshow(phnt1.voxelsdensity, cmap=cm.gray)
 ax.imshow(phnt1.voxelsdensity[:,:,31], cmap=cm.gray)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from matplotlib import pyplot as plt
+import numpy as np
+import py3ddose as dose
+import pyegsphant as egsphant
+import matplotlib.cm as cm
+phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
+phantom = egsphant.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
+fig, ax = plt.subplots(1, 1)
+ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
+tddose = dose.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.3ddose")
+profile = tddose.dose[:, :, 31] / tddose.max()
+ax.imshow(profile, cmap=cm.viridis, alpha=0.9, interpolation="bilinear")
+ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
+ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
+ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
+ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
+ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
+ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from matplotlib import pyplot as plt
+import numpy as np
+import py3ddose as dose
+import pyegsphant as egsphant
+import matplotlib.cm as cm
+phantom = egsphant.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
+tddose = dose.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.3ddose")
+fig, ax = plt.subplots(1, 1)
+ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
+ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
+profile = tddose.dose[:, :, 31] / tddose.max()
+ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
+quit()
