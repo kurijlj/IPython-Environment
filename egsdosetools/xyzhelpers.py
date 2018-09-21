@@ -67,19 +67,8 @@ class FusedSlicesTracker(IndexTracker):
         self._update()
 
     def _update(self):
-        self.imX = self.ax.imshow(self.smX[:, :, self.ind], cmap=cm.gray)
-        self.imY = self.ax.imshow(
-                self.smY[:, :, self.ind],
-                cmap=cm.viridis,
-                interpolation="bilinear",
-                alpha=0.6)
-#        self.imX.set_data(self.smX[:, :, self.ind], cmap=cm.gray)
-#        self.imY.set_data(
-#                self.smY[:, :, self.ind],
-#                self.smY[:, :, self.ind],
-#                cmap=cm.viridis,
-#                interpolation="bilinear",
-#                alpha=0.6)
+        self.imX.set_data(self.smX[:, :, self.ind])
+        self.imY.set_data(self.smY[:, :, self.ind])
         self.ax.set_ylabel('slice %s' % self.ind)
         self.imX.axes.figure.canvas.draw()
         self.imY.axes.figure.canvas.draw()
