@@ -1,4 +1,5 @@
 import matplotlib.cm as cm
+import numpy as np
 
 
 class IndexTracker(object):
@@ -69,6 +70,63 @@ class FusedSlicesTracker(IndexTracker):
     def _update(self):
         self.imX.set_data(self.smX[:, :, self.ind])
         self.imY.set_data(self.smY[:, :, self.ind])
+        self.ax.set_ylabel('slice %s' % self.ind)
+        self.imX.axes.figure.canvas.draw()
+        self.imY.axes.figure.canvas.draw()
+
+
+class IsoSlicesTracker(IndexTracker):
+    def __init__(self, ax, smX, smY):
+        self.ax = ax
+
+        self.smX = smX
+        self.smY = smY
+        # Put extent assertion here!
+        rows, cols, self.slices = smX.shape
+        self.ind = self.slices//2
+
+        self.imX = ax.imshow(self.smX[:, :, self.ind], cmap=cm.gray)
+        self.imY = ax.imshow(
+                self.smY[:, :, self.ind],
+                cmap=cm.viridis,
+                interpolation="bilinear",
+                alpha=0.6)
+        self.levels = np.arange(0.2, smY[:, :, self.ind].max(), 0.2)
+        self.CS = ax.contour(
+                self.smY[:, :, self.ind],
+                self.levels,
+                cmap=cm.viridis)
+        self.clabels = ax.clabel(self.CS, self.levels)
+        self._update()
+
+    def onscroll(self, event):
+        print("%s %s" % (event.button, event.step))
+        if event.button == 'up':
+            self.ind = (self.ind + 1) % self.slices
+        else:
+            self.ind = (self.ind - 1) % self.slices
+        self._update()
+
+    def _update(self):
+        self.ax.cla()
+        self.ax.imshow(self.smX[:, :, self.ind], cmap=cm.gray)
+        self.ax.imshow(
+                self.smY[:, :, self.ind],
+                cmap=cm.viridis,
+                interpolation="bilinear",
+                alpha=0.6)
+#        self.imX.set_data(self.smX[:, :, self.ind])
+#        self.imY.set_data(self.smY[:, :, self.ind])
+        self.levels = np.arange(0.2, self.smY[:, :, self.ind].max(), 0.2)
+#        for coll in self.CS.collections:
+#            coll.remove()
+#        for label in self.clabels:
+#            print(label)
+        self.CS = self.ax.contour(
+                self.smY[:, :, self.ind],
+                self.levels,
+                cmap=cm.viridis)
+        self.ax.clabel(self.CS, self.levels)
         self.ax.set_ylabel('slice %s' % self.ind)
         self.imX.axes.figure.canvas.draw()
         self.imY.axes.figure.canvas.draw()

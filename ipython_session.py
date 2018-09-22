@@ -885,7 +885,6 @@ test
 str(test)
 test.type()
 test.evaluate()
->>>>>>> Stashed changes
 quit()
 get_ipython().run_line_magic('logstart', './ipython_session.py append')
 get_ipython().run_line_magic('matplotlib', '')
@@ -905,161 +904,11 @@ get_ipython().run_line_magic('matplotlib', '')
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('clear', '')
-data = open("./H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant", "r", encoding="utf-8").read().split('\n')
-cur_line = 0
-m = map(int, data[cur_line].split())
-m
-print m
-print(m)
-dir(m)
-m = int(data[cur_line].split())
-data[cur_line].split()
-m = int(data[cur_line].split().pop())
-m
-cur_line += 1
-str(data[cur_line].split())
-data[cur_line].split().pop()
-data[cur_line].split().pop().__class__
-mtup = (1, 2, 3)
-mtup
-print(mtup)
-print(1, mtup)
-print(tuple(1, mtup))
-print(map(1, mtup))
-print(tuple(map(1, mtup)))
-dir(mtup)
-dir(list())
-mtup[:]
-mtup[1:]
-print(tuple(1) + mtup)
-print((1,) + mtup)
-materials[1] = data[cur_line].split().pop()
-materials = []
-materials[1] = data[cur_line].split().pop()
-materials = {}
-materials[1] = data[cur_line].split().pop()
-cur_line += 1
-materials[2] = data[cur_line].split().pop()
-materials
-print(materials)
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('cls', '')
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('cls', '')
-from matplotlib import pyplot as plt
-import numpy as np
-import py3ddose as dose
-import pyegsphant as egsphant
-phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-profile1 = phantom.voxelsmaterial[:,:,31]
-profile2 = phantom.voxelsdensity[:,:,31]
-fig, ax = plt.subplots(ncols=2)
-ax[0].imshow(profile1, cmap=cm.viridis)
-import matplotlib.cm as cm
-ax[0].imshow(profile1, cmap=cm.viridis)
-ax[1].imshow(profile1, cmap=cm.viridis)
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('cls', '')
-from matplotlib import pyplot as plt
-import numpy as np
-import py3ddose as dose
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('clear', '')
-from matplotlib import pyplot as plt
-import matplotlib.cm as cm
-import numpy as np
-import py3ddose as dose3d
-import egsphant as phantom
-import pyegsphant as phantom
-phnt1 = phantom.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-fig, ax = plt.subplots(1, 1)
-ax.imshow(phnt1.voxelsdensity, cmap=cm.gray)
-ax.imshow(phnt1.voxelsdensity[:,:,31], cmap=cm.gray)
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('cls', '')
-from matplotlib import pyplot as plt
-import numpy as np
-import py3ddose as dose
-import pyegsphant as egsphant
-import matplotlib.cm as cm
-phantom = egsphant.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-phantom = egsphant.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-fig, ax = plt.subplots(1, 1)
-ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
-tddose = dose.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.3ddose")
-profile = tddose.dose[:, :, 31] / tddose.max()
-ax.imshow(profile, cmap=cm.viridis, alpha=0.9, interpolation="bilinear")
-ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
-ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
-ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
-ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
-ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
-ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('cls', '')
-from matplotlib import pyplot as plt
-import numpy as np
-import py3ddose as dose
-import pyegsphant as egsphant
-import matplotlib.cm as cm
-phantom = egsphant.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-tddose = dose.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.3ddose")
-fig, ax = plt.subplots(1, 1)
-ax.imshow(phantom.voxelsdensity[:, :, 31], cmap=cm.gray)
-ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
-profile = tddose.dose[:, :, 31] / tddose.max()
-ax.imshow(profile, cmap=cm.viridis, alpha=0.6, interpolation="bilinear")
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('clear', '')
 import egsdosetools as edt
 from matplotlib import pyplot as plt
 vdose = edt.xyzcls.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.3ddose")
 vphnt = edt.xyzcls.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
 fig, ax = plt.subplots(1, 1)
-tracker = edt.xyzhlp.FusedSlicesTracker(ax, vphnt.voxelsdensity, vdose.dose / vdose.max())
+tracker = edt.xyzhlp.IsoSlicesTracker(ax, vphnt.voxelsdensity, vdose.dose / vdose.max())
 fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
-quit()
-get_ipython().run_line_magic('logstart', './ipython_session.py append')
-get_ipython().run_line_magic('matplotlib', '')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('cls', '')
-import egsdosetools as edt
-from matplotlib import pyplot as plt
-vdose = edt.xyzcls.DoseFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.3ddose")
-vphnt = edt.xyzcls.PhantomFile("H2O_phantom_with_test_cavity_IAEA_Co60_10x10.egsphant")
-fig, ax = plt.subplots(1, 1)
-tracker = edt.xyzhlp.FusedSlicesTracker(ax, vphnt.voxeldensity, vdose.dose / vdose.max())
-tracker = edt.xyzhlp.FusedSlicesTracker(ax, vphnt.voxelsdensity, vdose.dose / vdose.max())
-fig.canvas.mpl_connect("scroll_event", tracker.onscroll)
 quit()
