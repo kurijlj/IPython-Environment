@@ -1,3 +1,4 @@
+import matplotlib.colors as colors
 import matplotlib.cm as cm
 import numpy as np
 
@@ -86,16 +87,23 @@ class IsoSlicesTracker(IndexTracker):
         self.ind = self.slices//2
 
         self.imX = ax.imshow(self.smX[:, :, self.ind], cmap=cm.gray)
+        normalize = colors.Normalize(
+                self.smY[:, :, self.ind].min(),
+                self.smY[:, :, self.ind].max())
         self.imY = ax.imshow(
                 self.smY[:, :, self.ind],
-                cmap=cm.viridis,
+                cmap=cm.spectral,
                 interpolation="bilinear",
+#                norm=normalize,
+                vmin=0.0,
+                vmax=1.0,
                 alpha=0.6)
-        self.levels = np.arange(0.2, smY[:, :, self.ind].max(), 0.2)
+        self.levels = np.arange(0.1, smY[:, :, self.ind].max(), 0.1)
         self.CS = ax.contour(
                 self.smY[:, :, self.ind],
                 self.levels,
-                cmap=cm.viridis)
+                linewidths=0.3,
+                cmap=cm.spectral)
         self.clabels = ax.clabel(self.CS, self.levels)
         self._update()
 
@@ -110,14 +118,21 @@ class IsoSlicesTracker(IndexTracker):
     def _update(self):
         self.ax.cla()
         self.ax.imshow(self.smX[:, :, self.ind], cmap=cm.gray)
+        normalize = colors.Normalize(
+                self.smY[:, :, self.ind].min(),
+                self.smY[:, :, self.ind].max())
         self.ax.imshow(
                 self.smY[:, :, self.ind],
-                cmap=cm.viridis,
+#                cmap=cm.viridis,
+                cmap=cm.spectral,
                 interpolation="bilinear",
+#                norm=normalize,
+                vmin=0.0,
+                vmax=1.0,
                 alpha=0.6)
 #        self.imX.set_data(self.smX[:, :, self.ind])
 #        self.imY.set_data(self.smY[:, :, self.ind])
-        self.levels = np.arange(0.2, self.smY[:, :, self.ind].max(), 0.2)
+        self.levels = np.arange(0.1, self.smY[:, :, self.ind].max(), 0.1)
 #        for coll in self.CS.collections:
 #            coll.remove()
 #        for label in self.clabels:
@@ -125,7 +140,8 @@ class IsoSlicesTracker(IndexTracker):
         self.CS = self.ax.contour(
                 self.smY[:, :, self.ind],
                 self.levels,
-                cmap=cm.viridis)
+                linewidths=0.3,
+                cmap=cm.spectral)
         self.ax.clabel(self.CS, self.levels)
         self.ax.set_ylabel('slice %s' % self.ind)
         self.imX.axes.figure.canvas.draw()
