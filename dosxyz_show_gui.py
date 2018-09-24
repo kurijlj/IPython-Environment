@@ -1,10 +1,11 @@
 import tkinter as tk
 import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
+
+matplotlib.use("TkAgg")
 
 
 class DosXYZShowApp(tk.Tk):

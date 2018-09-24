@@ -30,6 +30,14 @@
 
 
 import argparse
+import tkinter as tk
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
+
+matplotlib.use("TkAgg")
 
 
 # =============================================================================
@@ -95,6 +103,32 @@ def _formulate_action(Action, **kwargs):
     """
 
     return Action(**kwargs)
+
+
+def _is_phantom_file(filename):
+    """Test if file is dosxyznrc phantom file, i.e. chechk if .egsphant
+    suffix is present in the given filename.
+    """
+
+    ext = filename.split('.')[-1]
+
+    if 'egsphant' == ext:
+        return True
+    else:
+        return False
+
+
+def _is_dose_file(filename):
+    """Test if file is dosxyznrc dose file, i.e. chechk if .3ddose
+    suffix is present in the given filename.
+    """
+
+    ext = filename.split('.')[-1]
+
+    if '3ddose' == ext:
+        return True
+    else:
+        return False
 
 
 # =============================================================================
@@ -228,18 +262,93 @@ class CommandLineApp(object):
                 exitf=self._parser.exit)
 
         else:
-            fileslist = (arguments.phantomfile, arguments.dosefile)
+            filelist = (arguments.phantomfile, arguments.dosefile)
             self._action = _formulate_action(
                 DefaultAction,
                 prog=self._parser.prog,
                 exitf=self._parser.exit,
-                fileslist=fileslist)
+                filelist=filelist)
 
     def run(self):
         """This method executes action code.
         """
 
         self._action.execute()
+
+
+# =============================================================================
+# GUI classes
+# =============================================================================
+
+class DosXYZShowGui(tk.Tk):
+    """ A simple GUI application to show EGS phantom and 3ddose data.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        x = kwargs.pop('dmslicesw', None)
+        y = kwargs.pop('dmslicesh', None)
+        p = kwargs.pop('dm3dw', None)
+        q = kwargs.pop('dm3dh', None)
+        bgsl = kwargs.pop('slviewbg', None)
+        bg3d = kwargs.pop('view3dbg', None)
+
+        if x is None:
+            x = 200
+        if y is None:
+            y = 300
+        if p is None:
+            p = 500
+        if q is None:
+            q = 500
+        if bgsl is None:
+            bgsl = 'black'
+        if bg3d is None:
+            bg3d = 'black'
+
+        self.sliceshape = (x, y)
+        self.v3dshape = (p, q)
+        self.bgcolors = {}
+        self.bgcolors['slview'] = bgsl
+        self.bgcolors['view3d'] = bg3d
+
+        tk.Tk.__init__(self, *args, **kwargs)
+
+        # Set app icon and window title.
+        # tk.Tk.iconbitmap(self, default='dosxyz_show.ico')
+        tk.Tk.wm_title(self, 'dosxyz_show.py')
+
+        # Set viewframe and frame with all commands.
+        self.viewframe = tk.Frame(self)
+        self.viewframe.pack(side=tk.TOP)
+        self.commandframe = tk.Frame(self)
+        self.commandframe.pack(side=tk.BOTTOM)
+
+        # Set slices view frame and 3D view frame.
+        self.sliceframe = tk.Frame(self.viewframe)
+        self.sliceframe.pack(side=tk.LEFT)
+        self.frame3d = tk.Frame(self.viewframe)
+        self.frame3d.pack(side=tk.RIGHT)
+
+        # Set each of slices frames.
+        self.frameXZ = tk.Frame(self.sliceframe)
+        self.frameXZ.pack()
+        self.frameYZ = tk.Frame(self.sliceframe)
+        self.frameYZ.pack(side=tk.BOTTOM)
+        self.frameXY = tk.Frame(self.sliceframe)
+        self.frameXY.pack(side=tk.BOTTOM)
+
+        # Set commands
+        button = tk.Button(
+                self.commandframe,
+                text='Quit',
+                command=self.destroy
+            )
+        button.pack()
+
+        fig = plt.figure()
+        canvas = FigureCanvasTkAgg(fig, master=self.frameXZ)
+        toolbar = NavigationToolbar2TkAgg(canvas, self.frameXZ)
 
 
 # =============================================================================
@@ -283,13 +392,47 @@ class DefaultAction(ProgramAction):
     to the stdout.
     """
 
-    def __init__(self, prog, exitf, fileslist):
+    def __init__(self, prog, exitf, filelist):
         self._programName = prog
         self._exit_app = exitf
-        self._fileslist = fileslist
+        self._filelist = filelist
 
     def execute(self):
-        print(self._programName, self._fileslist)
+        # Do some basic sanity checks first.
+        if self._filelist[0] is None:
+            print('{0}: Missing input phantom file.'.format(self._filelist[0]))
+            self._exit_app()
+
+        if not _is_phantom_file(self._filelist[0]):
+            print(
+                    '{0}: File \'{1}\' is not proper phantom file.'
+                    .format(self._programName, self._filelist[0])
+                )
+
+            self._exit_app()
+
+        if self._filelist[1] is not None:
+            if not _is_dose_file(self._filelist[1]):
+                print(
+                        '{0}: File \'{1}\' is not proper dose file.'
+                        .format(self._programName, self._filelist[1])
+                    )
+
+                self._exit_app()
+
+        print(
+                '{0}: Phantom file is \'{1}\''
+                .format(self._programName, self._filelist[0])
+            )
+
+        if self._filelist[1] is not None:
+            print(
+                    '{0}: Phantom file is \'{1}\'.'
+                    .format(self._programName, self._filelist[1])
+                )
+
+        gui = DosXYZShowGui()
+        gui.mainloop()
         self._exit_app()
 
 
