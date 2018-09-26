@@ -30,12 +30,13 @@
 
 
 import argparse
-import tkinter as tk
 import matplotlib
+import tkinter as tk
+import egsdosetools as edt
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
-from matplotlib.figure import Figure
 
 matplotlib.use("TkAgg")
 
@@ -72,7 +73,6 @@ def _format_epilog(epilogAddition, bugMail):
     value for epilog parameter when constructing parser object.
     """
 
-    fmtAdition = None
     fmtMail = None
     fmtEpilog = None
 
@@ -312,6 +312,8 @@ class DosXYZShowGui(tk.Tk):
         self.bgcolors['slview'] = bgsl
         self.bgcolors['view3d'] = bg3d
 
+        self.phantomfile = kwargs.pop('phantomfile')
+
         tk.Tk.__init__(self, *args, **kwargs)
 
         # Set app icon and window title.
@@ -346,9 +348,15 @@ class DosXYZShowGui(tk.Tk):
             )
         button.pack()
 
-        fig = plt.figure()
-        canvas = FigureCanvasTkAgg(fig, master=self.frameXZ)
-        toolbar = NavigationToolbar2TkAgg(canvas, self.frameXZ)
+        # fig = plt.figure()
+        # canvas = FigureCanvasTkAgg(fig, master=self.frameXZ)
+        # toolbar = NavigationToolbar2TkAgg(canvas, self.frameXZ)
+        # self._replot()
+
+    def _replot(self):
+        plt.clf()
+        plt.imshow(self.phantomfile.voxeldensity[:, :, 30])
+        plt.gcf().canvas.draw()
 
 
 # =============================================================================
@@ -396,6 +404,8 @@ class DefaultAction(ProgramAction):
         self._programName = prog
         self._exit_app = exitf
         self._filelist = filelist
+        self._phantomdata = None
+        self._dosedata = None
 
     def execute(self):
         # Do some basic sanity checks first.
@@ -420,19 +430,15 @@ class DefaultAction(ProgramAction):
 
                 self._exit_app()
 
-        print(
-                '{0}: Phantom file is \'{1}\''
-                .format(self._programName, self._filelist[0])
-            )
+        # We have a proper phantom file. Load the data.
+        self._phantomdata = edt.xyzcls.PhantomFile(self._filelist[0])
 
         if self._filelist[1] is not None:
-            print(
-                    '{0}: Phantom file is \'{1}\'.'
-                    .format(self._programName, self._filelist[1])
-                )
+            # We have proper dose file. Load it too.
+            self._phantomdata = edt.xyzcls.DoseFile(self._filelist[1])
 
-        gui = DosXYZShowGui()
-        gui.mainloop()
+        # gui = DosXYZShowGui(phantomfile=self._filelist[0])
+        # gui.mainloop()
         self._exit_app()
 
 

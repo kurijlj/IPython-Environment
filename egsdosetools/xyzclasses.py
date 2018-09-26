@@ -35,6 +35,8 @@ class DoseFile(object):
         x, y, z = list(map(int, data[cur_line].split()))
         self.shape = (z, y, x)
 #         self.shape = (x,y,z)
+        # TODO: Add message on which file is beiing loaded and do a better
+        # output formatting.
         print(self.shape)
         self.size = numpy.multiply.reduce(self.shape)
 
@@ -149,6 +151,8 @@ class PhantomFile(object):
         x, y, z = list(map(int, data[cur_line].split()))
         self.shape = (z, y, x)
 #       self.shape = (x,y,z)
+        # TODO: Add message on which file is beiing loaded and do a better
+        # output formatting.
         print((len(self.materials),) + self.shape)
         print(self.materials)
 
