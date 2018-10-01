@@ -286,33 +286,33 @@ class DosXYZShowGui(tk.Tk):
 
     def __init__(self, *args, **kwargs):
 
-        x = kwargs.pop('dmslicesw', None)
-        y = kwargs.pop('dmslicesh', None)
-        p = kwargs.pop('dm3dw', None)
-        q = kwargs.pop('dm3dh', None)
+        # x = kwargs.pop('dmslicesw', None)
+        # y = kwargs.pop('dmslicesh', None)
+        # p = kwargs.pop('dm3dw', None)
+        # q = kwargs.pop('dm3dh', None)
         bgsl = kwargs.pop('slviewbg', None)
         bg3d = kwargs.pop('view3dbg', None)
 
-        if x is None:
-            x = 200
-        if y is None:
-            y = 300
-        if p is None:
-            p = 500
-        if q is None:
-            q = 500
-        if bgsl is None:
-            bgsl = 'black'
-        if bg3d is None:
-            bg3d = 'black'
+        # if x is None:
+        #     x = 200
+        # if y is None:
+        #     y = 300
+        # if p is None:
+        #     p = 500
+        # if q is None:
+        #     q = 500
+        # if bgsl is None:
+        #     bgsl = 'black'
+        # if bg3d is None:
+        #     bg3d = 'black'
 
-        self.sliceshape = (x, y)
-        self.v3dshape = (p, q)
+        # self.sliceshape = (x, y)
+        # self.v3dshape = (p, q)
         self.bgcolors = {}
         self.bgcolors['slview'] = bgsl
         self.bgcolors['view3d'] = bg3d
 
-        self.phantomfile = kwargs.pop('phantomfile')
+        self.phantomdata = kwargs.pop('phantomdata')
 
         tk.Tk.__init__(self, *args, **kwargs)
 
@@ -352,11 +352,23 @@ class DosXYZShowGui(tk.Tk):
         # canvas = FigureCanvasTkAgg(fig, master=self.frameXZ)
         # toolbar = NavigationToolbar2TkAgg(canvas, self.frameXZ)
         # self._replot()
+        self.figure = plt.Figure(dpi=100)
+        self.subplot = self.figure.add_subplot(111)
+        self.canvas = FigureCanvasTkAgg(self.figure, self.frameXZ)
+        self.canvas.show()
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
+        toolbar = NavigationToolbar2TkAgg(self.canvas, self.frameXZ)
+        toolbar.update()
+        self._replot()
 
     def _replot(self):
-        plt.clf()
-        plt.imshow(self.phantomfile.voxeldensity[:, :, 30])
-        plt.gcf().canvas.draw()
+        # plt.clf()
+        # plt.imshow(self.phantomdata.voxelsdensity[:, :, 30])
+        # plt.plot((1, 2, 3), (1, 2, 3))
+        # plt.gcf().canvas.draw()
+        self.subplot.clear()
+        self.subplot.imshow(self.phantomdata.voxelsdensity[:, :, 30])
+        self.canvas.show()
 
 
 # =============================================================================
@@ -435,10 +447,17 @@ class DefaultAction(ProgramAction):
 
         if self._filelist[1] is not None:
             # We have proper dose file. Load it too.
-            self._phantomdata = edt.xyzcls.DoseFile(self._filelist[1])
+            self._dosedata = edt.xyzcls.DoseFile(self._filelist[1])
 
-        # gui = DosXYZShowGui(phantomfile=self._filelist[0])
-        # gui.mainloop()
+            # Another sanity check. Number of segments along axes for two files
+            # must coincide.
+            if self._phantomdata.shape != self._dosedata.shape:
+                print('{0}: (ERROR) Number of segments for phantom data and\
+ dose data must coincide!'.format(self._programName))
+                self._exit_app()
+
+        gui = DosXYZShowGui(phantomdata=self._phantomdata)
+        gui.mainloop()
         self._exit_app()
 
 

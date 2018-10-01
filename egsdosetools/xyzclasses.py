@@ -35,9 +35,14 @@ class DoseFile(object):
         x, y, z = list(map(int, data[cur_line].split()))
         self.shape = (z, y, x)
 #         self.shape = (x,y,z)
-        # TODO: Add message on which file is beiing loaded and do a better
-        # output formatting.
-        print(self.shape)
+
+        # Print some info to stdout.
+        print('Loading dose data from file \"{0}\".'.format(file_name))
+        print('Number of segments along X axis: {0}'.format(self.shape[2]))
+        print('Number of segments along Y axis: {0}'.format(self.shape[1]))
+        print('Number of segments along Z axis: {0}'.format(self.shape[0]))
+        print('')
+
         self.size = numpy.multiply.reduce(self.shape)
 
         cur_line += 1
@@ -151,10 +156,17 @@ class PhantomFile(object):
         x, y, z = list(map(int, data[cur_line].split()))
         self.shape = (z, y, x)
 #       self.shape = (x,y,z)
-        # TODO: Add message on which file is beiing loaded and do a better
-        # output formatting.
-        print((len(self.materials),) + self.shape)
-        print(self.materials)
+
+        # Print some info to stdout.
+        print('Loading phantom data from file \"{0}\".'.format(file_name))
+        print('Number of segments along X axis: {0}'.format(self.shape[2]))
+        print('Number of segments along Y axis: {0}'.format(self.shape[1]))
+        print('Number of segments along Z axis: {0}'.format(self.shape[0]))
+        print('Number of used materials: {0}'.format(len(self.materials)))
+        print('List of materials:')
+        for k, v in self.materials.items():
+            print('{0}: {1}'.format(k, v))
+        print('')
 
         self.size = numpy.multiply.reduce(self.shape)
 
