@@ -33,8 +33,8 @@ import argparse
 import matplotlib
 import tkinter as tk
 import egsdosetools as edt
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 
@@ -280,6 +280,34 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
+class SliceTracker(object):
+    """
+    """
+
+    def __init__(self, figure, ax, phantomdata, dosedata):
+        self._figure = figure
+        self._ax = ax
+        self._phantomdata = phantomdata
+        self._dosedata = dosedata
+
+        rows, columns, self._slices = phantomdata.shape
+        self._index = self._slices // 2
+
+        self.update()
+
+    def onscroll(self, event):
+        if event.button == 'up':
+            self._index = (self._index + 1) % self._slices
+        else:
+            self._index = (self._idex - 1) % self._slices
+        self.update()
+
+    def update(self):
+        self._ax.clear()
+        self._ax.imshow(self._phantomdata.voxelsdensity[:, :, self._index], cmap=cm.gray)
+        self._figure.canvas.show()
+
+
 class DosXYZShowGui(tk.Tk):
     """ A simple GUI application to show EGS phantom and 3ddose data.
     """
@@ -352,23 +380,40 @@ class DosXYZShowGui(tk.Tk):
         # canvas = FigureCanvasTkAgg(fig, master=self.frameXZ)
         # toolbar = NavigationToolbar2TkAgg(canvas, self.frameXZ)
         # self._replot()
-        self.figure = plt.Figure(dpi=100)
-        self.subplot = self.figure.add_subplot(111)
-        self.canvas = FigureCanvasTkAgg(self.figure, self.frameXZ)
-        self.canvas.show()
-        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
-        toolbar = NavigationToolbar2TkAgg(self.canvas, self.frameXZ)
-        toolbar.update()
-        self._replot()
 
-    def _replot(self):
+        self.figure = plt.Figure(dpi=100)
+        FigureCanvasTkAgg(self.figure, self.frameXZ)
+        # self.subplot = self.figure.add_subplot(111)
+        self.ax = self.figure.add_subplot(111)
+        # self.canvas = FigureCanvasTkAgg(self.figure, self.frameXZ)
+        self.figure.canvas.show()
+        self.figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
+        self.toolbar = NavigationToolbar2TkAgg(
+                self.figure.canvas,
+                self.frameXZ
+            )
+        self.toolbar.update()
+        self._tracker = SliceTracker(
+                self.figure,
+                self.ax,
+                self.phantomdata,
+                None
+            )
+        self.update()
+
+    def update(self):
         # plt.clf()
         # plt.imshow(self.phantomdata.voxelsdensity[:, :, 30])
         # plt.plot((1, 2, 3), (1, 2, 3))
         # plt.gcf().canvas.draw()
-        self.subplot.clear()
-        self.subplot.imshow(self.phantomdata.voxelsdensity[:, :, 30])
-        self.canvas.show()
+
+        # self.subplot.clear()
+        # self.ax.clear()
+        # self.subplot.imshow(self.phantomdata.voxelsdensity[:, :, 30])
+        # self.ax.imshow(self.phantomdata.voxelsdensity[:, :, 30])
+        # self.canvas.show()
+        # self.figure.canvas.show()
+        self._tracker.update()
 
 
 # =============================================================================
