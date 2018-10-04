@@ -1,7 +1,7 @@
 class TVLDataset(object):
     """An abstract base class to hold TVL values and material densities for
-    the IAEA SRS47 protocol and NCRP151 protocol for a given material (concrete,
-    steel and lead).
+    the IAEA SRS47 protocol and NCRP151 protocol for a given material
+    (concrete, steel and lead).
     """
 
     def __init__(self, density: float, primary: dict, leakage: dict):
@@ -72,7 +72,7 @@ class IAEA_TVLDataset(TVLDataset):
         return self._leakage[energy]
 
 
-class NCRC_TVLDataset(object):
+class NCRC_TVLDataset(TVLDataset):
     """Container class to hold NCRC151 protocl TVL datasets.
 
     On initialization density must be specified in g/cm^3 while energiey-TVL
@@ -92,7 +92,7 @@ class NCRC_TVLDataset(object):
         primary_one = {}
 
         for k in self._primary.keys():
-            primary_one[k] = self.primary[k][0]
+            primary_one[k] = self._primary[k][0]
 
         print(primary_one)
 
@@ -106,7 +106,7 @@ class NCRC_TVLDataset(object):
                     'Energy {0} MV not in or out of range.'.format(energy)
                 )
 
-        return self._leakage[energy][0]
+        return self._primary[1.25][0]
 
     def show_primary_e(self):
         """Display dictionary containg energy-TVL pairs for primary beam.
@@ -116,7 +116,7 @@ class NCRC_TVLDataset(object):
         primary_e = {}
 
         for k in self._primary.keys():
-            primary_e[k] = self.primary[k][1]
+            primary_e[k] = self._primary[k][1]
 
         print(primary_e)
 
@@ -130,7 +130,7 @@ class NCRC_TVLDataset(object):
                     'Energy {0} MV not in or out of range.'.format(energy)
                 )
 
-        return self._leakage[energy][1]
+        return self._primary[energy][1]
 
     def show_leakage_one(self):
         """Display dictionary containg energy-TVL pairs for primary beam.
@@ -140,7 +140,7 @@ class NCRC_TVLDataset(object):
         leakage_one = {}
 
         for k in self._leakage.keys():
-            leakage_one[k] = self.leakage[k][0]
+            leakage_one[k] = self._leakage[k][0]
 
         print(leakage_one)
 
@@ -164,7 +164,7 @@ class NCRC_TVLDataset(object):
         leakage_e = {}
 
         for k in self._leakage.keys():
-            leakage_e[k] = self.leakage[k][1]
+            leakage_e[k] = self._leakage[k][1]
 
         print(leakage_e)
 
@@ -180,6 +180,20 @@ class NCRC_TVLDataset(object):
 
         return self._leakage[energy][1]
 
+
+class IAEAPrimaryBarrier(object):
+    """
+    """
+
+    def __init__(
+            self,
+            P: float=1.0,
+            d,
+            SAD,
+            W,
+            U,
+            T
+        ):
 
 iaea_concrete = IAEA_TVLDataset(
         density=2.35,
@@ -252,34 +266,41 @@ ncrc_concrete = NCRC_TVLDataset(
             20: (46.0, 44.0),
             25: (49.0, 46.0),
             30: (51.0, 49.0)},
-        leakage={}
-#        leakage={1.25: (21.0, 21.0), 4: (33.0, 28.0), 6: (34.0, 29.0), 10: (35.0, 31.0), 15: (36.0, 33.0), 18: (36.0, 34.0), 20: (36.0, 34.0), 25: (37.0, 35.0), 30: (37.0, 36.0)}
+        leakage={1.25: (21.0, 21.0),
+            4: (33.0, 28.0),
+            6: (34.0, 29.0),
+            10: (35.0, 31.0),
+            15: (36.0, 33.0),
+            18: (36.0, 34.0),
+            20: (36.0, 34.0), 
+            25: (37.0, 35.0),
+            30: (37.0, 36.0)}
         )
 
-#ncrc_steel = NCRC_TVLDataset(
-#        density=7.87,
-#        primary={1.25: (7.0, 7.0),
-#            4: (9.9, 9.9),
-#            6: (10.0, 10.0),
-#            10: (11.0, 11.0),
-#            15: (11.0, 11.0),
-#            18: (11.0, 11.0),
-#            20: (11.0, 11.0),
-#            25: (11.0, 11.0),
-#            30: (11.0, 11.0)},
-#        leakage={0.0: (0.0, 0.0)}
-#        )
+ncrc_steel = NCRC_TVLDataset(
+        density=7.87,
+        primary={1.25: (7.0, 7.0),
+            4: (9.9, 9.9),
+            6: (10.0, 10.0),
+            10: (11.0, 11.0),
+            15: (11.0, 11.0),
+            18: (11.0, 11.0),
+            20: (11.0, 11.0),
+            25: (11.0, 11.0),
+            30: (11.0, 11.0)},
+        leakage={0.0: (0.0, 0.0)}
+        )
 
-#ncrc_lead = NCRC_TVLDataset(
-#        density=11.35,
-#        primary={1.25: (4.0, 4.0),
-#            4: (5.7, 5.7),
-#            6: (5.7, 5.7),
-#            10: (5.7, 5.7),
-#            15: (5.7, 5.7),
-#            18: (5.7, 5.7),
-#            20: (5.7, 5.7),
-#            25: (5.7, 5.7),
-#            30: (5.7, 5.7)},
-#        leakage={0.0: (0.0, 0.0)}
-#        )
+ncrc_lead = NCRC_TVLDataset(
+        density=11.35,
+        primary={1.25: (4.0, 4.0),
+            4: (5.7, 5.7),
+            6: (5.7, 5.7),
+            10: (5.7, 5.7),
+            15: (5.7, 5.7),
+            18: (5.7, 5.7),
+            20: (5.7, 5.7),
+            25: (5.7, 5.7),
+            30: (5.7, 5.7)},
+        leakage={0.0: (0.0, 0.0)}
+        )
