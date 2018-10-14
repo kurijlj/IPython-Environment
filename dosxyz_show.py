@@ -31,10 +31,12 @@
 
 import argparse
 import matplotlib
+import numpy as np
 import tkinter as tk
 import egsdosetools as edt
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+from enum import Enum
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 
@@ -44,6 +46,16 @@ matplotlib.use("TkAgg")
 # =============================================================================
 # Utility classes and functions
 # =============================================================================
+
+class DisplayPlane(Enum):
+    """Class to wrap up enumerated values that describe plane of 3D space to
+    be displayed.
+    """
+
+    xz = 0
+    yz = 1
+    xy = 2
+
 
 class ProgramAction(object):
     """Abstract base class for all program actions, that provides execute.
@@ -284,63 +296,132 @@ class SliceTracker(object):
     """
     """
 
-    def __init__(self, figure, ax, phantomdata, dosedata):
+    def __init__(self, figure, ax, phantomdata, dosedata, plane):
         self._figure = figure
         self._ax = ax
         self._phantomdata = phantomdata
         self._dosedata = dosedata
+        self._plane = plane
+        self._showdose = False
 
-        rows, columns, self._slices = phantomdata.shape
+        if DisplayPlane.xy == self._plane:
+            self._slices = phantomdata.shape[0]
+
+        elif DisplayPlane.yz == self._plane:
+            self._slices = phantomdata.shape[1]
+
+        else:
+            self._slices = phantomdata.shape[2]
+
         self._index = self._slices // 2
 
         self.update()
+
+    @property
+    def voxsdens(self):
+        return self._phantomdata.voxelsdensity
+
+    @property
+    def voxsdens_min(self):
+        return self._phantomdata.voxelsdensity.min()
+
+    @property
+    def voxsdens_max(self):
+        return self._phantomdata.voxelsdensity.max()
+
+    @property
+    def dose(self):
+        return self._dosedata.dose / self._dosedata.dose.max()
+
+    @property
+    def dose_min(self):
+        return self._dosedata.dose.min() / self._dosedata.dose.max()
+
+    @property
+    def dose_max(self):
+        return 1.0
+
+    def show_dose(self, val=False):
+        self._showdose = val
 
     def onscroll(self, event):
         if event.button == 'up':
             self._index = (self._index + 1) % self._slices
         else:
-            self._index = (self._idex - 1) % self._slices
+            self._index = (self._index - 1) % self._slices
         self.update()
 
     def update(self):
         self._ax.clear()
-        self._ax.imshow(self._phantomdata.voxelsdensity[:, :, self._index], cmap=cm.gray)
+
+        title = None
+        density = None
+        dose = None
+        localdosemax = None
+        if DisplayPlane.xy == self._plane:
+            title = 'XY plane'
+            density = self.voxsdens[self._index, :, :]
+            if self._dosedata is not None and self._showdose:
+                dose = self.dose[self._index, :, :]
+                localdosemax = self.dose[self._index, :, :].max()
+
+        elif DisplayPlane.yz == self._plane:
+            title = 'YZ plane'
+            density = self.voxsdens[:, self._index, :]
+            if self._dosedata is not None and self._showdose:
+                dose = self.dose[:, self._index, :]
+                localdosemax = self.dose[:, self._index, :].max()
+
+        else:
+            title = 'XZ plane'
+            density = self.voxsdens[:, :, self._index]
+            if self._dosedata is not None and self._showdose:
+                dose = self.dose[:, :, self._index]
+                localdosemax = self.dose[:, :, self._index].max()
+
+        self._ax.set_title(title)
+        self._ax.set_xlabel('slice: {0}'.format(self._index))
+        self._ax.imshow(
+                density,
+                cmap=cm.gray,
+                vmin=self.voxsdens_min,
+                vmax=self.voxsdens_max
+            )
+
+        if self._dosedata is not None and self._showdose:
+            self._ax.imshow(
+                    dose,
+                    cmap=cm.spectral,
+                    interpolation="bilinear",
+                    vmin=self.dose_min,
+                    vmax=self.dose_max,
+                    alpha=0.6)
+            levels = np.arange(0.1, localdosemax, 0.1)
+            contours = self._ax.contour(
+                    dose,
+                    levels,
+                    linewidths=0.3,
+                    cmap=cm.spectral)
+            self._ax.clabel(contours, levels)
+
         self._figure.canvas.show()
 
 
-class DosXYZShowGui(tk.Tk):
+class DosXYZShowGUI(tk.Tk):
     """ A simple GUI application to show EGS phantom and 3ddose data.
     """
 
     def __init__(self, *args, **kwargs):
 
-        # x = kwargs.pop('dmslicesw', None)
-        # y = kwargs.pop('dmslicesh', None)
-        # p = kwargs.pop('dm3dw', None)
-        # q = kwargs.pop('dm3dh', None)
         bgsl = kwargs.pop('slviewbg', None)
         bg3d = kwargs.pop('view3dbg', None)
 
-        # if x is None:
-        #     x = 200
-        # if y is None:
-        #     y = 300
-        # if p is None:
-        #     p = 500
-        # if q is None:
-        #     q = 500
-        # if bgsl is None:
-        #     bgsl = 'black'
-        # if bg3d is None:
-        #     bg3d = 'black'
-
-        # self.sliceshape = (x, y)
-        # self.v3dshape = (p, q)
         self.bgcolors = {}
         self.bgcolors['slview'] = bgsl
         self.bgcolors['view3d'] = bg3d
 
         self.phantomdata = kwargs.pop('phantomdata')
+        self.dosedata = kwargs.pop('dosedata')
 
         tk.Tk.__init__(self, *args, **kwargs)
 
@@ -376,16 +457,9 @@ class DosXYZShowGui(tk.Tk):
             )
         button.pack()
 
-        # fig = plt.figure()
-        # canvas = FigureCanvasTkAgg(fig, master=self.frameXZ)
-        # toolbar = NavigationToolbar2TkAgg(canvas, self.frameXZ)
-        # self._replot()
-
         self.figure = plt.Figure(dpi=100)
         FigureCanvasTkAgg(self.figure, self.frameXZ)
-        # self.subplot = self.figure.add_subplot(111)
         self.ax = self.figure.add_subplot(111)
-        # self.canvas = FigureCanvasTkAgg(self.figure, self.frameXZ)
         self.figure.canvas.show()
         self.figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
         self.toolbar = NavigationToolbar2TkAgg(
@@ -397,22 +471,14 @@ class DosXYZShowGui(tk.Tk):
                 self.figure,
                 self.ax,
                 self.phantomdata,
-                None
+                self.dosedata,
+                DisplayPlane.xy
             )
+        self._tracker.show_dose(True)
+        self.figure.canvas.mpl_connect('scroll_event', self._tracker.onscroll)
         self.update()
 
     def update(self):
-        # plt.clf()
-        # plt.imshow(self.phantomdata.voxelsdensity[:, :, 30])
-        # plt.plot((1, 2, 3), (1, 2, 3))
-        # plt.gcf().canvas.draw()
-
-        # self.subplot.clear()
-        # self.ax.clear()
-        # self.subplot.imshow(self.phantomdata.voxelsdensity[:, :, 30])
-        # self.ax.imshow(self.phantomdata.voxelsdensity[:, :, 30])
-        # self.canvas.show()
-        # self.figure.canvas.show()
         self._tracker.update()
 
 
@@ -501,7 +567,13 @@ class DefaultAction(ProgramAction):
  dose data must coincide!'.format(self._programName))
                 self._exit_app()
 
-        gui = DosXYZShowGui(phantomdata=self._phantomdata)
+        else:
+            self._dosedata = None
+
+        gui = DosXYZShowGUI(
+                phantomdata=self._phantomdata,
+                dosedata=self._dosedata
+            )
         gui.mainloop()
         self._exit_app()
 
