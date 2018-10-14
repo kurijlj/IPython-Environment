@@ -302,7 +302,8 @@ class SliceTracker(object):
         self._phantomdata = phantomdata
         self._dosedata = dosedata
         self._plane = plane
-        self._showdose = tk.IntVar(0)
+        # self._showdose = tk.IntVar(0)
+        self._showdose = False
 
         if DisplayPlane.xy == self._plane:
             self._slices = phantomdata.shape[0]
@@ -341,16 +342,21 @@ class SliceTracker(object):
     def dose_max(self):
         return 100.0
 
-    def show_dose(self, val=0):
+    @property
+    def showdose(self):
+        return self._showdose
+
+    @showdose.setter
+    def showdose(self, val):
         self._showdose = val
 
-    def on_show_dose(self):
-        if 1 == self._showdose:
-            self._showdose = 0
-        else:
-            self._showdose = 1
+    # def on_show_dose(self):
+    #     if 1 == self._showdose:
+    #         self._showdose = 0
+    #     else:
+    #         self._showdose = 1
 
-        self.update()
+    #     self.update()
 
     def on_scroll(self, event):
         if event.button == 'up':
@@ -366,6 +372,7 @@ class SliceTracker(object):
         density = None
         dose = None
         localdosemax = None
+
         if DisplayPlane.xy == self._plane:
             title = 'XY plane'
             density = self.voxsdens[self._index, :, :]
@@ -389,6 +396,7 @@ class SliceTracker(object):
 
         self._ax.set_title(title)
         self._ax.set_xlabel('slice: {0}'.format(self._index))
+        # self._ax.set_facecolor('gray')
         self._ax.imshow(
                 density,
                 cmap=cm.gray,
@@ -396,7 +404,7 @@ class SliceTracker(object):
                 vmax=self.voxsdens_max
             )
 
-        if self._dosedata is not None and 1 == self._showdose:
+        if self._dosedata is not None and self._showdose:
             self._ax.imshow(
                     dose,
                     cmap=cm.spectral,
@@ -406,7 +414,7 @@ class SliceTracker(object):
                     alpha=0.6)
 
             levels = np.arange(10.0, localdosemax, 10.0)
-            contours = None
+            # contours = None
             if 0 != len(levels):
                 contours = self._ax.contour(
                         dose,
@@ -418,90 +426,179 @@ class SliceTracker(object):
         self._figure.canvas.show()
 
 
+class SliceView(object):
+    """
+    """
+
+    def __init__(self, frame, phantomdata, dosedata, plane):
+
+        # Initialize figure and canvas.
+        self._figure = plt.Figure(figsize=(5.5, 4), dpi=100, tight_layout=True)
+        # self._figure = plt.Figure(dpi=100)
+        FigureCanvasTkAgg(self._figure, frame)
+        self._figure.canvas.show()
+        # self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
+        self._figure.canvas.get_tk_widget().pack(side=tk.TOP, expand=False)
+
+        # Initialize axes.
+        self._axes = self._figure.add_subplot(111)
+
+        # Set and initialize slice tracker.
+        self._tracker = SliceTracker(
+                self._figure,
+                self._axes,
+                phantomdata,
+                dosedata,
+                plane
+            )
+
+        # If dosedata supplied, enable dose display.
+        if dosedata:
+            self._tracker.showdose = True
+
+        # Enable tracker to respond to scroll event.
+        self._figure.canvas.mpl_connect(
+                'scroll_event',
+                self._tracker.on_scroll
+            )
+
+        # Add toolbar to each view so user can zoom, take screenshots, etc.
+        self._toolbar = NavigationToolbar2TkAgg(
+                self._figure.canvas,
+                frame
+            )
+
+        # Update toolbar display.
+        self._toolbar.update()
+
+    @property
+    def showdose(self):
+        return self._tracker.showdose
+
+    @showdose.setter
+    def showdose(self, val):
+        self._tracker.showdose = val
+
+    def update_view(self):
+        self._tracker.update()
+
+
 class DosXYZShowGUI(tk.Tk):
     """ A simple GUI application to show EGS phantom and 3ddose data.
     """
 
     def __init__(self, *args, **kwargs):
 
-        bgsl = kwargs.pop('slviewbg', None)
-        bg3d = kwargs.pop('view3dbg', None)
+        # Initialize show dose switch.
+        self._showdose = False
 
-        self.bgcolors = {}
-        self.bgcolors['slview'] = bgsl
-        self.bgcolors['view3d'] = bg3d
-
-        self.phantomdata = kwargs.pop('phantomdata')
-        self.dosedata = kwargs.pop('dosedata')
-
+        # Remove phantomdata and dosedata from kwargs dict and pass
+        # initialization data to parent class constructor.
+        self._phantomdata = kwargs.pop('phantomdata')
+        self._dosedata = kwargs.pop('dosedata')
         tk.Tk.__init__(self, *args, **kwargs)
 
-        # Set app icon and window title.
+        # Set app icon, window title and make window nonresizable.
         # tk.Tk.iconbitmap(self, default='dosxyz_show.ico')
-        # tk.Tk.wm_title(self, 'dosxyz_show.py')
         self.title('dosxyz_show.py')
         self.resizable(False, False)
 
-        # Set viewframe and frame with all commands.
-        self.viewframe = tk.Frame(self)
-        self.viewframe.pack(side=tk.TOP)
-        self.commandframe = tk.Frame(self)
-        self.commandframe.pack(side=tk.BOTTOM)
+        # Set topmost frames and align them to grid.
+        self._sliceframe = tk.Frame(self)
+        self._sliceframe.grid(
+                column=0,
+                row=0,
+                columnspan=2,
+                sticky=tk.N+tk.E+tk.S+tk.W
+            )
+        self._frame3d = tk.Frame(self)
+        self._frame3d.grid(column=0, row=1, sticky=tk.N+tk.E+tk.S+tk.W)
+        self._commandframe = tk.LabelFrame(self, text='Controls')
+        self._commandframe.grid(column=1, row=1, sticky=tk.N+tk.E+tk.S+tk.W)
 
-        # Set slices view frame and 3D view frame.
-        self.sliceframe = tk.Frame(self.viewframe)
-        self.sliceframe.pack(side=tk.LEFT)
-        self.frame3d = tk.Frame(self.viewframe)
-        self.frame3d.pack(side=tk.RIGHT)
+        # Set each of slice frames.
+        self._framexz = tk.LabelFrame(self._sliceframe, text='XZ Plane')
+        self._framexz.grid(column=0, row=0, sticky=tk.N+tk.E+tk.S+tk.W)
+        self._frameyz = tk.LabelFrame(self._sliceframe, text='YZ Plane')
+        self._frameyz.grid(column=1, row=0, sticky=tk.N+tk.E+tk.S+tk.W)
+        self._framexy = tk.LabelFrame(self._sliceframe, text='XY Plane')
+        self._framexy.grid(column=2, row=0, sticky=tk.N+tk.E+tk.S+tk.W)
 
-        # Set each of slices frames.
-        self.frameXZ = tk.Frame(self.sliceframe)
-        self.frameXZ.pack()
-        self.frameYZ = tk.Frame(self.sliceframe)
-        self.frameYZ.pack(side=tk.BOTTOM)
-        self.frameXY = tk.Frame(self.sliceframe)
-        self.frameXY.pack(side=tk.BOTTOM)
+        # Set each of views.
+        self._viewxz = SliceView(
+                self._framexz,
+                self._phantomdata,
+                self._dosedata,
+                DisplayPlane.xz
+            )
+        self._viewyz = SliceView(
+                self._frameyz,
+                self._phantomdata,
+                self._dosedata,
+                DisplayPlane.yz
+            )
+        self._viewxy = SliceView(
+                self._framexy,
+                self._phantomdata,
+                self._dosedata,
+                DisplayPlane.xy
+            )
 
-        # Set commands
+        # Set display and window controls. Default state for show dose check
+        # button is disabled.
+        state = 'disabled'
+
+        # If dose data supplide enable check button.
+        if self._dosedata:
+            state = 'normal'
+            self._showdose = True
+
+        # Initialize check button.
+        self._showdosecheck = tk.Checkbutton(
+                self._commandframe,
+                text='Show dose',
+                state=state,
+                command=self.on_show_dose_check
+            )
+
+        # By default check button is selected dose data provided or not.
+        self._showdosecheck.select()
+
+        # Align check button to grid.
+        self._showdosecheck.grid(column=0, row=0, sticky=tk.N+tk.E+tk.S+tk.W)
+
+        # Initialize app quit button.
         button = tk.Button(
-                self.commandframe,
+                self._commandframe,
                 text='Quit',
                 command=self.destroy
             )
-        button.pack()
 
-        self.figure = plt.Figure(dpi=100)
-        FigureCanvasTkAgg(self.figure, self.frameXZ)
-        self.ax = self.figure.add_subplot(111)
-        self.figure.canvas.show()
-        self.figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
-        self.toolbar = NavigationToolbar2TkAgg(
-                self.figure.canvas,
-                self.frameXZ
-            )
-        self.toolbar.update()
-        self._tracker = SliceTracker(
-                self.figure,
-                self.ax,
-                self.phantomdata,
-                self.dosedata,
-                DisplayPlane.xy
-            )
-        self._tracker.show_dose(1)
-        self._showdosecheck = tk.Checkbutton(
-                self.commandframe,
-                text='Show dose',
-                variable=self._tracker._showdose,
-                state='normal',
-                command=self._tracker.on_show_dose
-            )
-        self._showdosecheck.select()
-        self._showdosecheck.pack()
-        self.figure.canvas.mpl_connect('scroll_event', self._tracker.on_scroll)
+        # Align button to grid.
+        button.grid(column=0, row=1, sticky=tk.N+tk.E+tk.S+tk.W)
+
+        # Update display.
+        self.update()
+
+    def on_show_dose_check(self):
+        if self._showdose:
+            self._showdose = False
+            self._viewxz.showdose = False
+            self._viewyz.showdose = False
+            self._viewxy.showdose = False
+
+        else:
+            self._showdose = True
+            self._viewxz.showdose = True
+            self._viewyz.showdose = True
+            self._viewxy.showdose = True
+
         self.update()
 
     def update(self):
-        self._tracker.update()
+        self._viewxz.update_view()
+        self._viewyz.update_view()
+        self._viewxy.update_view()
 
 
 # =============================================================================
