@@ -302,7 +302,7 @@ class SliceTracker(object):
         self._phantomdata = phantomdata
         self._dosedata = dosedata
         self._plane = plane
-        self._showdose = False
+        self._showdose = tk.IntVar(0)
 
         if DisplayPlane.xy == self._plane:
             self._slices = phantomdata.shape[0]
@@ -331,20 +331,28 @@ class SliceTracker(object):
 
     @property
     def dose(self):
-        return self._dosedata.dose / self._dosedata.dose.max()
+        return (self._dosedata.dose / self._dosedata.dose.max()) * 100.0
 
     @property
     def dose_min(self):
-        return self._dosedata.dose.min() / self._dosedata.dose.max()
+        return (self._dosedata.dose.min() / self._dosedata.dose.max()) * 100.0
 
     @property
     def dose_max(self):
-        return 1.0
+        return 100.0
 
-    def show_dose(self, val=False):
+    def show_dose(self, val=0):
         self._showdose = val
 
-    def onscroll(self, event):
+    def on_show_dose(self):
+        if 1 == self._showdose:
+            self._showdose = 0
+        else:
+            self._showdose = 1
+
+        self.update()
+
+    def on_scroll(self, event):
         if event.button == 'up':
             self._index = (self._index + 1) % self._slices
         else:
@@ -388,7 +396,7 @@ class SliceTracker(object):
                 vmax=self.voxsdens_max
             )
 
-        if self._dosedata is not None and self._showdose:
+        if self._dosedata is not None and 1 == self._showdose:
             self._ax.imshow(
                     dose,
                     cmap=cm.spectral,
@@ -396,13 +404,16 @@ class SliceTracker(object):
                     vmin=self.dose_min,
                     vmax=self.dose_max,
                     alpha=0.6)
-            levels = np.arange(0.1, localdosemax, 0.1)
-            contours = self._ax.contour(
-                    dose,
-                    levels,
-                    linewidths=0.3,
-                    cmap=cm.spectral)
-            self._ax.clabel(contours, levels)
+
+            levels = np.arange(10.0, localdosemax, 10.0)
+            contours = None
+            if 0 != len(levels):
+                contours = self._ax.contour(
+                        dose,
+                        levels,
+                        linewidths=0.3,
+                        cmap=cm.spectral)
+                self._ax.clabel(contours, levels, fmt='%3d %%')
 
         self._figure.canvas.show()
 
@@ -427,7 +438,9 @@ class DosXYZShowGUI(tk.Tk):
 
         # Set app icon and window title.
         # tk.Tk.iconbitmap(self, default='dosxyz_show.ico')
-        tk.Tk.wm_title(self, 'dosxyz_show.py')
+        # tk.Tk.wm_title(self, 'dosxyz_show.py')
+        self.title('dosxyz_show.py')
+        self.resizable(False, False)
 
         # Set viewframe and frame with all commands.
         self.viewframe = tk.Frame(self)
@@ -474,8 +487,17 @@ class DosXYZShowGUI(tk.Tk):
                 self.dosedata,
                 DisplayPlane.xy
             )
-        self._tracker.show_dose(True)
-        self.figure.canvas.mpl_connect('scroll_event', self._tracker.onscroll)
+        self._tracker.show_dose(1)
+        self._showdosecheck = tk.Checkbutton(
+                self.commandframe,
+                text='Show dose',
+                variable=self._tracker._showdose,
+                state='normal',
+                command=self._tracker.on_show_dose
+            )
+        self._showdosecheck.select()
+        self._showdosecheck.pack()
+        self.figure.canvas.mpl_connect('scroll_event', self._tracker.on_scroll)
         self.update()
 
     def update(self):
