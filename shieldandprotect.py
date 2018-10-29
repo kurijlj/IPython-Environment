@@ -183,52 +183,6 @@ class NCRC_TVLDataset(TVLDataset):
         return self._leakage[energy][1]
 
 
-class IAEAPrimaryBarrierGoal(object):
-    """
-    """
-
-    def __init__(
-            self,
-            goal: float=1.0,
-            distance: float=1.0,
-            sad: float=1.0,
-            workload: float=800.0,
-            usage: float=1.0,
-            occupancy: float=1.0,
-            material: IAEA_TVLDataset=iaea_concrete,
-            energy: float=6.0
-        ):
-
-        self._goal = goal
-        self._distance = distance
-        self._sad = sad
-        self._workload = workload
-        self._usage = usage
-        self._occupancy = occupancy
-        self._material = material
-        self._energy = energy
-
-    def transmission(self):
-        """
-        """
-
-        numerator = goal * pow((distance + sad), 2)
-        denominator = workload * usage * occupancy
-        return numerator / denominator
-
-    def tvl_number(self):
-        """
-        """
-
-        return log10(1.0 / self.transmission)
-
-    def barrier_thickness(self):
-        """
-        """
-
-        return tvl_number * self._material.primary[self._energy]
-
-
 iaea_concrete = IAEA_TVLDataset(
         density=2.35,
         primary={1.25: 21.8,
@@ -338,3 +292,49 @@ ncrc_lead = NCRC_TVLDataset(
             30: (5.7, 5.7)},
         leakage={0.0: (0.0, 0.0)}
         )
+
+
+class IAEA_PrimaryBarrierGoal(object):
+    """
+    """
+
+    def __init__(
+            self,
+            goal: float=1.0,
+            distance: float=1.0,
+            sad: float=1.0,
+            workload: float=800.0,
+            usage: float=1.0,
+            occupancy: float=1.0,
+            material: IAEA_TVLDataset=iaea_concrete,
+            energy: float=6.0
+        ):
+
+        self._goal = goal
+        self._distance = distance
+        self._sad = sad
+        self._workload = workload
+        self._usage = usage
+        self._occupancy = occupancy
+        self._material = material
+        self._energy = energy
+
+    def transmission(self):
+        """
+        """
+
+        numerator = self._goal * pow((self._distance + self._sad), 2)
+        denominator = self._workload * self._usage * self._occupancy
+        return numerator / denominator
+
+    def tvl_number(self):
+        """
+        """
+
+        return log10(1.0 / self.transmission())
+
+    def barrier_thickness(self):
+        """
+        """
+
+        return self.tvl_number() * self._material.primary(self._energy)

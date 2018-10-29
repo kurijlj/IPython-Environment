@@ -39,7 +39,7 @@ import matplotlib.pyplot as plt
 from enum import Enum
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 
 matplotlib.use("TkAgg")
 
@@ -424,7 +424,7 @@ class SliceTracker(object):
                         cmap=cm.spectral)
                 self._ax.clabel(contours, levels, fmt='%3d %%')
 
-        self._figure.canvas.show()
+        self._figure.canvas.draw()
 
 
 class SliceView(object):
@@ -434,10 +434,10 @@ class SliceView(object):
     def __init__(self, frame, phantomdata, dosedata, plane):
 
         # Initialize figure and canvas.
-        self._figure = plt.Figure(figsize=(5.5, 4), dpi=100, tight_layout=True)
+        self._figure = plt.Figure(figsize=(5.5, 4), dpi=72, tight_layout=True)
         # self._figure = plt.Figure(dpi=100)
         FigureCanvasTkAgg(self._figure, frame)
-        self._figure.canvas.show()
+        self._figure.canvas.draw()
         # self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
         self._figure.canvas.get_tk_widget().pack(side=tk.TOP, expand=False)
 
@@ -464,7 +464,7 @@ class SliceView(object):
             )
 
         # Add toolbar to each view so user can zoom, take screenshots, etc.
-        self._toolbar = NavigationToolbar2TkAgg(
+        self._toolbar = NavigationToolbar2Tk(
                 self._figure.canvas,
                 frame
             )
