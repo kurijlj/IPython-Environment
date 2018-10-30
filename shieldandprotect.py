@@ -1,9 +1,9 @@
 from math import log10
 
 class TVLDataset(object):
-    """An abstract base class to hold TVL values and material densities for
-    the IAEA SRS47 protocol and NCRP151 protocol for a given material
-    (concrete, steel and lead).
+    """An base class to hold TVL values and material densities for the IAEA
+    SRS47 protocol and NCRP151 protocol for a given material (concrete, steel
+    and lead).
     """
 
     def __init__(self, density: float, primary: dict, leakage: dict):
@@ -294,20 +294,38 @@ ncrc_lead = NCRC_TVLDataset(
         )
 
 
-class IAEA_PrimaryBarrierGoal(object):
-    """
+class PrimaryBarrierGoal(object):
+    """An base class for calculation of transmission factor, number of TVLs and
+    primary barrier thickness for the IAEA SRS47 protocol and NCRP151 protocol
+    for a given shielding design goal, beam energy and material.
+
+    goal      - shielding design goal (P) beyond the barrier given in Sv/week;
+    distance  - distance (dpri) from the x-ray target to the point protected
+                given in meters;
+    sad       - source to axes distance (SAD) given in meters. Usually 1.0 m;
+    workload  - workload (W) or photon absorbed dose delivered at 1.0 m from the
+                x-ray target given in Gy/week;
+    usage     - usage factor (U) or fraction of the workload that primary beam is
+                directed at the barrier in question;
+    occupancy - occupancy factor (T) for the protected location or fraction of
+                the workweek that a person is present beyond the barrier.
+    material  - material used for barrier. Usually ordinary concrete. For
+                laminated barriers calculation differs. Use given predefined
+                material objects;
+    energy    - energy of the primary beam field given in megavolts (MV).
+
     """
 
     def __init__(
             self,
-            goal: float=1.0,
-            distance: float=1.0,
-            sad: float=1.0,
-            workload: float=800.0,
-            usage: float=1.0,
-            occupancy: float=1.0,
-            material: IAEA_TVLDataset=iaea_concrete,
-            energy: float=6.0
+            goal: float,
+            distance: float,
+            sad: float,
+            workload: float,
+            usage: float,
+            occupancy: float,
+            material: IAEA_TVLDataset,
+            energy: float
         ):
 
         self._goal = goal
@@ -319,22 +337,59 @@ class IAEA_PrimaryBarrierGoal(object):
         self._material = material
         self._energy = energy
 
+    @property
     def transmission(self):
-        """
+        """ Calculates transmission factor for given shielding design goal,
+        material and beam energy.
         """
 
         numerator = self._goal * pow((self._distance + self._sad), 2)
         denominator = self._workload * self._usage * self._occupancy
         return numerator / denominator
 
+    @property
     def tvl_number(self):
-        """
+        """ Calculates required number of TVLs needed to achieve given shielding
+        design goal.
         """
 
-        return log10(1.0 / self.transmission())
+        return log10(1.0 / self.transmission)
 
+    @property
+    def barrier_thickness(self):
+        """ An abstract property. Must be defiend in the proper subclass.
+        """
+
+        pass
+
+
+class IAEA_PrimaryBarrierGoal(PrimaryBarrierGoal):
+    """An class for calculation of transmission factor, number of TVLs and
+    primary barrier thickness for the IAEA SRS47 protocol for a given shielding
+    design goal, beam energy and material.
+    """
+
+    @property
     def barrier_thickness(self):
         """
         """
 
         return self.tvl_number() * self._material.primary(self._energy)
+
+
+class NCRC_PrimaryBarrierGoal(PrimaryBarrierGoal):
+    """An class for calculation of transmission factor, number of TVLs and
+    primary barrier thickness for the IAEA SRS47 protocol for a given shielding
+    design goal, beam energy and material.
+    """
+
+    @property
+    def barrier_thickness(self):
+        """
+        """
+
+        tpri = self._material.primary_one(self._energy) + \
+                ((self.tvl_number - 1.0) * \
+                self._material.primary_e(self._energy))
+
+        return tpri
