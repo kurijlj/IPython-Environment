@@ -108,7 +108,7 @@ class NCRC_TVLDataset(TVLDataset):
                     'Energy {0} MV not in or out of range.'.format(energy)
                 )
 
-        return self._primary[1.25][0]
+        return self._primary[energy][0]
 
     def show_primary_e(self):
         """Display dictionary containg energy-TVL pairs for primary beam.
@@ -339,8 +339,8 @@ class PrimaryBarrierGoal(object):
 
     @property
     def transmission(self):
-        """ Calculates transmission factor for given shielding design goal,
-        material and beam energy.
+        """ Calculates transmission factor (Bpri) for given shielding design
+        goal, material and beam energy.
         """
 
         numerator = self._goal * pow((self._distance + self._sad), 2)
@@ -349,8 +349,8 @@ class PrimaryBarrierGoal(object):
 
     @property
     def tvl_number(self):
-        """ Calculates required number of TVLs needed to achieve given shielding
-        design goal.
+        """ Calculates required number of TVLs (n) needed to achieve given
+        shielding design goal.
         """
 
         return log10(1.0 / self.transmission)
@@ -371,7 +371,8 @@ class IAEA_PrimaryBarrierGoal(PrimaryBarrierGoal):
 
     @property
     def barrier_thickness(self):
-        """
+        """ Calculates required primary barrier thickness (tpri) needed to
+        achieve given shielding design goal.
         """
 
         return self.tvl_number() * self._material.primary(self._energy)
@@ -385,7 +386,8 @@ class NCRC_PrimaryBarrierGoal(PrimaryBarrierGoal):
 
     @property
     def barrier_thickness(self):
-        """
+        """ Calculates required primary barrier thickness (tpri) needed to
+        achieve given shielding design goal.
         """
 
         tpri = self._material.primary_one(self._energy) + \
@@ -393,3 +395,15 @@ class NCRC_PrimaryBarrierGoal(PrimaryBarrierGoal):
                 self._material.primary_e(self._energy))
 
         return tpri
+
+    @property
+    def barrier_thickness_cnsrv(self):
+        """ Calculates required primary barrier thickness (tpri) needed to
+        achieve given shielding design goal without taking into consideration
+        the spectral changes in the radiation as it penetrates the barrier.
+
+        Note that this approach is more conservative than when you take into
+        account spectral changes in the radiation.
+        """
+
+        return self._material.primary_one(self._energy) * self.tvl_number
