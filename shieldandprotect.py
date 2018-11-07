@@ -6,13 +6,21 @@ class TVLDataset(object):
     and lead).
     """
 
-    def __init__(self, density: float, primary: dict, leakage: dict):
+    def __init__(self,
+            label: str,
+            density: float,
+            primary: dict,
+            leakage: dict):
 
         # Ensure that appropriate values are provided.
-        if density is None or primary is None or leakage is None:
+        if label is None \
+                or density is None \
+                or primary is None \
+                or leakage is None:
             raise TypeError('Object can not be initialized with' +
                     '\"None\" value.')
 
+        self._label = label
         self._density = density
         self._primary = primary
         self._leakage = leakage
@@ -23,6 +31,23 @@ class TVLDataset(object):
         """
 
         return self._density
+
+
+class IAEA_TVLDatasetReport(object):
+    """Class to format and print report from given TVL dataset.
+    """
+
+    def __init__(self, dataset: IAEA_TVLDataset):
+        self._dataset = dataset
+        self._report = None
+
+    def _format_report(self):
+        self._report = 'material label: {0}\n\
+                material density: {1}\n'.format()
+
+    def print_report(self):
+        self._format_report()
+        print(self._report)
 
 
 class IAEA_TVLDataset(TVLDataset):
@@ -184,6 +209,7 @@ class NCRC_TVLDataset(TVLDataset):
 
 
 iaea_concrete = IAEA_TVLDataset(
+        label='IAEA Concrete',
         density=2.35,
         primary={1.25: 21.8,
             4: 29.0,
@@ -204,6 +230,7 @@ iaea_concrete = IAEA_TVLDataset(
         )
 
 iaea_steel = IAEA_TVLDataset(
+        label='IAEA Steel',
         density=7.8,
         primary={1.25: 71.0,
             4: 91.0,
@@ -224,6 +251,7 @@ iaea_steel = IAEA_TVLDataset(
         )
 
 iaea_lead = IAEA_TVLDataset(
+        label='IAEA Lead',
         density=11.36,
         primary={1.25: 41.0,
             4: 53.0,
@@ -244,6 +272,7 @@ iaea_lead = IAEA_TVLDataset(
         )
 
 ncrc_concrete = NCRC_TVLDataset(
+        label='NCRC concrete',
         density=2.35,
         primary={1.25: (21.0, 21.0),
             4: (35.0, 30.0),
@@ -266,6 +295,7 @@ ncrc_concrete = NCRC_TVLDataset(
         )
 
 ncrc_steel = NCRC_TVLDataset(
+        label='NCRC steel',
         density=7.87,
         primary={1.25: (7.0, 7.0),
             4: (9.9, 9.9),
@@ -280,6 +310,7 @@ ncrc_steel = NCRC_TVLDataset(
         )
 
 ncrc_lead = NCRC_TVLDataset(
+        label='NCRC lead',
         density=11.35,
         primary={1.25: (4.0, 4.0),
             4: (5.7, 5.7),
