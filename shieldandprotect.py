@@ -1,4 +1,5 @@
 from math import log10
+from monotable.table import bordered_table
 
 class TVLDataset(object):
     """An base class to hold TVL values and material densities for the IAEA
@@ -33,7 +34,7 @@ class TVLDataset(object):
         return self._density
 
 
-class IAEA_TVLDatasetReport(object):
+class IAEA_PrimaryBarrierTVLReport(object):
     """Class to format and print report from given TVL dataset.
     """
 
@@ -43,7 +44,13 @@ class IAEA_TVLDatasetReport(object):
 
     def _format_report(self):
         self._report = 'material label: {0}\n\
-                material density: {1}\n'.format()
+                material density: {1} g cm-3\n\n'.\
+                format(self._dataset.label, self._dataset.density)
+        title = 'Primary-barrier TVLs for {0}.'.format(self._dataset.label)
+        headings = ['Endpoint Energy\n(MV)', 'TVL\n(cm)']
+        formats = ['', '.1f']
+        cells = list()
+        for e, tvl in self._dataset.
 
     def print_report(self):
         self._format_report()
@@ -61,12 +68,12 @@ class IAEA_TVLDataset(TVLDataset):
         {1.25: 21.8, 4: 29.0, 6: 34.3, 10: 38.9, 15: 43.2, 18: 44.5, 20: 45.7}
     """
 
-    def show_primary(self):
+    def primary_barrier_tvls(self):
         """Display dictionary containg energy-TVL pairs for primary beam.
         Energies are given in MV and TVLs in cm.
         """
 
-        print(self._primary)
+        return self._primary
 
     def primary(self, energy):
         """Answer TVL value in cm for primary beam and given megavoltage energy.
