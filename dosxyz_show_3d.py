@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # =============================================================================
 # <one line to give the program's name and a brief idea of what it does.>
 #
@@ -37,8 +37,9 @@ import egsdosetools as edt
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from enum import Enum
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 
 matplotlib.use("TkAgg")
 
@@ -433,7 +434,7 @@ class SliceView(object):
     def __init__(self, frame, phantomdata, dosedata, plane):
 
         # Initialize figure and canvas.
-        self._figure = plt.Figure(figsize=(7, 5), dpi=72, tight_layout=True)
+        self._figure = plt.Figure(figsize=(5.5, 4), dpi=72, tight_layout=True)
         # self._figure = plt.Figure(dpi=100)
         FigureCanvasTkAgg(self._figure, frame)
         self._figure.canvas.draw()
@@ -463,7 +464,7 @@ class SliceView(object):
             )
 
         # Add toolbar to each view so user can zoom, take screenshots, etc.
-        self._toolbar = NavigationToolbar2TkAgg(
+        self._toolbar = NavigationToolbar2Tk(
                 self._figure.canvas,
                 frame
             )
@@ -481,6 +482,31 @@ class SliceView(object):
 
     def update_view(self):
         self._tracker.update()
+
+
+class View3D(object):
+    """
+    """
+
+    def __init__(self, frame, phantomdata, dosedata):
+
+        # Initialize figure and canvas.
+        self._figure = plt.Figure(figsize=(4, 4), dpi=100, tight_layout=True)
+        FigureCanvasTkAgg(self._figure, frame)
+        self._figure.canvas.show()
+        self._figure.canvas.get_tk_widget().pack(side=tk.TOP, expand=False)
+
+        # Initialize axes.
+        self._axes = self._figure.add_subplot(1, 1, 1, projection='3d')
+
+        # Add toolbar to each view so user can zoom, take screenshots, etc.
+        self._toolbar = NavigationToolbar2TkAgg(
+                self._figure.canvas,
+                frame
+            )
+
+        # Update toolbar display.
+        self._toolbar.update()
 
 
 class DosXYZShowGUI(tk.Tk):
@@ -511,6 +537,8 @@ class DosXYZShowGUI(tk.Tk):
                 columnspan=2,
                 sticky=tk.N+tk.E+tk.S+tk.W
             )
+        self._frame3d = tk.Frame(self)
+        self._frame3d.grid(column=0, row=1, sticky=tk.N+tk.E+tk.S+tk.W)
         self._commandframe = tk.LabelFrame(self, text='Controls')
         self._commandframe.grid(column=1, row=1, sticky=tk.N+tk.E+tk.S+tk.W)
 
@@ -540,6 +568,11 @@ class DosXYZShowGUI(tk.Tk):
                 self._phantomdata,
                 self._dosedata,
                 DisplayPlane.xy
+            )
+        self._view3d = View3D(
+                self._frame3d,
+                self._phantomdata,
+                self._dosedata,
             )
 
         # Set display and window controls. Default state for show dose check

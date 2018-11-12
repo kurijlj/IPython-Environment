@@ -122,6 +122,10 @@ def _is_phantom_file(filename):
     suffix is present in the given filename.
     """
 
+    # Check if filename is nonempty string.
+    if not isinstance(filename, str) or not filename:
+        return False
+
     ext = filename.split('.')[-1]
 
     if 'egsphant' == ext:
@@ -134,6 +138,10 @@ def _is_dose_file(filename):
     """Test if file is dosxyznrc dose file, i.e. chechk if .3ddose
     suffix is present in the given filename.
     """
+
+    # Check if filename is nonempty string.
+    if not isinstance(filename, str) or not filename:
+        return False
 
     ext = filename.split('.')[-1]
 
@@ -274,7 +282,11 @@ class CommandLineApp(object):
                 exitf=self._parser.exit)
 
         else:
-            filelist = (arguments.phantomfile, arguments.dosefile)
+            filelist = (
+                    arguments.phantomfile,
+                    arguments.refdosefile,
+                    arguments.difdosefile
+                )
             self._action = _formulate_action(
                 DefaultAction,
                 prog=self._parser.prog,
@@ -296,14 +308,26 @@ class SliceTracker(object):
     """
     """
 
-    def __init__(self, figure, ax, phantomdata, dosedata, plane):
+    def __init__(
+            self,
+            figure,
+            ax,
+            phantomdata,
+            refdosedata,
+            difdosedata,
+            plane
+    ):
         self._figure = figure
         self._ax = ax
         self._phantomdata = phantomdata
-        self._dosedata = dosedata
         self._plane = plane
         # self._showdose = tk.IntVar(0)
         self._showdose = False
+
+        if difdosedata:
+            self._dose = difdosedata.dose - refdosedata.dose
+        else:
+            self._dose = refdosedata.dose
 
         if DisplayPlane.xy == self._plane:
             self._slices = phantomdata.shape[0]
@@ -332,11 +356,11 @@ class SliceTracker(object):
 
     @property
     def dose(self):
-        return (self._dosedata.dose / self._dosedata.dose.max()) * 100.0
+        return (self._dose / self._dose.max()) * 100.0
 
     @property
     def dose_min(self):
-        return (self._dosedata.dose.min() / self._dosedata.dose.max()) * 100.0
+        return (self._dose.min() / self._dose.max()) * 100.0
 
     @property
     def dose_max(self):
@@ -376,21 +400,21 @@ class SliceTracker(object):
         if DisplayPlane.xy == self._plane:
             title = 'XY plane'
             density = self.voxsdens[self._index, :, :]
-            if self._dosedata is not None and self._showdose:
+            if self._showdose:
                 dose = self.dose[self._index, :, :]
                 localdosemax = self.dose[self._index, :, :].max()
 
         elif DisplayPlane.yz == self._plane:
             title = 'YZ plane'
             density = self.voxsdens[:, self._index, :]
-            if self._dosedata is not None and self._showdose:
+            if self._showdose:
                 dose = self.dose[:, self._index, :]
                 localdosemax = self.dose[:, self._index, :].max()
 
         else:
             title = 'XZ plane'
             density = self.voxsdens[:, :, self._index]
-            if self._dosedata is not None and self._showdose:
+            if self._showdose:
                 dose = self.dose[:, :, self._index]
                 localdosemax = self.dose[:, :, self._index].max()
 
@@ -404,7 +428,7 @@ class SliceTracker(object):
                 vmax=self.voxsdens_max
             )
 
-        if self._dosedata is not None and self._showdose:
+        if self._showdose:
             self._ax.imshow(
                     dose,
                     cmap=cm.spectral,
@@ -430,7 +454,7 @@ class SliceView(object):
     """
     """
 
-    def __init__(self, frame, phantomdata, dosedata, plane):
+    def __init__(self, frame, phantomdata, refdosedata, difdosedata, plane):
 
         # Initialize figure and canvas.
         self._figure = plt.Figure(figsize=(7, 5), dpi=72, tight_layout=True)
@@ -448,13 +472,13 @@ class SliceView(object):
                 self._figure,
                 self._axes,
                 phantomdata,
-                dosedata,
+                refdosedata,
+                difdosedata,
                 plane
             )
 
-        # If dosedata supplied, enable dose display.
-        if dosedata:
-            self._tracker.showdose = True
+        # Dosedata supplied, enable dose display.
+        self._tracker.showdose = True
 
         # Enable tracker to respond to scroll event.
         self._figure.canvas.mpl_connect(
@@ -495,7 +519,8 @@ class DosXYZShowGUI(tk.Tk):
         # Remove phantomdata and dosedata from kwargs dict and pass
         # initialization data to parent class constructor.
         self._phantomdata = kwargs.pop('phantomdata')
-        self._dosedata = kwargs.pop('dosedata')
+        self._refdosedata = kwargs.pop('refdosedata')
+        self._difdosedata = kwargs.pop('difdosedata')
         tk.Tk.__init__(self, *args, **kwargs)
 
         # Set app icon, window title and make window nonresizable.
@@ -526,30 +551,29 @@ class DosXYZShowGUI(tk.Tk):
         self._viewxz = SliceView(
                 self._framexz,
                 self._phantomdata,
-                self._dosedata,
+                self._refdosedata,
+                self._difdosedata,
                 DisplayPlane.xz
             )
         self._viewyz = SliceView(
                 self._frameyz,
                 self._phantomdata,
-                self._dosedata,
+                self._refdosedata,
+                self._difdosedata,
                 DisplayPlane.yz
             )
         self._viewxy = SliceView(
                 self._framexy,
                 self._phantomdata,
-                self._dosedata,
+                self._refdosedata,
+                self._difdosedata,
                 DisplayPlane.xy
             )
 
         # Set display and window controls. Default state for show dose check
-        # button is disabled.
-        state = 'disabled'
-
-        # If dose data supplide enable check button.
-        if self._dosedata:
-            state = 'normal'
-            self._showdose = True
+        # button is enabled.
+        state = 'normal'
+        self._showdose = True
 
         # Initialize check button.
         self._showdosecheck = tk.Checkbutton(
@@ -645,14 +669,11 @@ class DefaultAction(ProgramAction):
         self._exit_app = exitf
         self._filelist = filelist
         self._phantomdata = None
-        self._dosedata = None
+        self._refdosedata = None
+        self._difdosedata = None
 
     def execute(self):
         # Do some basic sanity checks first.
-        if self._filelist[0] is None:
-            print('{0}: Missing input phantom file.'.format(self._filelist[0]))
-            self._exit_app()
-
         if not _is_phantom_file(self._filelist[0]):
             print(
                     '{0}: File \'{1}\' is not proper phantom file.'
@@ -661,35 +682,51 @@ class DefaultAction(ProgramAction):
 
             self._exit_app()
 
-        if self._filelist[1] is not None:
-            if not _is_dose_file(self._filelist[1]):
+        if not _is_dose_file(self._filelist[1]):
+            print(
+                    '{0}: File \'{1}\' is not proper dose file.'
+                    .format(self._programName, self._filelist[1])
+                )
+
+            self._exit_app()
+
+        if self._filelist[2] is not None:
+            if not _is_dose_file(self._filelist[2]):
                 print(
                         '{0}: File \'{1}\' is not proper dose file.'
-                        .format(self._programName, self._filelist[1])
+                        .format(self._programName, self._filelist[2])
                     )
 
                 self._exit_app()
 
-        # We have a proper phantom file. Load the data.
+        # We have a proper phantom and reference dose file. Load the data.
         self._phantomdata = edt.xyzcls.PhantomFile(self._filelist[0])
+        self._refdosedata = edt.xyzcls.DoseFile(self._filelist[1])
 
-        if self._filelist[1] is not None:
-            # We have proper dose file. Load it too.
-            self._dosedata = edt.xyzcls.DoseFile(self._filelist[1])
+        # Another sanity check. Number of segments along axes for two files
+        # must coincide.
+        if self._phantomdata.shape != self._refdosedata.shape:
+            print('{0}: (ERROR) Number of segments for phantom data and\
+ reference dose data must coincide!'.format(self._programName))
+            self._exit_app()
 
-            # Another sanity check. Number of segments along axes for two files
-            # must coincide.
-            if self._phantomdata.shape != self._dosedata.shape:
+        if self._filelist[2] is not None:
+            # We have proper diference dose file. Load it too.
+            self._difdosedata = edt.xyzcls.DoseFile(self._filelist[2])
+
+            # Check size of the difference dose file too.
+            if self._phantomdata.shape != self._difdosedata.shape:
                 print('{0}: (ERROR) Number of segments for phantom data and\
- dose data must coincide!'.format(self._programName))
+ difference dose data must coincide!'.format(self._programName))
                 self._exit_app()
 
         else:
-            self._dosedata = None
+            self._difdosedata = None
 
         gui = DosXYZShowGUI(
                 phantomdata=self._phantomdata,
-                dosedata=self._dosedata
+                refdosedata=self._refdosedata,
+                difdosedata=self._difdosedata
             )
         gui.mainloop()
         self._exit_app()
@@ -737,11 +774,16 @@ There is NO WARRANTY, to the extent permitted by law.'
             type=str,
             help='dosxyznrc .egsphant file')
     program.add_argument(
-            'dosefile',
-            metavar='DOSEFILE',
+            'refdosefile',
+            metavar='REFDOSEFILE',
+            type=str,
+            help='dosxyznrc reference .3ddose file')
+    program.add_argument(
+            'difdosefile',
+            metavar='DIFDOSEFILE',
             type=str,
             nargs='?',
-            help='dosxyznrc .3ddose file')
+            help='dosxyznrc .3ddose file to compare to reference one')
 
     program.parse_args()
     program.run()
