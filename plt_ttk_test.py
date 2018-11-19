@@ -252,7 +252,7 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
-class MainScreen(tk.Tk):
+class MainScreen(ttk.Widget):
     """
     """
 
