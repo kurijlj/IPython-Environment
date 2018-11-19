@@ -38,7 +38,7 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from enum import Enum
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 
 matplotlib.use("TkAgg")
 
@@ -463,7 +463,7 @@ class SliceView(object):
             )
 
         # Add toolbar to each view so user can zoom, take screenshots, etc.
-        self._toolbar = NavigationToolbar2TkAgg(
+        self._toolbar = NavigationToolbar2Tk(
                 self._figure.canvas,
                 frame
             )
