@@ -342,11 +342,11 @@ class SliceTracker(object):
     def dose_max(self):
         return 100.0
 
-    def show_dosewash(self):
+    def toggle_dosewash(self):
         self._showdosewash = not self._showdosewash
         self._update()
 
-    def show_doselines(self):
+    def toggle_doselines(self):
         self._showdoselines = not self._showdoselines
 
     def on_scroll(self, event):
@@ -418,16 +418,16 @@ class SliceTracker(object):
         self._figure.canvas.draw()
 
 
-class SliceView(tk.Frame):
+class SliceView(object):
     """
     """
 
     def __init__(self, master):
 
-        super().__init__(master)
+        # super().__init__(master)
 
         self._figure = plt.Figure(figsize=(7, 5), dpi=72)
-        FigureCanvasTkAgg(self._figure, self)
+        FigureCanvasTkAgg(self._figure, master)
         self._figure.canvas.draw()
 
         # Initialize axes.
@@ -436,7 +436,7 @@ class SliceView(tk.Frame):
         # Add toolbar to each view so user can zoom, take screenshots, etc.
         self._toolbar = NavigationToolbar2Tk(
                 self._figure.canvas,
-                self
+                master
             )
 
         # Update toolbar display.
@@ -513,12 +513,44 @@ class DosXYZMainScreen(tk.Tk):
         self._yzview.connect_tracker(self._yztracker)
         self._xyview.connect_tracker(self._xytracker)
 
-        tk.Checkbutton(self, text='show dose')\
-            .grid(row=1, column=3, sticky=tk.W)
-        tk.Checkbutton(self, text='show dose lines')\
-            .grid(row=2, column=3, sticky=tk.W)
+        # Set check buttons. If dose data is supplied, enable check buttons.
+        state = 'disabled'
+        if dosedata:
+            state = 'normal'
+        tk.Checkbutton(
+                self,
+                text='show dose',
+                state=state,
+                command=self.on_check_dosewash
+            ).grid(row=1, column=3, sticky=tk.W)
+        tk.Checkbutton(
+                self,
+                text='show dose lines',
+                state=state,
+                command=self.on_check_doselines
+            ).grid(row=2, column=3, sticky=tk.W)
+
+        # Set appllication "Quit" button.
         tk.Button(self, text='Quit', command=self.destroy)\
             .grid(row=6, column=3, sticky=tk.E+tk.W)
+
+        # Update screen.
+        self.update()
+
+    def on_check_dosewash():
+        self._xztracker.toggle_dosewash()
+        self._yztracker.toggle_dosewash()
+        self._xytracker.toggle_dosewash()
+
+    def on_check_doselines():
+        self._xztracker.toggle_doselines()
+        self._yztracker.toggle_doselines()
+        self._xytracker.toggle_doselines()
+
+    def update(self):
+        self._xztracker.on_update()
+        self._yztracker.on_update()
+        self._xytracker.on_update()
 
 
 # =============================================================================
