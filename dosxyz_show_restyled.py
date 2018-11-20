@@ -30,7 +30,6 @@
 
 
 import argparse
-import matplotlib
 import numpy as np
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -38,10 +37,11 @@ import egsdosetools as edt
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from enum import Enum
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+from matplotlib import (cbook, use)
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
 
-matplotlib.use("TkAgg")
+use('TkAgg')
 
 
 # =============================================================================
@@ -293,6 +293,48 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
+class DosXYZNavigationToolbar(NavigationToolbar2Tk):
+    """
+    """
+
+    def __init__(self, canvas, window):
+        self.canvas = canvas
+        self.window = window
+        NavigationToolbar2Tk.__init__(self, canvas, window)
+
+    def mouse_move(self, event):
+        self._set_cursor(event)
+
+        if event.inaxes and event.inaxes.get_navigate():
+
+            try:
+                s = 'x:{0:d} y:{1:d}'.format(
+                        int(event.xdata),
+                        int(event.ydata)
+                    )
+            except (ValueError, OverflowError):
+                pass
+            else:
+                artists = [a for a in event.inaxes._mouseover_set
+                           if a.contains(event) and a.get_visible()]
+
+                if artists:
+                    a = cbook._topmost_artist(artists)
+                    if a is not event.inaxes.patch:
+                        data = a.get_cursor_data(event)
+                        if data is not None:
+                            data_str = a.format_cursor_data(data)
+                            if data_str is not None:
+                                s = s + ' ' + data_str
+
+                if len(self.mode):
+                    self.set_message('%s, %s' % (self.mode, s))
+                else:
+                    self.set_message(s)
+        else:
+            self.set_message(self.mode)
+
+
 class SliceTracker(object):
     """
     """
@@ -437,7 +479,7 @@ class SliceView(object):
         self._axes = self._figure.add_subplot(111)
 
         # Add toolbar to each view so user can zoom, take screenshots, etc.
-        self._toolbar = NavigationToolbar2Tk(
+        self._toolbar = DosXYZNavigationToolbar(
                 self._figure.canvas,
                 master
             )
@@ -471,16 +513,21 @@ class DosXZYMainScreen(tk.Tk):
         self.title('dosxyz_show.py v1.1')
         self.resizable(False, False)
 
-        ttk.Label(self, text='View').grid(row=0, column=0, sticky=tk.W)
-        ttk.Label(self, text='Controls').grid(row=0, column=3, sticky=tk.W)
-        xzframe = ttk.LabelFrame(self, text='XZ Plane')
-        xzframe.grid(row=1, column=0, rowspan=3)
-        yzframe = ttk.LabelFrame(self, text='YZ Plane')
-        yzframe.grid(row=1, column=1, rowspan=3)
-        xyframe = ttk.LabelFrame(self, text='XY Plane')
-        xyframe.grid(row=4, column=0, rowspan=3)
-        threedframe = ttk.LabelFrame(self, text='3D View')
-        threedframe.grid(row=4, column=1, rowspan=3)
+        viewframe = ttk.LabelFrame(self, text='View')
+
+        topview = ttk.Frame(viewframe)
+        xzframe = ttk.Frame(topview, borderwidth=3)
+        xzframe.pack(side=tk.LEFT)
+        yzframe = ttk.Frame(topview, borderwidth=3)
+        yzframe.pack(side=tk.LEFT)
+        topview.pack(side=tk.TOP)
+
+        bottomview = ttk.Frame(viewframe)
+        xyframe = ttk.Frame(bottomview, borderwidth=3)
+        xyframe.pack(side=tk.LEFT)
+        threedframe = ttk.Frame(bottomview, borderwidth=3)
+        threedframe.pack(side=tk.LEFT)
+        bottomview.pack(side=tk.TOP)
 
         self._xzview = SliceView(xzframe)
         self._yzview = SliceView(yzframe)
@@ -511,27 +558,37 @@ class DosXZYMainScreen(tk.Tk):
         self._xzview.connect_tracker(self._xztracker)
         self._yzview.connect_tracker(self._yztracker)
         self._xyview.connect_tracker(self._xytracker)
+        viewframe.pack(side=tk.LEFT, fill=tk.Y, expand=True)
 
+        controlframe = ttk.LabelFrame(self, text='Controls')
+        topcontrol = ttk.Frame(controlframe)
         # Set check buttons. If dose data is supplied, enable check buttons.
         state = 'disabled'
         if doseData:
             state = 'normal'
         ttk.Checkbutton(
-                self,
+                topcontrol,
                 text='show dose',
                 state=state,
                 command=self.on_check_dosewash
-            ).grid(row=1, column=3, sticky=tk.W)
+            ).pack(side=tk.TOP, fill=tk.X, expand=True)
         ttk.Checkbutton(
-                self,
+                topcontrol,
                 text='show dose lines',
                 state=state,
                 command=self.on_check_doselines
-            ).grid(row=2, column=3, sticky=tk.W)
+            ).pack(side=tk.TOP, fill=tk.X, expand=True)
+        topcontrol.pack(side=tk.TOP)
+        spacer = ttk.Frame(controlframe)
+        spacer.pack(side=tk.TOP, fill=tk.Y, expand=True)
 
         # Set appllication "Quit" button.
-        ttk.Button(self, text='Quit', command=self.destroy)\
-            .grid(row=6, column=3, sticky=tk.E+tk.W)
+        bottomcontrol = ttk.Frame(controlframe)
+        ttk.Button(bottomcontrol, text='Quit', command=self.destroy)\
+            .pack(side=tk.LEFT, fill=tk.X, expand=True)
+        bottomcontrol.pack(side=tk.TOP)
+
+        controlframe.pack(side=tk.LEFT, fill=tk.Y, expand=True)
 
         # Update screen.
         self.update()
