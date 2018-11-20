@@ -30,14 +30,16 @@
 
 
 import argparse
+import matplotlib
 #import numpy as np
+import tkinter as tk
 import tkinter.ttk as ttk
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from enum import Enum
-#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-#from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 
-matplotlib.use("TkAgg")
+matplotlib.use('TkAgg')
 
 
 # =============================================================================
@@ -252,13 +254,23 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
-class MainScreen(ttk.Widget):
+class MainScreen(tk.Tk):
     """
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, imagefile):
+        tk.Tk.__init__(self, className='MainScreen')
+        self.title('plt_ttk_test')
+        self.resizable(False, False)
 
-        pass
+        frame = ttk.Frame(master=self)
+        frame.pack()
+        print(str(frame))
+        figure = plt.Figure(figsize=(5, 5), dpi=72)
+        canvas = FigureCanvasTkAgg(figure, frame)
+        NavigationToolbar2Tk(figure.canvas, frame)
+        figure.canvas.draw()
+        ttk.Button(master=frame, text='Quit', command=self.destroy).pack()
 
 
 # =============================================================================
@@ -305,7 +317,7 @@ class DefaultAction(ProgramAction):
     def __init__(self, prog, exitf, imagefile):
         self._programName = prog
         self._exit_app = exitf
-        self._iamgefile = imagefile
+        self._imagefile = imagefile
 
     def execute(self):
 

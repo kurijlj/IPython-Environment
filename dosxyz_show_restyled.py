@@ -33,6 +33,7 @@ import argparse
 import matplotlib
 import numpy as np
 import tkinter as tk
+import tkinter.ttk as ttk
 import egsdosetools as edt
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -296,25 +297,28 @@ class SliceTracker(object):
     """
     """
 
-    def __init__(self, figure, axes, phantomdata, dosedata, plane):
+    def __init__(self, figure, axes, phantomData, doseData, plane):
         self._figure = figure
         self._axes = axes
-        self._phantomdata = phantomdata
-        self._dosedata = dosedata
+        self._phantomdata = phantomData
+        self._dosedata = doseData
         self._plane = plane
 
         if DisplayPlane.xy == self._plane:
-            self._slices = phantomdata.shape[0]
+            self._slices = phantomData.shape[0]
 
         elif DisplayPlane.yz == self._plane:
-            self._slices = phantomdata.shape[1]
+            self._slices = phantomData.shape[1]
 
         else:
-            self._slices = phantomdata.shape[2]
+            self._slices = phantomData.shape[2]
 
         self._index = self._slices // 2
 
-        if self._dosedata is not None:
+        if self._dosedata is None:
+            self._showdosewash = False
+            self._showdoselines = False
+        else:
             self._showdosewash = True
             self._showdoselines = True
 
@@ -354,7 +358,7 @@ class SliceTracker(object):
             self._index = (self._index + 1) % self._slices
         else:
             self._index = (self._index - 1) % self._slices
-        self.update()
+        self._update()
 
     def _update(self):
         self.on_update()
@@ -397,10 +401,10 @@ class SliceTracker(object):
                 vmax=self.voxsdens_max
             )
 
-        if self._dosedata is not None and self._showdose:
+        if self._dosedata is not None and self._showdosewash:
             self._axes.imshow(
                     dose,
-                    cmap=cm.spectral,
+                    cmap=cm.jet,
                     interpolation="bilinear",
                     vmin=self.dose_min,
                     vmax=self.dose_max,
@@ -412,25 +416,21 @@ class SliceTracker(object):
                         dose,
                         levels,
                         linewidths=0.3,
-                        cmap=cm.spectral)
+                        cmap=cm.jet)
                 self._axes.clabel(contours, levels, fmt='%3d %%')
 
         self._figure.canvas.draw()
 
 
-class SliceView(tk.Frame):
+class SliceView(object):
     """
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, master):
 
-        # super().__init__(master)
-        tk.Frame.__init__(self, *args, **kwargs)
-
-        self._figure = plt.Figure(figsize=(7, 5), dpi=72)
-        FigureCanvasTkAgg(self._figure, self)
-        print(str(self._figure))
-        print(str(self._figure.canvas))
+        self._figure = plt.Figure(dpi=72)
+        FigureCanvasTkAgg(self._figure, master)
+        self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self._figure.canvas.draw()
 
         # Initialize axes.
@@ -439,7 +439,7 @@ class SliceView(tk.Frame):
         # Add toolbar to each view so user can zoom, take screenshots, etc.
         self._toolbar = NavigationToolbar2Tk(
                 self._figure.canvas,
-                self
+                master
             )
 
         # Update toolbar display.
@@ -458,57 +458,53 @@ class SliceView(tk.Frame):
         self._figure.canvas.mpl_connect('scroll_event', tracker.on_scroll)
 
 
-class DosXYZMainScreen(tk.Tk):
+class DosXZYMainScreen(tk.Tk):
     """ A simple GUI application to show EGS phantom and 3ddose data.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, phantomData, doseData):
 
-        # Remove phantomdata and dosedata from kwargs dict and pass
-        # initialization data to parent class constructor.
-        phantomdata = kwargs.pop('phantomdata')
-        dosedata = kwargs.pop('dosedata')
-        tk.Tk.__init__(self, *args, **kwargs)
+        tk.Tk.__init__(self, className='DosXZYMainScreen')
 
         # Set app icon, window title and make window nonresizable.
         # tk.Tk.iconbitmap(self, default='dosxyz_show.ico')
         self.title('dosxyz_show.py v1.1')
         self.resizable(False, False)
 
-        tk.Label(self, text='View').grid(row=0, column=0, sticky=tk.W)
-        tk.Label(self, text='Controls').grid(row=0, column=3, sticky=tk.W)
-        xzframe = tk.LabelFrame(self, text='XZ Plane')\
-            .grid(row=1, column=0, rowspan=3)
-        yzframe = tk.LabelFrame(self, text='YZ Plane')\
-            .grid(row=1, column=1, rowspan=3)
-        xyframe = tk.LabelFrame(self, text='XY Plane')\
-            .grid(row=4, column=0, rowspan=3)
-        threedframe = tk.LabelFrame(self, text='3D View')\
-            .grid(row=4, column=1, rowspan=3)
+        ttk.Label(self, text='View').grid(row=0, column=0, sticky=tk.W)
+        ttk.Label(self, text='Controls').grid(row=0, column=3, sticky=tk.W)
+        xzframe = ttk.LabelFrame(self, text='XZ Plane')
+        xzframe.grid(row=1, column=0, rowspan=3)
+        yzframe = ttk.LabelFrame(self, text='YZ Plane')
+        yzframe.grid(row=1, column=1, rowspan=3)
+        xyframe = ttk.LabelFrame(self, text='XY Plane')
+        xyframe.grid(row=4, column=0, rowspan=3)
+        threedframe = ttk.LabelFrame(self, text='3D View')
+        threedframe.grid(row=4, column=1, rowspan=3)
 
-        self._xzview = SliceView(master=xzframe)
-        self._yzview = SliceView(master=yzframe)
-        self._xyview = SliceView(master=xyframe)
+        self._xzview = SliceView(xzframe)
+        self._yzview = SliceView(yzframe)
+        self._xyview = SliceView(xyframe)
 
         self._xztracker = SliceTracker(
                 self._xzview.figure,
                 self._xzview.axes,
-                phantomdata,
-                dosedata,
+                phantomData,
+                doseData,
                 DisplayPlane.xz
             )
         self._yztracker = SliceTracker(
                 self._yzview.figure,
                 self._yzview.axes,
-                phantomdata,
-                dosedata,
+                phantomData,
+                doseData,
                 DisplayPlane.yz
             )
         self._xytracker = SliceTracker(
                 self._xyview.figure,
                 self._xyview.axes,
-                phantomdata,
-                dosedata,
+                phantomData,
+                doseData,
                 DisplayPlane.xy
             )
 
@@ -518,15 +514,15 @@ class DosXYZMainScreen(tk.Tk):
 
         # Set check buttons. If dose data is supplied, enable check buttons.
         state = 'disabled'
-        if dosedata:
+        if doseData:
             state = 'normal'
-        tk.Checkbutton(
+        ttk.Checkbutton(
                 self,
                 text='show dose',
                 state=state,
                 command=self.on_check_dosewash
             ).grid(row=1, column=3, sticky=tk.W)
-        tk.Checkbutton(
+        ttk.Checkbutton(
                 self,
                 text='show dose lines',
                 state=state,
@@ -534,7 +530,7 @@ class DosXYZMainScreen(tk.Tk):
             ).grid(row=2, column=3, sticky=tk.W)
 
         # Set appllication "Quit" button.
-        tk.Button(self, text='Quit', command=self.destroy)\
+        ttk.Button(self, text='Quit', command=self.destroy)\
             .grid(row=6, column=3, sticky=tk.E+tk.W)
 
         # Update screen.
@@ -642,12 +638,12 @@ class DefaultAction(ProgramAction):
                 if phantomdata.shape != dosedata.shape:
                     print('{0}: (ERROR) Number of segments for phantom data\
  and dose data must coincide!'.format(self._programName))
-                self._exit_app()
+                    self._exit_app()
 
         # We have all neccessary files. Start the GUI.
-        mainscreen = DosXYZMainScreen(
-                phantomdata=phantomdata,
-                dosedata=dosedata
+        mainscreen = DosXZYMainScreen(
+                phantomData=phantomdata,
+                doseData=dosedata
             )
         mainscreen.mainloop()
 
