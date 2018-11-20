@@ -520,14 +520,14 @@ class DosXZYMainScreen(tk.Tk):
         xzframe.pack(side=tk.LEFT)
         yzframe = ttk.Frame(topview, borderwidth=3)
         yzframe.pack(side=tk.LEFT)
-        topview.pack(side=tk.TOP)
+        topview.pack(side=tk.TOP, fill=tk.X)
 
         bottomview = ttk.Frame(viewframe)
         xyframe = ttk.Frame(bottomview, borderwidth=3)
         xyframe.pack(side=tk.LEFT)
         threedframe = ttk.Frame(bottomview, borderwidth=3)
-        threedframe.pack(side=tk.LEFT)
-        bottomview.pack(side=tk.TOP)
+        threedframe.pack(side=tk.LEFT, fill=tk.X)
+        bottomview.pack(side=tk.TOP, fill=tk.X)
 
         self._xzview = SliceView(xzframe)
         self._yzview = SliceView(yzframe)
@@ -558,7 +558,7 @@ class DosXZYMainScreen(tk.Tk):
         self._xzview.connect_tracker(self._xztracker)
         self._yzview.connect_tracker(self._yztracker)
         self._xyview.connect_tracker(self._xytracker)
-        viewframe.pack(side=tk.LEFT, fill=tk.Y, expand=True)
+        viewframe.pack(side=tk.LEFT, fill=tk.Y)
 
         controlframe = ttk.LabelFrame(self, text='Controls')
         topcontrol = ttk.Frame(controlframe)
@@ -571,24 +571,24 @@ class DosXZYMainScreen(tk.Tk):
                 text='show dose',
                 state=state,
                 command=self.on_check_dosewash
-            ).pack(side=tk.TOP, fill=tk.X, expand=True)
+            ).pack(side=tk.TOP, fill=tk.X)
         ttk.Checkbutton(
                 topcontrol,
                 text='show dose lines',
                 state=state,
                 command=self.on_check_doselines
-            ).pack(side=tk.TOP, fill=tk.X, expand=True)
-        topcontrol.pack(side=tk.TOP)
+            ).pack(side=tk.TOP, fill=tk.X)
+        topcontrol.pack(side=tk.TOP, fill=tk.X)
         spacer = ttk.Frame(controlframe)
         spacer.pack(side=tk.TOP, fill=tk.Y, expand=True)
 
         # Set appllication "Quit" button.
         bottomcontrol = ttk.Frame(controlframe)
         ttk.Button(bottomcontrol, text='Quit', command=self.destroy)\
-            .pack(side=tk.LEFT, fill=tk.X, expand=True)
-        bottomcontrol.pack(side=tk.TOP)
+            .pack(side=tk.TOP, fill=tk.X)
+        bottomcontrol.pack(side=tk.TOP, fill=tk.X)
 
-        controlframe.pack(side=tk.LEFT, fill=tk.Y, expand=True)
+        controlframe.pack(side=tk.LEFT, fill=tk.Y)
 
         # Update screen.
         self.update()
