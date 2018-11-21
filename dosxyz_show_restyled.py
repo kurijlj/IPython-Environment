@@ -43,6 +43,7 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.colors import LinearSegmentedColormap
 
 use('TkAgg')
+plt.style.use('dark_background')
 
 
 dosecm = LinearSegmentedColormap.from_list(
@@ -378,11 +379,19 @@ class SliceTracker(object):
 
     @property
     def voxsdens_min(self):
-        return self._phantomdata.voxelsdensity.min()
+        # So far we gonna disregard local voxels density minima and use elctron
+        # density value for vacuum (0.0).
+
+        # return self._phantomdata.voxelsdensity.min()
+        return 0.0
 
     @property
     def voxsdens_max(self):
-        return self._phantomdata.voxelsdensity.max()
+        # So far we gonna disregard local voxels density maxima and use elctron
+        # density value of 3.0.
+
+        # return self._phantomdata.voxelsdensity.max()
+        return 3.0
 
     @property
     def dose(self):
@@ -402,6 +411,7 @@ class SliceTracker(object):
 
     def toggle_doselines(self):
         self._showdoselines = not self._showdoselines
+        self._update()
 
     def on_scroll(self, event):
         if event.button == 'up':
@@ -424,21 +434,21 @@ class SliceTracker(object):
         if DisplayPlane.xy == self._plane:
             title = 'XY plane'
             density = self.voxsdens[self._index, :, :]
-            if self._dosedata is not None and self._showdosewash:
+            if self._dosedata and (self._showdosewash or self._showdoselines):
                 dose = self.dose[self._index, :, :]
                 localdosemax = self.dose[self._index, :, :].max()
 
         elif DisplayPlane.yz == self._plane:
             title = 'YZ plane'
             density = self.voxsdens[:, self._index, :]
-            if self._dosedata is not None and self._showdosewash:
+            if self._dosedata and (self._showdosewash or self._showdoselines):
                 dose = self.dose[:, self._index, :]
                 localdosemax = self.dose[:, self._index, :].max()
 
         else:
             title = 'XZ plane'
             density = self.voxsdens[:, :, self._index]
-            if self._dosedata is not None and self._showdosewash:
+            if self._dosedata and (self._showdosewash or self._showdoselines):
                 dose = self.dose[:, :, self._index]
                 localdosemax = self.dose[:, :, self._index].max()
 
@@ -451,23 +461,25 @@ class SliceTracker(object):
                 vmax=self.voxsdens_max
             )
 
-        if self._dosedata is not None and self._showdosewash:
-            self._axes.imshow(
-                    dose,
-                    cmap=dosecm,
-                    interpolation="bilinear",
-                    vmin=self.dose_min,
-                    vmax=self.dose_max,
-                    alpha=0.6)
-
-            levels = np.arange(10.0, localdosemax, 10.0)
-            if 0 != len(levels):
-                contours = self._axes.contour(
+        if self._dosedata:
+            if self._showdosewash:
+                self._axes.imshow(
                         dose,
-                        levels,
-                        linewidths=0.3,
-                        cmap=dosecm)
-                self._axes.clabel(contours, levels, fmt='%3d %%')
+                        cmap=dosecm,
+                        interpolation="spline16",
+                        vmin=self.dose_min,
+                        vmax=self.dose_max,
+                        alpha=0.6)
+
+            if self._showdoselines:
+                levels = np.arange(10.0, localdosemax, 10.0)
+                if 0 != len(levels):
+                    contours = self._axes.contour(
+                            dose,
+                            levels,
+                            linewidths=0.3,
+                            cmap=dosecm)
+                    self._axes.clabel(contours, levels, fmt='%3d %%')
 
         self._figure.canvas.draw()
 
