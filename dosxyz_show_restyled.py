@@ -40,6 +40,7 @@ from enum import Enum
 from matplotlib import (cbook, use)
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.colors import ListedColormap
 
 use('TkAgg')
 
