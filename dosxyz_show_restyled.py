@@ -40,9 +40,16 @@ from enum import Enum
 from matplotlib import (cbook, use)
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import LinearSegmentedColormap
 
 use('TkAgg')
+
+
+dosecm = LinearSegmentedColormap.from_list(
+        '',
+        ['darkblue', 'purple', 'blue', 'cyan', 'green', 'yellow',
+            'magenta', 'red', 'white']
+    )
 
 
 # =============================================================================
@@ -447,7 +454,7 @@ class SliceTracker(object):
         if self._dosedata is not None and self._showdosewash:
             self._axes.imshow(
                     dose,
-                    cmap=cm.jet,
+                    cmap=dosecm,
                     interpolation="bilinear",
                     vmin=self.dose_min,
                     vmax=self.dose_max,
@@ -459,7 +466,7 @@ class SliceTracker(object):
                         dose,
                         levels,
                         linewidths=0.3,
-                        cmap=cm.jet)
+                        cmap=dosecm)
                 self._axes.clabel(contours, levels, fmt='%3d %%')
 
         self._figure.canvas.draw()
