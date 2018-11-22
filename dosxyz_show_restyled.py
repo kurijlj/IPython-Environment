@@ -303,7 +303,7 @@ class CommandLineApp(object):
 # =============================================================================
 
 class DosXYZNavigationToolbar(NavigationToolbar2Tk):
-    """
+    """ A class that actually does the drawing of the slice view.
     """
 
     def __init__(self, canvas, window):
@@ -345,7 +345,7 @@ class DosXYZNavigationToolbar(NavigationToolbar2Tk):
 
 
 class SliceTracker(object):
-    """
+    """ A class that actually does the drawing of the slice view.
     """
 
     def __init__(self, figure, axes, phantomData, doseData, plane):
@@ -366,12 +366,10 @@ class SliceTracker(object):
 
         self._index = self._slices // 2
 
-        if self._dosedata is None:
-            self._showdosewash = False
-            self._showdoselines = False
-        else:
-            self._showdosewash = True
-            self._showdoselines = True
+        # If 3ddose data supplide these will be set to True by check button
+        # invoke() method. There is no need to set them to True here.
+        self._showdosewash = False
+        self._showdoselines = False
 
     @property
     def voxsdens(self):
@@ -388,7 +386,12 @@ class SliceTracker(object):
     @property
     def voxsdens_max(self):
         # So far we gonna disregard local voxels density maxima and use elctron
-        # density value of 3.0.
+        # density value of 3.0. Electron density from pegs files can vary from
+        # 0.0 for vacuum up to 20.0, but because we usually work with materials
+        # that have electron density close to water and we would like to those
+        # materials are represented nicely on screen we choose such values range
+        # for display. All materials with densities above 3.0 are diplayed
+        # saturated.
 
         # return self._phantomdata.voxelsdensity.max()
         return 3.0
@@ -403,6 +406,7 @@ class SliceTracker(object):
 
     @property
     def dose_max(self):
+        # We return 100 because all dose data is normalized to 100%.
         return 100.0
 
     def toggle_dosewash(self):
@@ -485,7 +489,9 @@ class SliceTracker(object):
 
 
 class SliceView(object):
-    """
+    """ A class used to hold and keep track of figure responsible for slice
+    display and canvas that figure is drawn on. It also implements a method to
+    connect canvas 'scroll_event' to coresponding slice tracker.
     """
 
     def __init__(self, master):
@@ -521,7 +527,8 @@ class SliceView(object):
 
 
 class DosXZYMainScreen(tk.Tk):
-    """ A simple GUI application to show EGS phantom and 3ddose data.
+    """ A simple GUI application to show EGS phantom geometry and
+    3ddose data distribution in the phantom.
     """
 
     def __init__(self, phantomData, doseData):
@@ -533,8 +540,11 @@ class DosXZYMainScreen(tk.Tk):
         self.title('dosxyz_show.py v1.1')
         self.resizable(False, False)
 
+        # Split top frame into two main frames. One for displaying phantom
+        # geometry and dose distribution, other for controling display options.
         viewframe = ttk.LabelFrame(self, text='View')
 
+        # Split view frame into upper and lowr half.
         topview = ttk.Frame(viewframe)
         xzframe = ttk.Frame(topview, borderwidth=3)
         xzframe.pack(side=tk.LEFT)
@@ -542,13 +552,15 @@ class DosXZYMainScreen(tk.Tk):
         yzframe.pack(side=tk.LEFT)
         topview.pack(side=tk.TOP, fill=tk.X)
 
+        # Set lower half of the view frame.
         bottomview = ttk.Frame(viewframe)
         xyframe = ttk.Frame(bottomview, borderwidth=3)
         xyframe.pack(side=tk.LEFT)
-        threedframe = ttk.Frame(bottomview, borderwidth=3)
-        threedframe.pack(side=tk.LEFT, fill=tk.X)
+        # Next frame is just used to fill in empty space.
+        ttk.Frame(bottomview, borderwidth=3).pack(side=tk.LEFT, fill=tk.X)
         bottomview.pack(side=tk.TOP, fill=tk.X)
 
+        # Connect view managers for each of the frames.
         self._xzview = SliceView(xzframe)
         self._yzview = SliceView(yzframe)
         self._xyview = SliceView(xyframe)
@@ -580,24 +592,33 @@ class DosXZYMainScreen(tk.Tk):
         self._xyview.connect_tracker(self._xytracker)
         viewframe.pack(side=tk.LEFT, fill=tk.Y)
 
+        # Set up control frame.
         controlframe = ttk.LabelFrame(self, text='Controls')
+
+        # Split control frame into upper and lower half. Upper one is to hold
+        # actual display controls, while lower one holds 'Quit' button only.
         topcontrol = ttk.Frame(controlframe)
+
         # Set check buttons. If dose data is supplied, enable check buttons.
         state = 'disabled'
         if doseData:
-            state = 'normal'
-        ttk.Checkbutton(
+            state = 'selected'
+        btndosewash = ttk.Checkbutton(
                 topcontrol,
                 text='show dose',
                 state=state,
-                command=self.on_check_dosewash
-            ).pack(side=tk.TOP, fill=tk.X)
-        ttk.Checkbutton(
+                command=self._on_check_dosewash
+            )
+        btndosewash.pack(side=tk.TOP, fill=tk.X)
+        btndosewash.invoke()
+        btndoselines = ttk.Checkbutton(
                 topcontrol,
                 text='show dose lines',
                 state=state,
-                command=self.on_check_doselines
-            ).pack(side=tk.TOP, fill=tk.X)
+                command=self._on_check_doselines
+            )
+        btndoselines.pack(side=tk.TOP, fill=tk.X)
+        btndoselines.invoke()
         topcontrol.pack(side=tk.TOP, fill=tk.X)
         spacer = ttk.Frame(controlframe)
         spacer.pack(side=tk.TOP, fill=tk.Y, expand=True)
@@ -613,17 +634,29 @@ class DosXZYMainScreen(tk.Tk):
         # Update screen.
         self.update()
 
-    def on_check_dosewash(self):
+    def _on_check_dosewash(self):
+        """Method to be called when 'Show dose' check button is pressed. It
+        invokes actual method that turns dose display on/off for each of the
+        slice trackers.
+        """
+
         self._xztracker.toggle_dosewash()
         self._yztracker.toggle_dosewash()
         self._xytracker.toggle_dosewash()
 
-    def on_check_doselines(self):
+    def _on_check_doselines(self):
+        """Method to be called when 'Show dose lines' check button is pressed.
+        It invokes actual method that turns dose lines display on/off for each
+        of the slice trackers.
+        """
+
         self._xztracker.toggle_doselines()
         self._yztracker.toggle_doselines()
         self._xytracker.toggle_doselines()
 
     def update(self):
+        """Method to update diplay of main screen.
+        """
         self._xztracker.on_update()
         self._yztracker.on_update()
         self._xytracker.on_update()
@@ -665,9 +698,7 @@ class ShowVersionAction(ProgramAction):
 
 
 class DefaultAction(ProgramAction):
-    """Program action that wraps some specific code to be executed based on
-    command line input. In this particular case it prints simple message
-    to the stdout.
+    """Program action that launches main application GUI.
     """
 
     def __init__(self, prog, exitf, filelist):
