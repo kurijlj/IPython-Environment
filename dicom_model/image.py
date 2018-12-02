@@ -11,17 +11,17 @@ class Image(object):
 
     def __repr__(self):
         try:
-            output = "\t\t\tImage:[{0}] {1} {2} ({3} {4})\n".format(
+            output = "\t\t\tImage:[{0}] {1} {2} {3} ({4} {5})\n".format(
                     self.dicom_dataset.SliceLocation(),
                     self.dicom_dataset.ImageOrientationPatient(),
                     self.dicom_dataset.ImagePositionPatient(),
                     self.dicom_dataset.Shape(),
+                    self.dicom_dataset.VoxelSize(),
                     self.dicom_dataset.ImageSpacing(),
                 )
             return output
         except Exception as e:
             logger.debug("trouble getting Series data", exc_info=e)
-            print(e)
             return "\t\t\tImage: N/A\n"
 
     def __str__(self):

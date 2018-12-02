@@ -95,8 +95,9 @@ class DicomDatasetAdapter(object):
         """Return the full name of a patient for the current file.
         """
 
-        if self._ds.PatientName:
-            return self._ds.PatientName.family_comma_given()
+        if 'PatientName' in self._ds:
+            if self._ds.PatientName:
+                return self._ds.PatientName.family_comma_given()
 
         return 'N/A'
 
@@ -104,13 +105,14 @@ class DicomDatasetAdapter(object):
         """Return sex of a patient for the current file.
         """
 
-        if self._ds.PatientSex:
-            if (self._ds.PatientSex == 'M'):
-                return 'Male'
-            elif (self._ds.PatientSex == 'F'):
-                return 'Female'
-            else:
-                return 'other'
+        if 'PatientSex' in self._ds:
+            if self._ds.PatientSex:
+                if (self._ds.PatientSex == 'M'):
+                    return 'Male'
+                elif (self._ds.PatientSex == 'F'):
+                    return 'Female'
+                else:
+                    return 'other'
 
         return 'N/A'
 
@@ -118,8 +120,9 @@ class DicomDatasetAdapter(object):
         """Return birthday of a patient for the current file.
         """
 
-        if self._ds.PatientBirthDate:
-            return self._ds.PatientBirthDate
+        if 'PatientBirthDate' in self._ds:
+            if self._ds.PatientBirthDate:
+                return self._ds.PatientBirthDate
 
         return 'N/A'
 
@@ -137,8 +140,9 @@ class DicomDatasetAdapter(object):
         current file.
         """
 
-        if self._ds.StudyID:
-            return self._ds.StudyID
+        if 'StudyID' in self._ds:
+            if self._ds.StudyID:
+                return self._ds.StudyID
 
         return 'N/A'
 
@@ -157,8 +161,9 @@ class DicomDatasetAdapter(object):
         """Return the date the Study started.
         """
 
-        if self._ds.StudyDate:
-            return self._ds.StudyDate
+        if 'StudyDate' in self._ds:
+            if self._ds.StudyDate:
+                return self._ds.StudyDate
 
         return 'N/A'
 
@@ -174,8 +179,9 @@ class DicomDatasetAdapter(object):
         """Return a number that identifies a Series for the current file.
         """
 
-        if str(self._ds.SeriesNumber):
-            return str(self._ds.SeriesNumber)
+        if 'SeriesNumber' in self._ds:
+            if str(self._ds.SeriesNumber):
+                return str(self._ds.SeriesNumber)
 
         return 'N/A'
 
@@ -194,14 +200,17 @@ class DicomDatasetAdapter(object):
         to create the images in this Series.
         """
 
-        if (self._ds.Modality == 'CT'):
-            return 'CT'
-        elif (self._ds.Modality == 'MR'):
-            return 'MR'
-        elif (self._ds.Modality == 'PT'):
-            return 'PET'
+        if 'Modality' in self._ds:
+            if (self._ds.Modality == 'CT'):
+                return 'CT'
+            elif (self._ds.Modality == 'MR'):
+                return 'MR'
+            elif (self._ds.Modality == 'PT'):
+                return 'PET'
+            else:
+                return 'other'
 
-        return 'other'
+        return 'N/A'
 
     def ProtocolName(self):
         """Return user-defined description of the conditions under which
@@ -282,7 +291,7 @@ class DicomDatasetAdapter(object):
 
         if 'SliceLocation' in self._ds:
             if '' != self._ds.SliceLocation:
-                return self._ds.AliceLocation
+                return self._ds.SliceLocation
 
         return None
 
@@ -311,7 +320,13 @@ class DicomDatasetAdapter(object):
         current image.
         """
 
-        return SliceShape(rows=self._ds.Rows, columns=self._ds.Columns)
+        rows = columns = 0.0
+        if 'Rows' in self._ds:
+            rows = self._ds.Rows
+        if 'Columns' in self._ds:
+            columns = self._ds.Columns
+
+        return SliceShape(rows=rows, columns=columns)
 
     def VoxelSize(self):
         """Return named tuple representing size of a voxel of the
