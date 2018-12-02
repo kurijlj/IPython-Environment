@@ -14,31 +14,43 @@ class Study(object):
 
     def __repr__(self):
         try:
-            output = "\tStudyIUID = %s:\n" % (self.dicom_dataset.StudyInstanceUID, )
+            output = "\tStudy: [{0}] {1} ({2})\n".format(
+                    self.dicom_dataset.StudyID(),
+                    self.dicom_dataset.StudyDescription(),
+                    self.dicom_dataset.StudyDate(),
+                )
             for x in self.series:
                 output += repr(x)
             return output
         except Exception as e:
             logger.debug("trouble getting Study data", exc_info=e)
-            return "\tStudyIUID = None\n"
+            return "\tStudy: N/A\n"
 
     def __str__(self):
         try:
-            return self.dicom_dataset.StudyInstanceUID
+            return "\tStudy: [{0}] {1} ({2})\n".format(
+                    self.dicom_dataset.StudyID(),
+                    self.dicom_dataset.StudyDescription(),
+                    self.dicom_dataset.StudyDate(),
+                )
         except Exception as e:
             logger.debug("trouble getting image StudyInstanceUID", exc_info=e)
             return "None"
 
     def __eq__(self, other):
         try:
-            return self.dicom_dataset.StudyInstanceUID == other.dicom_dataset.StudyInstanceUID
+            selfuid = self.dicom_dataset.StudyInstanceUID()
+            otheruid = other.dicom_dataset.StudyInstanceUID()
+            return selfuid == otheruid
         except Exception as e:
             logger.debug("trouble comparing two Studies", exc_info=e)
             return False
 
     def __ne__(self, other):
         try:
-            return self.dicom_dataset.StudyInstanceUID != other.dicom_dataset.StudyInstanceUID
+            selfuid = self.dicom_dataset.StudyInstanceUID()
+            otheruid = other.dicom_dataset.StudyInstanceUID()
+            return selfuid != otheruid
         except Exception as e:
             logger.debug("trouble comparing two Studies", exc_info=e)
             return True
@@ -48,13 +60,15 @@ class Study(object):
 
     def add_dataset(self, dataset):
         try:
-            if self.dicom_dataset.StudyInstanceUID == dataset.StudyInstanceUID:
+            selfuid = self.dicom_dataset.StudyInstanceUID()
+            datasetuid = dataset.StudyInstanceUID()
+            if selfuid == datasetuid:
                 for x in self.series:
                     try:
                         x.add_dataset(dataset)
                         logger.debug("Part of this series")
                         break
-                    except Exception as e:
+                    except Exception:
                         logger.debug("Not part of this series")
                 else:
                     self.series.append(Series(dicom_dataset=dataset))

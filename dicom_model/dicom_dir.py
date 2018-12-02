@@ -18,18 +18,18 @@ from __future__ import print_function
 import os
 import argparse
 import sys
-import fnmatch
+# import fnmatch
 from pprint import pformat
 import pydicom
+import dicomdatasetadapter as dda
 
 from patient import Patient
 
 
 def find_dicom_files(directory, recursive=True):
-    """
-    search a root directory for all files matching a given pattern (in Glob format - *.dcm etc)
-    and that have the "DICM" magic number
-    returns a full path name
+    """Search a root directory for all files matching a given pattern (in
+    Glob format - *.dcm etc) and that have the "DICM" magic number returns
+    a full path name.
     """
     for root, dirs, files in os.walk(directory):
         if not recursive:
@@ -76,11 +76,11 @@ def main(argv=None):
     patients = list()
     for x in find_dicom_files(directory=args.dicom_dir,
                               recursive=args.recursive):
-        f = pydicom.dcmread(x)
+        f = dda.DicomDatasetAdapter(pydicom.dcmread(x))
         for p in patients:
             try:
                 p.add_dataset(f)
-            except Exception as e:
+            except Exception:
                 pass
             else:
                 break

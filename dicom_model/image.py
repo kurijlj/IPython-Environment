@@ -11,29 +11,46 @@ class Image(object):
 
     def __repr__(self):
         try:
-            output = "\t\t\tSOPInstanceUID = %s:\n" % (self.dicom_dataset.SOPInstanceUID, )
+            output = "\t\t\tImage:[{0}] {1} {2} ({3} {4})\n".format(
+                    self.dicom_dataset.SliceLocation(),
+                    self.dicom_dataset.ImageOrientationPatient(),
+                    self.dicom_dataset.ImagePositionPatient(),
+                    self.dicom_dataset.Shape(),
+                    self.dicom_dataset.ImageSpacing(),
+                )
             return output
         except Exception as e:
             logger.debug("trouble getting Series data", exc_info=e)
-            return "\t\t\tSOPInstanceUID = None\n"
+            print(e)
+            return "\t\t\tImage: N/A\n"
 
     def __str__(self):
         try:
-            return self.dicom_dataset.SOPInstanceUID
+            return "\t\t\tImage:[{0} {1} {2}] {3} ({4} {5})\n".format(
+                    self.dicom_dataset.SliceLocation(),
+                    self.dicom_dataset.ImageOrientationPatient(),
+                    self.dicom_dataset.ImagePositionPatient(),
+                    self.dicom_dataset.Shape(),
+                    self.dicom_dataset.ImageSpacing(),
+                )
         except Exception as e:
             logger.debug("trouble getting image SOPInstanceUID", exc_info=e)
             return "None"
 
     def __eq__(self, other):
         try:
-            return self.dicom_dataset.SOPInstanceUID == other.dicom_dataset.SOPInstanceUID
+            selfuid = self.dicom_dataset.SOPInstanceUID()
+            otheruid = other.dicom_dataset.SOPInstanceUID()
+            return selfuid == otheruid
         except Exception as e:
             logger.debug("trouble comparing two Images", exc_info=e)
             return False
 
     def __ne__(self, other):
         try:
-            return self.dicom_dataset.SOPInstanceUID != other.dicom_dataset.SOPInstanceUID
+            selfuid = self.dicom_dataset.SOPInstanceUID()
+            otheruid = other.dicom_dataset.SOPInstanceUID()
+            return selfuid != otheruid
         except Exception as e:
             logger.debug("trouble comparing two Images", exc_info=e)
             return True
