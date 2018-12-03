@@ -46,10 +46,12 @@ class DicomDatasetAdapter(object):
             self._ds = dataset
 
         else:
-            raise AttributeError('Not an pydicom.Dataset instance.')
+            raise ValueError('{0}: Given object is not an pydicom.Dataset \
+instance.').format(self.__class__)
 
 # Methods to enable access to SOP Common attributes
 
+    @property
     def SOPClassUID(self):
         """Determine the SOP Class UID of the current file.
         """
@@ -77,20 +79,33 @@ class DicomDatasetAdapter(object):
 
         return 'other'
 
+    @property
     def SOPInstanceUID(self):
-        """Determine the SOP Class UID of the current file.
+        """Return th unique identifier of the SOP Instance.
         """
+
+        if 'SOPInstanceUID' not in self._ds:
+            raise NameError('{0}: Invalid dataset object. SOPInstanceUID \
+attribute is missing.').format(self.__class__)
+            return None
 
         return self._ds.SOPInstanceUID
 
 # Methods to enable access to Patient attributes
 
+    @property
     def PatientID(self):
         """Return primary identifier for the Patient.
         """
 
+        if 'PatientID' not in self._ds:
+            raise NameError('{0}: Invalid dataset instance. PatientID \
+attribute is missing.').format(self.__class__)
+            return None
+
         return self._ds.PatientID
 
+    @property
     def PatientName(self):
         """Return the full name of a patient for the current file.
         """
@@ -101,6 +116,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def PatientSex(self):
         """Return sex of a patient for the current file.
         """
@@ -116,6 +132,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def PatientBirthDate(self):
         """Return birthday of a patient for the current file.
         """
@@ -128,13 +145,20 @@ class DicomDatasetAdapter(object):
 
 # Methods to enable access to Study attributes
 
+    @property
     def StudyInstanceUID(self):
         """Return user or equipment generated Study identifier for the
         current file.
         """
 
+        if 'StudyInstanceUID' not in self._ds:
+            raise NameError('{0}: Invalid dataset instance. StudyInstanceUID \
+attribute is missing.').format(self.__class__)
+            return None
+
         return self._ds.StudyInstanceUID
 
+    @property
     def StudyID(self):
         """Return user or equipment generated Study identifier for the
         current file.
@@ -146,6 +170,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def StudyDescription(self):
         """Return institution-generated description or classification of the
         Study (component) performed.
@@ -157,6 +182,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def StudyDate(self):
         """Return the date the Study started.
         """
@@ -169,12 +195,19 @@ class DicomDatasetAdapter(object):
 
 # Methods to enable access to Series attributes
 
+    @property
     def SeriesInstanceUID(self):
         """Return unique identifier of the Series.
         """
 
-        return self._ds.StudyInstanceUID
+        if 'SeriesInstanceUID' not in self._ds:
+            raise NameError('{0}: Invalid dataset instance. SeriesInstanceUID \
+attribute is missing.').format(self.__class__)
+            return None
 
+        return self._ds.SeriesInstanceUID
+
+    @property
     def SeriesNumber(self):
         """Return a number that identifies a Series for the current file.
         """
@@ -185,6 +218,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def SeriesDescription(self):
         """Return description of the Series.
         """
@@ -195,6 +229,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def Modality(self):
         """Return type of equipment that originally acquired the data used
         to create the images in this Series.
@@ -212,6 +247,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def ProtocolName(self):
         """Return user-defined description of the conditions under which
         the Series was performed.
@@ -223,6 +259,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def BodyPartExamined(self):
         """Return text description of the part of the body examined.
         """
@@ -233,6 +270,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def PatientPosition(self):
         """Return patient position descriptor relative to the equipment.
         """
@@ -273,6 +311,7 @@ class DicomDatasetAdapter(object):
 
         return 'N/A'
 
+    @property
     def SeriesDate(self):
         """Return date the Series started.
         """
@@ -285,6 +324,7 @@ class DicomDatasetAdapter(object):
 
 # Methods to enable access to Image attributes
 
+    @property
     def SliceLocation(self):
         """Return relative position of the image plane expressed in mm.
         """
@@ -295,6 +335,7 @@ class DicomDatasetAdapter(object):
 
         return None
 
+    @property
     def ImageOrientationPatient(self):
         """Return the direction cosines of the first row and the first column
         with respect to the patient.
@@ -305,6 +346,7 @@ class DicomDatasetAdapter(object):
 
         return None
 
+    @property
     def ImagePositionPatient(self):
         """Return the x, y, and z coordinates of the upper left hand corner
         (center of the first voxel transmitted) of the image, in mm.
@@ -315,7 +357,8 @@ class DicomDatasetAdapter(object):
 
         return None
 
-    def Shape(self):
+    @property
+    def ImageShape(self):
         """Return named tuple representing number of rows and coluns of the
         current image.
         """
@@ -328,7 +371,8 @@ class DicomDatasetAdapter(object):
 
         return SliceShape(rows=rows, columns=columns)
 
-    def VoxelSize(self):
+    @property
+    def ImageVoxelSize(self):
         """Return named tuple representing size of a voxel of the
         current image.
         """
@@ -345,6 +389,7 @@ class DicomDatasetAdapter(object):
 
         return VoxelSize(row, column, thickness)
 
+    @property
     def ImageSpacing(self):
         """Return spacing between slices, in mm. The spacing is measured
         from the center-to-center of each slice.
