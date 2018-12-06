@@ -4,19 +4,185 @@
 
 
 import logging
+import numpy as np
 try:
     from pydicom.dataset import Dataset
 except ImportError:
     from dicom.dataset import Dataset
-from collections import namedtuple
 
 
 logger = logging.getLogger('dicomdatastructures')
 
 
 # Define named tuple class.
-SliceShape = namedtuple('SliceShape', ['rows', 'columns'])
-VoxelSize = namedtuple('VoxelSize', ['row', 'column', 'thickness'])
+class SliceLocation(object):
+    """
+    """
+
+    def __init__(self, value: int):
+        self._val = value
+
+    def __str__(self):
+        return 'SliceLocation(value: \'{0}\')'.format(self._val)
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other: SliceLocation):
+        try:
+            return self.value_raw() == other.value_raw()
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble comparing two slice locations'
+                    .format(self.__class__),
+                    exc_info=e
+                )
+            return False
+
+    def __ne__(self, other):
+        try:
+            return self.value_raw() != other.value_raw()
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble comparing two slice locations'
+                    .format(self.__class__),
+                    exc_info=e
+                )
+            return False
+
+    @property
+    def value(self):
+        return round(self._val, 1)
+
+    def value_raw(self):
+        return self._val
+
+
+class SliceShape(object):
+    """
+    """
+
+    def __init__(self, rows: int = 0, columns: int = 0):
+        self._shape = np.array([rows, columns])
+
+    def __str__(self):
+        return 'SliceShape(rows: \'{0}\', columns: \'{1}\')'.format(
+                self._shape[0],
+                self._shape[1]
+            )
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        try:
+            return self.shape_raw() == other.shape_raw()
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble comparing two slice shapes'
+                    .format(self.__class__),
+                    exc_info=e
+                )
+            return False
+
+    def __ne__(self, other):
+        try:
+            return self.shape_raw() != other.shape_raw()
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble comparing two slice shapes'
+                    .format(self.__class__),
+                    exc_info=e
+                )
+            return False
+
+    @property
+    def rows(self):
+        return self._shape[0]
+
+    @property
+    def columns(self):
+        return self._shape[1]
+
+    def shape(self):
+        return {'rows': self._shape[0], 'columns': self._shape[1]}
+
+    def shape_raw(self):
+        return self._shape
+
+
+class VoxelSize(object):
+    """
+    """
+
+    def __init__(
+                self,
+                row: float = 1.0,
+                column: float = 1.0,
+                thickness: float = 1.0
+            ):
+        self._shape = np.array([row, column, thickness])
+
+    def __str__(self):
+        shape = np.round(self._shape, decimals=1)
+        return 'VoxelSize(row: \'{0}\', column: \'{1}\', thickness: \'{2}\')'\
+            .format(
+                    shape[0],
+                    shape[1],
+                    shape[2],
+                )
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        try:
+            selfshp = np.round(self.shape_raw(), decimals=1)
+            othershp = np.round(other.shape_raw(), decimals=1)
+            return selfshp == othershp
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble comparing two voxel sizes'
+                    .format(self.__class__),
+                    exc_info=e
+                )
+            return False
+
+    def __ne__(self, other):
+        try:
+            selfshp = np.round(self.shape_raw(), decimals=1)
+            othershp = np.round(other.shape_raw(), decimals=1)
+            return selfshp != othershp
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble comparing two voxel sizes'
+                    .format(self.__class__),
+                    exc_info=e
+                )
+            return False
+
+    @property
+    def row(self):
+        return np.round(self._shape[0], decimals=1)
+
+    @property
+    def column(self):
+        return np.round(self._shape[1], decimals=1)
+
+    @property
+    def thickness(self):
+        return np.round(self._shape[2], decimals=1)
+
+    def shape(self):
+        shape = np.round(self._shape, decimals=1)
+        return {
+            'row': shape[0],
+            'column': shape[1],
+            'thickness': shape[2]
+        }
+
+    def shape_raw(self):
+        return self._shape
 
 
 class Patient(object):
@@ -137,7 +303,26 @@ class Study(object):
                 )
             for x in self.series:
                 output += repr(x)
-            return output
+            return output:
+            return 'Image {0}\n'.format(self.ds.SOPInstanceUID)
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble getting Image SOPInstanceUID'.
+                    format(self.__class__),
+                    exc_info=e
+                )
+            return None
+
+    def __eq__(self, other):
+        try:
+            return self.ds.SOPInstanceUID == other.ds.SOPInstanceUID
+        except Exception as e:
+            logger.debug(
+                    '{0}: trouble comparing two Images'.
+                    format(self.__class__),
+                    exc_info=e
+                )
+
         except Exception as e:
             logger.debug(
                     '{0}: trouble getting Study data'
@@ -316,9 +501,9 @@ class Image(object):
     def __repr__(self):
         try:
             output = "\t\t\tImage:[{0}] {1} {2} {3} ({4} {5})\n".format(
-                    self.ds.SliceLocation,
-                    self.ds.ImageOrientationPatient,
-                    self.ds.ImagePositionPatient,
+                    round(self.ds.SliceLocation, 1),
+                    np.round(self.ds.ImageOrientationPatient, decimals=1),
+                    np.round(self.ds.ImagePositionPatient, decimals=1),
                     self.ds.ImageShape,
                     self.ds.ImageVoxelSize,
                     self.ds.ImageSpacing,
@@ -675,7 +860,7 @@ attribute is missing.').format(self.__class__)
         """
 
         if 'ImageOrientationPatient' in self._ds:
-            return self._ds.ImageOrientationPatient
+            return np.array(self._ds.ImageOrientationPatient)
 
         return None
 
@@ -686,7 +871,7 @@ attribute is missing.').format(self.__class__)
         """
 
         if 'ImagePositionPatient' in self._ds:
-            return self._ds.ImagePositionPatient
+            return np.array(self._ds.ImagePositionPatient)
 
         return None
 
@@ -707,7 +892,7 @@ attribute is missing.').format(self.__class__)
     @property
     def ImageVoxelSize(self):
         """Return named tuple representing size of a voxel of the
-        current image.
+        current image in mm.
         """
 
         row = column = thickness = 1.0
