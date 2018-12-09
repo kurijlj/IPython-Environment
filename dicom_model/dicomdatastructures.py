@@ -19,39 +19,56 @@ class SliceLocation(object):
     """
     """
 
-    def __init__(self, value: int):
-        self._val = value
+    def __init__(self, value):
+        if isinstance(value, int):
+            self._val = value
+        else:
+            self._val = None
 
     def __str__(self):
-        return 'SliceLocation(value: \'{0}\')'.format(self._val)
+        if self._val is not None:
+            return 'SliceLocation(value: \'{0}\')'.format(self._val)
+
+        return str(self._val)
 
     def __repr__(self):
         return str(self)
 
-    def __eq__(self, other: SliceLocation):
-        try:
-            return self.value_raw() == other.value_raw()
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble comparing two slice locations'
-                    .format(self.__class__),
-                    exc_info=e
+    def __eq__(self, other):
+        if isinstance(other, SliceLocation):
+            result = isinstance(self.value_raw(), int) and\
+                     isinstance(other.value_raw(), int)
+            if result:
+                return self.value_raw() == other.value_raw()
+
+        else:
+            raise AttributeError(
+                    '{0}: Not an SliceLocation instance'
+                    .format(self.__class__)
                 )
-            return False
+
+        return False
 
     def __ne__(self, other):
-        try:
-            return self.value_raw() != other.value_raw()
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble comparing two slice locations'
-                    .format(self.__class__),
-                    exc_info=e
+        if isinstance(other, SliceLocation):
+            result = isinstance(self.value_raw(), int) and\
+                     isinstance(other.value_raw(), int)
+            if result:
+                return self.value_raw() != other.value_raw()
+
+        else:
+            raise AttributeError(
+                    '{0}: Not an SliceLocation instance'
+                    .format(self.__class__)
                 )
-            return False
+
+        return False
 
     @property
     def value(self):
+        if self._val is None:
+            return self._val
+
         return round(self._val, 1)
 
     def value_raw(self):
@@ -303,8 +320,7 @@ class Study(object):
                 )
             for x in self.series:
                 output += repr(x)
-            return output:
-            return 'Image {0}\n'.format(self.ds.SOPInstanceUID)
+            return output
         except Exception as e:
             logger.debug(
                     '{0}: trouble getting Image SOPInstanceUID'.
@@ -312,24 +328,6 @@ class Study(object):
                     exc_info=e
                 )
             return None
-
-    def __eq__(self, other):
-        try:
-            return self.ds.SOPInstanceUID == other.ds.SOPInstanceUID
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble comparing two Images'.
-                    format(self.__class__),
-                    exc_info=e
-                )
-
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble getting Study data'
-                    .format(self.__class__),
-                    exc_info=e
-                )
-            return '\tStudy: N/A\n'
 
     def __str__(self):
         try:
@@ -501,7 +499,7 @@ class Image(object):
     def __repr__(self):
         try:
             output = "\t\t\tImage:[{0}] {1} {2} {3} ({4} {5})\n".format(
-                    round(self.ds.SliceLocation, 1),
+                    self.ds.SliceLocation.value,
                     np.round(self.ds.ImageOrientationPatient, decimals=1),
                     np.round(self.ds.ImagePositionPatient, decimals=1),
                     self.ds.ImageShape,
@@ -510,6 +508,7 @@ class Image(object):
                 )
             return output
         except Exception as e:
+            print(e)
             logger.debug(
                     '{0}: trouble getting Image data'.
                     format(self.__class__),
@@ -849,9 +848,9 @@ attribute is missing.').format(self.__class__)
 
         if 'SliceLocation' in self._ds:
             if '' != self._ds.SliceLocation:
-                return self._ds.SliceLocation
+                return SliceLocation(self._ds.SliceLocation)
 
-        return None
+        return SliceLocation(None)
 
     @property
     def ImageOrientationPatient(self):
