@@ -23,10 +23,14 @@ class SliceLocation(object):
         if isinstance(value, int):
             self._val = value
         else:
+            raise AttributeError(
+                    '{0}: Object initialized with None'
+                    .format(self.__class__)
+                )
             self._val = None
 
     def __str__(self):
-        if self._val is not None:
+        if isinstance(self._val, int):
             return 'SliceLocation(value: \'{0}\')'.format(self._val)
 
         return str(self._val)
@@ -36,10 +40,7 @@ class SliceLocation(object):
 
     def __eq__(self, other):
         if isinstance(other, SliceLocation):
-            result = isinstance(self.value_raw(), int) and\
-                     isinstance(other.value_raw(), int)
-            if result:
-                return self.value_raw() == other.value_raw()
+            return self.value_raw() == other.value_raw()
 
         else:
             raise AttributeError(
@@ -51,10 +52,7 @@ class SliceLocation(object):
 
     def __ne__(self, other):
         if isinstance(other, SliceLocation):
-            result = isinstance(self.value_raw(), int) and\
-                     isinstance(other.value_raw(), int)
-            if result:
-                return self.value_raw() != other.value_raw()
+            return self.value_raw() != other.value_raw()
 
         else:
             raise AttributeError(
@@ -74,12 +72,27 @@ class SliceLocation(object):
     def value_raw(self):
         return self._val
 
+    def isnone(self):
+        return self._val is None
+
 
 class SliceShape(object):
     """
     """
 
-    def __init__(self, rows: int = 0, columns: int = 0):
+    def __init__(self, rows, columns):
+        if not isinstance(rows, int):
+            raise AttributeError(
+                    '{0}: Non integer assignment'
+                    .format(self.__class__)
+                )
+            rows = 0
+        if not isinstance(columns, int):
+            raise AttributeError(
+                    '{0}: Non integer assignment'
+                    .format(self.__class__)
+                )
+            columns = 0
         self._shape = np.array([rows, columns])
 
     def __str__(self):
@@ -92,26 +105,28 @@ class SliceShape(object):
         return str(self)
 
     def __eq__(self, other):
-        try:
+        if isinstance(other, SliceShape):
             return self.shape_raw() == other.shape_raw()
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble comparing two slice shapes'
-                    .format(self.__class__),
-                    exc_info=e
+
+        else:
+            raise AttributeError(
+                    '{0}: Not an SliceShape instance'
+                    .format(self.__class__)
                 )
-            return False
+
+        return False
 
     def __ne__(self, other):
-        try:
+        if isinstance(other, SliceShape):
             return self.shape_raw() != other.shape_raw()
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble comparing two slice shapes'
-                    .format(self.__class__),
-                    exc_info=e
+
+        else:
+            raise AttributeError(
+                    '{0}: Not an SliceShape instance'
+                    .format(self.__class__)
                 )
-            return False
+
+        return False
 
     @property
     def rows(self):
@@ -132,12 +147,25 @@ class VoxelSize(object):
     """
     """
 
-    def __init__(
-                self,
-                row: float = 1.0,
-                column: float = 1.0,
-                thickness: float = 1.0
-            ):
+    def __init__(self, row, column, thickness):
+        if not isinstance(row, float):
+            raise AttributeError(
+                    '{0}: Non floating point value assignment'
+                    .format(self.__class__)
+                )
+            row = 1.0
+        if not isinstance(column, float):
+            raise AttributeError(
+                    '{0}: Non floating point value assignment'
+                    .format(self.__class__)
+                )
+            column = 1.0
+        if not isinstance(thickness, float):
+            raise AttributeError(
+                    '{0}: Non floating point value assignment'
+                    .format(self.__class__)
+                )
+            thickness = 1.0
         self._shape = np.array([row, column, thickness])
 
     def __str__(self):
@@ -153,30 +181,32 @@ class VoxelSize(object):
         return str(self)
 
     def __eq__(self, other):
-        try:
+        if isinstance(other, VoxelSize):
             selfshp = np.round(self.shape_raw(), decimals=1)
             othershp = np.round(other.shape_raw(), decimals=1)
             return selfshp == othershp
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble comparing two voxel sizes'
-                    .format(self.__class__),
-                    exc_info=e
+
+        else:
+            raise AttributeError(
+                    '{0}: Not an VoxelSize instance'
+                    .format(self.__class__)
                 )
-            return False
+
+        return False
 
     def __ne__(self, other):
-        try:
+        if isinstance(other, VoxelSize):
             selfshp = np.round(self.shape_raw(), decimals=1)
             othershp = np.round(other.shape_raw(), decimals=1)
             return selfshp != othershp
-        except Exception as e:
-            logger.debug(
-                    '{0}: trouble comparing two voxel sizes'
-                    .format(self.__class__),
-                    exc_info=e
+
+        else:
+            raise AttributeError(
+                    '{0}: Not an VoxelSize instance'
+                    .format(self.__class__)
                 )
-            return False
+
+        return False
 
     @property
     def row(self):
