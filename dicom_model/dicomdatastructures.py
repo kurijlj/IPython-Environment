@@ -9,6 +9,10 @@ try:
     from pydicom.dataset import Dataset
 except ImportError:
     from dicom.dataset import Dataset
+try:
+    from pydicom.valuerep import DSdecimal, DSfloat
+except ImportError:
+    from dicom.valuerep import DSdecimal, DSfloat
 
 
 logger = logging.getLogger('dicomdatastructures')
@@ -20,7 +24,7 @@ class SliceLocation(object):
     """
 
     def __init__(self, value):
-        if isinstance(value, int):
+        if isinstance(value, float):
             self._val = value
         else:
             raise AttributeError(
@@ -67,6 +71,7 @@ class SliceLocation(object):
         if self._val is None:
             return self._val
 
+        # Why rounding here if we are dealing with an integer value?
         return round(self._val, 1)
 
     def value_raw(self):
