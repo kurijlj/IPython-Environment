@@ -2,30 +2,33 @@
 # -*- coding: utf-8 -*-
 # tester.py
 
-from dicomdatastructures import SliceLocation
+from dds import SliceLocation
 from dicom.valuerep import DSdecimal, DSfloat
 
 def main():
     # SliceLocation tests
-    a = SliceLocation(101)
-    b = SliceLocation(57)
-    c = SliceLocation(101)
-    
+    a = SliceLocation(DSdecimal('133.45'))
+    b = SliceLocation(DSdecimal('133.45'))
+    c = SliceLocation(DSdecimal('13.45'))
+    d = SliceLocation(DSfloat('133.45'))
+    e = SliceLocation(DSfloat('33.45'))
+    f = SliceLocation(DSdecimal(''))
+    g = SliceLocation('')
+    h = None
     try:
-        d = SliceLocation(101.0)
+        h = SliceLocation(None)
     except Exception as e:
         print (e)
-
-    try:
-        e = SliceLocation('101')
-    except Exception as e:
-        print(e)
-
-    print(a, '\n', b, '\n', c, '\n', d, '\n', e)
+    
+    print(a, '\n', b, '\n', c, '\n', d, '\n', e, '\n', f, '\n', g, '\n', h)
+    print('a == a: ', a == a)
     print('a == b: ', a == b)
     print('a == c: ', a == c)
     print('a == d: ', a == d)
     print('a == e: ', a == e)
+    print('a == f: ', a == f)
+    print('a == g: ', a == g)
+    print('a == h: ', a == h)
     print('d == e: ', d == e)
     print('a != b: ', a != b)
     print('a != c: ', a != c)
