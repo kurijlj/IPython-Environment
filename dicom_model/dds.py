@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# tester.py
+
 try:
-    from pydicom.valuerep import DSfloat
-    from pydicom.valuerep import DSdecimal
+    from pydicom.valuerep import DSfloat, DSdecimal
 except ImportError:
-    from dicom.valuerep import DSfloat
-    from dicom.valuerep import DSdecimal
+    from dicom.valuerep import DSfloat, DSdecimal
 
 class SliceLocation(object):
     """
