@@ -12,13 +12,6 @@ class SliceLocation(object):
     """
 
     def __init__(self, value):
-        if value is None:
-            raise AttributeError(
-                    '{0}: Object initialized with None'
-                    .format(self.__class__)
-                )
-            self._val = None
-        else:
             self._val = value
 
     def __str__(self):
@@ -56,7 +49,7 @@ class SliceLocation(object):
 
     @property
     def value(self):
-        if self.is_none() or is_empty_string():
+        if self.is_none() or self.is_empty_string():
             return self._val
 
         return round(self._val, 1)
