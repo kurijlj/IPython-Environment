@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 # tester.py
 
-from dds import SliceLocation
 try:
     from pydicom.valuerep import DSdecimal, DSfloat
 except ImportError:
     from dicom.valuerep import DSdecimal, DSfloat
+from tabulate import tabulate
+from dds import SliceLocation
+
 
 def main():
     # SliceLocation tests
@@ -19,71 +21,75 @@ def main():
     g = SliceLocation('')
     h = SliceLocation(None)
 
-    print('a = {0};'.format(a))
-    print('is a an \'None\'? {0}', a.is_none())
-    print('is a an empty string? {0}', a.is_empty_string())
-    print('is a an \'DSclass\'? {0}', a.is_dsclass())
+    objects = [
+            ['variable', 'value', 'type', 'is None', 'is empty string',
+                'is DSclass'],
+            ['a', repr(a), type(a.value), a.is_none(), a.is_empty_string(),
+                a.is_dsclass()],
+            ['b', repr(b), type(b.value), b.is_none(), b.is_empty_string(),
+                b.is_dsclass()],
+            ['c', repr(c), type(c.value), c.is_none(), c.is_empty_string(),
+                c.is_dsclass()],
+            ['d', repr(d), type(d.value), d.is_none(), d.is_empty_string(),
+                d.is_dsclass()],
+            ['e', repr(e), type(e.value), e.is_none(), e.is_empty_string(),
+                e.is_dsclass()],
+            ['f', repr(f), type(f.value), f.is_none(), f.is_empty_string(),
+                f.is_dsclass()],
+            ['g', repr(g), type(g.value), g.is_none(), g.is_empty_string(),
+                g.is_dsclass()],
+            ['h', repr(h), type(h.value), h.is_none(), h.is_empty_string(),
+                h.is_dsclass()],
+        ]
 
-    print('b = {0};'.format(b))
-    print('is b an \'None\'? {0}', b.is_none())
-    print('is b an empty string? {0}', b.is_empty_string())
-    print('is b an \'DSclass\'? {0}', b.is_dsclass())
+    equalities = [
+            ['==', repr(a), repr(b), repr(c), repr(d), repr(e), repr(f),
+                repr(g), repr(h)],
+            [repr(a), a == a, a == b, a == c, a == d, a == e, a == f, a == g,
+                a == h],
+            [repr(b), b == a, b == b, b == c, b == d, b == e, b == f, b == g,
+                b == h],
+            [repr(c), c == a, c == b, c == c, c == d, c == e, c == f, c == g,
+                c == h],
+            [repr(d), d == a, d == b, d == c, d == d, d == e, d == f, d == g,
+                d == h],
+            [repr(e), e == a, e == b, e == c, e == d, e == e, e == f, e == g,
+                e == h],
+            [repr(f), f == a, f == b, f == c, f == d, f == e, f == f, f == g,
+                f == h],
+            [repr(g), g == a, g == b, g == c, g == d, g == e, g == f, g == g,
+                g == h],
+            [repr(h), h == a, h == b, h == c, h == d, h == e, h == f, h == g,
+                h == h],
+        ]
 
-    print('c = {0};'.format(c))
-    print('is c an \'None\'? {0}', c.is_none())
-    print('is c an empty string? {0}', c.is_empty_string())
-    print('is c an \'DSclass\'? {0}', c.is_dsclass())
+    inequalities = [
+            ['!=', repr(a), repr(b), repr(c), repr(d), repr(e), repr(f),
+                repr(g), repr(h)],
+            [repr(a), a != a, a != b, a != c, a != d, a != e, a != f, a != g,
+                a != h],
+            [repr(b), b != a, b != b, b != c, b != d, b != e, b != f, b != g,
+                b != h],
+            [repr(c), c != a, c != b, c != c, c != d, c != e, c != f, c != g,
+                c != h],
+            [repr(d), d != a, d != b, d != c, d != d, d != e, d != f, d != g,
+                d != h],
+            [repr(e), e != a, e != b, e != c, e != d, e != e, e != f, e != g,
+                e != h],
+            [repr(f), f != a, f != b, f != c, f != d, f != e, f != f, f != g,
+                f != h],
+            [repr(g), g != a, g != b, g != c, g != d, g != e, g != f, g != g,
+                g != h],
+            [repr(h), h != a, h != b, h != c, h != d, h != e, h != f, h != g,
+                h != h],
+        ]
 
-    print('d = {0};'.format(d))
-    print('is d an \'None\'? {0}', d.is_none())
-    print('is d an empty string? {0}', d.is_empty_string())
-    print('is d an \'DSclass\'? {0}', d.is_dsclass())
-
-    print('e = {0};'.format(e))
-    print('is e an \'None\'? {0}', e.is_none())
-    print('is e an empty string? {0}', e.is_empty_string())
-    print('is e an \'DSclass\'? {0}', e.is_dsclass())
-
-    print('f = {0};'.format(f))
-    print('is f an \'None\'? {0}', f.is_none())
-    print('is f an empty string? {0}', f.is_empty_string())
-    print('is f an \'DSclass\'? {0}', f.is_dsclass())
-
-    print('g = {0};'.format(g))
-    print('is g an \'None\'? {0}', g.is_none())
-    print('is g an empty string? {0}', g.is_empty_string())
-    print('is g an \'DSclass\'? {0}', g.is_dsclass())
-
-    print('h = {0};'.format(h))
-    print('is h an \'None\'? {0}', h.is_none())
-    print('is h an empty string? {0}', h.is_empty_string())
-    print('is h an \'DSclass\'? {0}', h.is_dsclass())
-
-    print('a == a: ', a == a)
-    print('a == b: ', a == b)
-    print('a == c: ', a == c)
-    print('a == d: ', a == d)
-    print('a == e: ', a == e)
-    print('a == f: ', a == f)
-    print('a == g: ', a == g)
-    print('a == h: ', a == h)
-    print('a != a: ', a != a)
-    print('a != b: ', a != b)
-    print('a != c: ', a != c)
-    print('a != d: ', a != d)
-    print('a != e: ', a != e)
-    print('a != f: ', a != f)
-    print('a != g: ', a != g)
-    print('a != h: ', a != h)
-
-    print(a.value, '[', type(a.value), ']')
-    print(b.value, '[', type(b.value), ']')
-    print(c.value, '[', type(c.value), ']')
-    print(d.value, '[', type(d.value), ']')
-    print(e.value, '[', type(e.value), ']')
-    print(f.value, '[', type(f.value), ']')
-    print(g.value, '[', type(g.value), ']')
-    print(h.value, '[', type(h.value), ']')
+    print('Table I: Objects')
+    print(tabulate(objects, headers='firstrow', tablefmt='psql'), '\n')
+    print('Table II: Equalities')
+    print(tabulate(equalities, headers='firstrow', tablefmt='psql'), '\n')
+    print('Table II: Inequalities')
+    print(tabulate(inequalities, headers='firstrow', tablefmt='psql'), '\n')
 
 
 if __name__ == '__main__':
