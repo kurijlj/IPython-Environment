@@ -911,11 +911,11 @@ attribute is missing.').format(self.__class__)
 
     @property
     def ImageShape(self):
-        """Return named tuple representing number of rows and coluns of the
+        """Return named tuple representing number of rows and columns of the
         current image.
         """
 
-        rows = columns = 0.0
+        rows = columns = 0
         if 'Rows' in self._ds:
             rows = self._ds.Rows
         if 'Columns' in self._ds:
