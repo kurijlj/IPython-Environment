@@ -211,27 +211,33 @@ def slice_shape_tests():
             [str(a), str(b), str(c), str(d)]
         ]
 
+    # Format nice columns and rows titles.
+    ashp = '{0}x{1}'.format(a.columns, a.rows)
+    bshp = '{0}x{1}'.format(b.columns, b.rows)
+    cshp = '{0}x{1}'.format(c.columns, c.rows)
+    dshp = '{0}x{1}'.format(d.columns, d.rows)
+
     equalities = [
-            ['==', str(a), str(b), str(c), str(d)],
-            [str(a), colorize(a == a), colorize(a == b), colorize(a == c),
+            ['==', ashp, bshp, cshp, dshp],
+            [ashp, colorize(a == a), colorize(a == b), colorize(a == c),
                 colorize(a == d)],
-            [str(b), colorize(b == a), colorize(b == b), colorize(b == c),
+            [bshp, colorize(b == a), colorize(b == b), colorize(b == c),
                 colorize(b == d)],
-            [str(c), colorize(c == a), colorize(c == b), colorize(c == c),
+            [cshp, colorize(c == a), colorize(c == b), colorize(c == c),
                 colorize(c == d)],
-            [str(d), colorize(d == a), colorize(d == b), colorize(d == c),
+            [dshp, colorize(d == a), colorize(d == b), colorize(d == c),
                 colorize(d == d)],
         ]
 
     inequalities = [
-            ['!=', str(a), str(b), str(c), str(d)],
-            [str(a), colorize(a != a), colorize(a != b), colorize(a != c),
+            ['!=', ashp, bshp, cshp, dshp],
+            [ashp, colorize(a != a), colorize(a != b), colorize(a != c),
                 colorize(a != d)],
-            [str(b), colorize(b != a), colorize(b != b), colorize(b != c),
+            [bshp, colorize(b != a), colorize(b != b), colorize(b != c),
                 colorize(b != d)],
-            [str(c), colorize(c != a), colorize(c != b), colorize(c != c),
+            [cshp, colorize(c != a), colorize(c != b), colorize(c != c),
                 colorize(c != d)],
-            [str(d), colorize(d != a), colorize(d != b), colorize(d != c),
+            [dshp, colorize(d != a), colorize(d != b), colorize(d != c),
                 colorize(d != d)],
         ]
 

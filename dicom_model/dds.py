@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# tester.py
+# dds.py
 
 try:
     from pydicom.valuerep import DSfloat, DSdecimal
