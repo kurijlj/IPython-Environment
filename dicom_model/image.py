@@ -13,11 +13,11 @@ class Image(object):
         try:
             output = "\t\t\tImage:[{0}] {1} {2} {3} ({4} {5})\n".format(
                     self.dicom_dataset.SliceLocation(),
-                    self.dicom_dataset.ImageOrientationPatient(),
                     self.dicom_dataset.ImagePositionPatient(),
+                    self.dicom_dataset.ImageOrientationPatient(),
                     self.dicom_dataset.Shape(),
-                    self.dicom_dataset.VoxelSize(),
                     self.dicom_dataset.ImageSpacing(),
+                    self.dicom_dataset.VoxelSize(),
                 )
             return output
         except Exception as e:
@@ -28,8 +28,8 @@ class Image(object):
         try:
             return "\t\t\tImage:[{0} {1} {2}] {3} ({4} {5})\n".format(
                     self.dicom_dataset.SliceLocation(),
-                    self.dicom_dataset.ImageOrientationPatient(),
                     self.dicom_dataset.ImagePositionPatient(),
+                    self.dicom_dataset.ImageOrientationPatient(),
                     self.dicom_dataset.Shape(),
                     self.dicom_dataset.ImageSpacing(),
                 )
