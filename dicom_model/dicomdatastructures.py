@@ -439,19 +439,19 @@ class Series(object):
 
     def __repr__(self):
         try:
-            output = '\t\tSeries: [{0} {1}] {2} ({3} {4}) {5}\n'.format(
+            output = '\t\tSeries: [{0} {1}] {2} ({3} {4}) [{5} {6}]\n'.format(
                     self.ds.Modality,
                     self.ds.ProtocolName,
                     self.ds.SeriesDescription,
                     self.ds.BodyPartExamined,
                     self.ds.PatientPosition,
+                    len(self.images),
                     self.parallel_images()
                 )
             for x in self.images:
                 output += repr(x)
             return output
         except Exception as e:
-            print(e)  # This line is for debug only purposes!
             logger.debug(
                     '{0}: trouble getting Series data'
                     .format(self.__class__),
@@ -527,6 +527,7 @@ class Series(object):
     def parallel_images(self):
         for i, item in enumerate(self.images):
             if (i > 0):
+                print('i: {0}\n'.format(i))
                 iop0 = np.array(item.ImageOrientationPatient)
                 iop1 = np.array(self.images[i-1].ImageOrientationPatient)
                 if (np.any(np.array(np.round(iop0 - iop1, decimals=1)))):
@@ -558,7 +559,6 @@ class Image(object):
                 )
             return output
         except Exception as e:
-            print(e)  # This line is for debug only purposes!
             logger.debug(
                     '{0}: trouble getting Image data'.
                     format(self.__class__),
