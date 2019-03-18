@@ -10,9 +10,9 @@ try:
 except ImportError:
     from dicom.dataset import Dataset
 try:
-    from pydicom.valuerep import DSdecimal, DSfloat
+    from pydicom.valuerep import DSclass
 except ImportError:
-    from dicom.valuerep import DSdecimal, DSfloat
+    from dicom.valuerep import DSclass
 
 
 logger = logging.getLogger('dicomdatastructures')
@@ -24,19 +24,16 @@ class SliceLocation(object):
     """
 
     def __init__(self, value):
-        if isinstance(value, float):
+        if isinstance(value, DSclass):
             self._val = value
         else:
-            raise AttributeError(
-                    '{0}: Object initialized with None'
-                    .format(self.__class__)
-                )
+            # raise AttributeError(
+            #         '{0}: Object initialized with None'
+            #         .format(self.__class__)
+            #     )
             self._val = None
 
     def __str__(self):
-        if isinstance(self._val, int):
-            return 'SliceLocation(value: \'{0}\')'.format(self._val)
-
         return str(self._val)
 
     def __repr__(self):
@@ -68,11 +65,10 @@ class SliceLocation(object):
 
     @property
     def value(self):
-        if self._val is None:
-            return self._val
+        if self._val is DSclass:
+            return round(self._val, 1)
 
-        # Why rounding here if we are dealing with an integer value?
-        return round(self._val, 1)
+        return None
 
     def value_raw(self):
         return self._val
@@ -443,17 +439,19 @@ class Series(object):
 
     def __repr__(self):
         try:
-            output = '\t\tSeries: [{0} {1}] {2} ({3} {4})\n'.format(
+            output = '\t\tSeries: [{0} {1}] {2} ({3} {4}) {5}\n'.format(
                     self.ds.Modality,
                     self.ds.ProtocolName,
                     self.ds.SeriesDescription,
                     self.ds.BodyPartExamined,
-                    self.ds.PatientPosition
+                    self.ds.PatientPosition,
+                    self.parallel_images()
                 )
             for x in self.images:
                 output += repr(x)
             return output
         except Exception as e:
+            print(e)  # This line is for debug only purposes!
             logger.debug(
                     '{0}: trouble getting Series data'
                     .format(self.__class__),
@@ -526,6 +524,23 @@ class Series(object):
                     .format(self.__class__)
                 )
 
+    def parallel_images(self):
+        for i, item in enumerate(self.images):
+            if (i > 0):
+                iop0 = np.array(item.ImageOrientationPatient)
+                iop1 = np.array(self.images[i-1].ImageOrientationPatient)
+                if (np.any(np.array(np.round(iop0 - iop1, decimals=1)))):
+                    return False
+
+                # Also test ImagePositionPatient, as some series
+                # use the same patient position for every slice
+                ipp0 = np.array(item.ImagePositionPatient)
+                ipp1 = np.array(self.images[i-1].ImagePositionPatient)
+                if not (np.any(np.array(np.round(ipp0 - ipp1, decimals=1)))):
+                    return False
+
+        return True
+
 
 class Image(object):
     def __init__(self, dicom_dataset=None):
@@ -533,18 +548,17 @@ class Image(object):
 
     def __repr__(self):
         try:
-            output = "\t\t\tImage:[{0}] {1} {2} [{3}] {4} ({5} {6})\n".format(
+            output = "\t\t\tImage:[{0}] {1} {2} {3} ({4} {5})\n".format(
                     self.ds.SliceLocation.value,
                     np.round(self.ds.ImagePositionPatient, decimals=1),
                     np.round(self.ds.ImageOrientationPatient, decimals=1),
-                    self.sort_by(),
                     self.ds.ImageShape,
                     self.ds.ImageVoxelSize,
                     self.ds.ImageSpacing,
                 )
             return output
         except Exception as e:
-            print(e)
+            print(e)  # This line is for debug only purposes!
             logger.debug(
                     '{0}: trouble getting Image data'.
                     format(self.__class__),
@@ -587,29 +601,6 @@ class Image(object):
 
     def __getattr__(self, name):
         return getattr(self.ds, name)
-
-    def sort_by(self):
-        """Determines by witch coordinate to sort images in the series.
-        """
-
-        i = np.array([1., 0., 0.])
-        j = np.array([0., 1., 0.])
-        k = np.array([0., 0., 1.])
-
-        iop = np.round(self.ds.ImageOrientationPatient, decimals=1)
-        r = np.cross(iop[:3], iop[3:])
-        ri = np.cross(i, r)
-        rj = np.cross(j, r)
-        rk = np.cross(k, r)
-
-        if np.all(ri == 0.0):
-            return 0
-        elif np.all(rj == 0.0):
-            return 1
-        elif np.all(rk == 0.0):
-            return 2
-        else:
-            return -1
 
 
 class DicomDatasetAdapter(object):
