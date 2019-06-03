@@ -1,0 +1,11 @@
+GetName                - gets sequence name
+GetOrigin              - gets sequence origin
+GetSpacing             - get voxel size
+
+GetImageData
+GetBounds             - gets sequence bounds in pixels
+GetCenter             - gets center point of sequence
+GetDimensions         - gets sequence dimensions in pixels
+GetExtent             - similar to getBounds
+GetOrigin             - gets sequence origin
+GetSpacing            - gets 

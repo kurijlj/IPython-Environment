@@ -925,3 +925,603 @@ fig, ax = plt.subplots(1, 1)
 tracker = edt.xyzhlp.IsoSlicesTracker(ax, vphnt.voxelsdensity, vdose.dose / vdose.max())
 fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+infile = open('MPR and SPACE distortion map.csv', 'r')
+reader = csv.reader(infile)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+for row in reader:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    spcdx[i] = row[3]
+    spcdy[i] = row[4]
+    spcdz[i] = row[5]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 6))
+spcdymt = spcdy.reshape((6, 7, 6))
+spcdzmt = spcdz.reshape((6, 7, 6))
+x, y, z, = np.meshgrid(np.arange(1, 8, 1), np.arange(1, 7, 1), np.arange(1, 7, 1))
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.5, normalize=True)
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax2.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=0.5, normalize=True)
+ax1.set_ylabel('X')
+ax1.set_xlabel('Y')
+ax1.set_zlabel('Z')
+ax1.set_title('MPR distortion map')
+ax2.set_xlabel('Y')
+ax2.set_ylabel('X')
+ax2.set_zlabel('Z')
+ax1.set_title('SPACE distortion map')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib pyplot as plt
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+infile = open('MPR and SPACE distortion map.csv', 'r')
+reader = csv.reader(infile)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+for row in reader:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    spcdx[i] = row[3]
+    spcdy[i] = row[4]
+    spcdz[i] = row[5]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 6))
+spcdymt = spcdy.reshape((6, 7, 6))
+spcdzmt = spcdz.reshape((6, 7, 6))
+x, y, z, = np.meshgrid(np.arange(1, 8, 1), np.arange(1, 7, 1), np.arange(1, 7, 1))
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, scale=2.0, 'color')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, scale=2.0, color='magenta')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, scale=0.5)
+help(ax1.quiver)
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt)
+ax1.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt)
+ax1.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=0.5)
+ax1.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, normalize=True)
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, color='magenta')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt)
+ax2.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, color='magenta')
+ax2.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.2, color='magenta')
+ax2.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.2, color='blue')
+fig3 = plt.figure()
+ax3 = fig3.gca(projection='3d')
+ax2.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.5, color='blue')
+ax3.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.5, color='green')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib pyplot as plt
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+infile = open('MPR and SPACE distortion map.csv', 'r')
+reader = csv.reader(infile)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+for row in reader:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    spcdx[i] = row[3]
+    spcdy[i] = row[4]
+    spcdz[i] = row[5]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 6))
+spcdymt = spcdy.reshape((6, 7, 6))
+spcdzmt = spcdz.reshape((6, 7, 6))
+x, y, z, = np.meshgrid(np.arange(1, 8, 1), np.arange(1, 7, 1), np.arange(1, 7, 1))
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.5, color='green')
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax2.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=0.5, color='green')
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+infile = open('MPR and SPACE distortion map.csv', 'r')
+reader = csv.reader(infile)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+for row in reader:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    spcdx[i] = row[3]
+    spcdy[i] = row[4]
+    spcdz[i] = row[5]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 6))
+spcdymt = spcdy.reshape((6, 7, 6))
+spcdzmt = spcdz.reshape((6, 7, 6))
+x, y, z, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 70.0, 10.0))
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.5, color='green')
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax2.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=2.0, color='green')
+fig3 = plt.figure()
+ax3 = fig3.gca(projection='3d')
+ax3.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=2.0, color='green')
+ax2.set_ylabel('X')
+ax2.set_xlabel('Y')
+ax2.set_zlabel('Z')
+ax2.set_title('MPR distortion map')
+ax2.set_ylabel('X [mm]')
+ax2.set_xlabel('Y [mm]')
+ax2.set_zlabel('Z [mm]')
+ax2.set_title('MPR distortion map')
+ax3.set_ylabel('X [mm]')
+ax3.set_xlabel('Y [mm]')
+ax3.set_zlabel('Z [mm]')
+ax3.set_title('SPACE distortion map')
+
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+inf1 = open('mpr_distortion_field.csv', 'r')
+rdr1 = csv.reader(inf1)
+inf2 = open('space_distortion_field.csv', 'r')
+rdr2 = csv.reader(inf2)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+spcdx = np.zeros((210))
+spcdy = np.zeros((210))
+spcdz = np.zeros((210))
+i = 0
+for row in rdr1:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    i = i + 1
+    
+i=0
+for row in rdr2:
+    spcdx[i] = row[3]
+    spcdy[i] = row[4]
+    spcdz[i] = row[5]
+    i = i + 1
+    
+for row in rdr2:
+    spcdx[i] = row[1]
+    spcdy[i] = row[2]
+    spcdz[i] = row[3]
+    i = i + 1
+    
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+inf1 = open('mpr_distortion_field.csv', 'r')
+rdr1 = csv.reader(inf1)
+inf2 = open('space_distortion_field.csv', 'r')
+rdr2 = csv.reader(inf2)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((210))
+spcdy = np.zeros((210))
+spcdz = np.zeros((210))
+i = 0
+for row in rdr1:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    i = i + 1
+i=0
+for row in rdr2:
+    spcdx[i] = row[0]
+    spcdy[i] = row[1]
+    spcdz[i] = row[2]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 5))
+spcdymt = spcdy.reshape((6, 7, 5))
+spcdzmt = spcdz.reshape((6, 7, 5))
+x1, y1, z1, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 60.0, 10.0))
+x1
+x1, y1, z1, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 70.0, 10.0))
+x2, y2, z2, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 60.0, 10.0), np.arange(10.0, 70.0, 10.0))
+x2
+y2
+z2
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x1, y1, z1, mprdxmt, mprdymt, mprdzmt, length=0.5, color='green')
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax2.quiver(x1, y1, z1, mprdxmt, mprdymt, mprdzmt, length=0.5, color='green')
+fig3 = plt.figure()
+ax3 = fig2.gca(projection='3d')
+ax3.quiver(x1, y1, z1, mprdxmt, mprdymt, mprdzmt, length=2.0, color='green')
+fig4 = plt.figure()
+ax4 = fig4.gca(projection='3d')
+ax4.quiver(x1, y1, z1, mprdxmt, mprdymt, mprdzmt, length=2.0, color='green')
+fig5 = plt.figure()
+ax5 = fig5.gca(projection='3d')
+ax5.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=2.0, color='green')
+ax5.quiver(x2, y2, z2, spcdxmt, spcdymt, spcdzmt, length=2.0, color='green')
+x2, y2, z2, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 60.0, 10.0))
+ax5.quiver(x2, y2, z2, spcdxmt, spcdymt, spcdzmt, length=2.0, color='green')
+ax4.set_ylabel('X [mm]')
+ax4.set_xlabel('Y [mm]')
+ax4.set_zlabel('Z [mm]')
+ax4.set_title('MPR distortion map')
+ax5.set_ylabel('X [mm]')
+ax5.set_xlabel('Y [mm]')
+ax5.set_zlabel('Z [mm]')
+ax5.set_title('SPACE distortion map')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+inf1 = open('mpr_distortions_avanto.csv', 'r')
+rdr1 = csv.reader(inf1)
+inf2 = open('space_distortions_avanto.csv', 'r')
+rdr2 = csv.reader(inf2)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((210))
+spcdy = np.zeros((210))
+spcdz = np.zeros((210))
+i = 0
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+for row in rdr1:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    i = i + 1
+i=0
+for row in rdr2:
+    spcdx[i] = row[0]
+    spcdy[i] = row[1]
+    spcdz[i] = row[2]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 6))
+spcdymt = spcdy.reshape((6, 7, 6))
+spcdzmt = spcdz.reshape((6, 7, 6))
+x, y, z, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 60.0, 10.0))
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=0.5, color='green')
+mprdxmt
+mprdymt
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax2.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=2.0, color='green')
+x, y, z, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 70.0, 10.0))
+fig3 = plt.figure()
+ax3 = fig3.gca(projection='3d')
+ax3.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=2.0, color='green')
+fig4 = plt.figure()
+ax4 = fig4.gca(projection='3d')
+ax4.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=2.0, color='green')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+inf1 = open('mpr_distortions_avanto.csv', 'r')
+rdr1 = csv.reader(inf1)
+inf2 = open('space_distortions_avanto.csv', 'r')
+rdr2 = csv.reader(inf2)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((210))
+spcdy = np.zeros((210))
+spcdz = np.zeros((210))
+i = 0
+for row in rdr1:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    i = i + 1
+i=0
+for row in rdr2:
+    spcdx[i] = row[0]
+    spcdy[i] = row[1]
+    spcdz[i] = row[2]
+    i = i + 1
+    
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+inf1 = open('mpr_distortions_avanto.csv', 'r')
+rdr1 = csv.reader(inf1)
+inf2 = open('space_distortions_avanto.csv', 'r')
+rdr2 = csv.reader(inf2)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+for row in rdr1:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    i = i + 1
+i=0
+for row in rdr2:
+    spcdx[i] = row[0]
+    spcdy[i] = row[1]
+    spcdz[i] = row[2]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 6))
+spcdymt = spcdy.reshape((6, 7, 6))
+spcdzmt = spcdz.reshape((6, 7, 6))
+x, y, z, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 70.0, 10.0))
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=2.0, color='green')
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax2.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=2.0, color='green')
+ax1.set_ylabel('X [mm]')
+ax1.set_xlabel('Y [mm]')
+ax1.set_zlabel('Z [mm]')
+ax1.set_title('AVANTO MPRAGE distortion map')
+ax2.set_ylabel('X [mm]')
+ax2.set_xlabel('Y [mm]')
+ax2.set_zlabel('Z [mm]')
+ax2.set_title('AVANTO SPACE distortion map')
+
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+inf1 = open('2019-05-24 -- MPR distortions SKYRA.csv', 'r')
+rdr1 = csv.reader(inf1)
+inf2 = open('2019-05-24 -- SPACE distortions SKYRA.csv', 'r')
+rdr2 = csv.reader(inf2)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+spcdx = np.zeros((252))
+spcdy = np.zeros((252))
+spcdz = np.zeros((252))
+i = 0
+for row in rdr1:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    i = i + 1
+i=0
+for row in rdr2:
+    spcdx[i] = row[0]
+    spcdy[i] = row[1]
+    spcdz[i] = row[2]
+    i = i + 1
+    
+mprdxmt = mprdx.reshape((6, 7, 6))
+mprdymt = mprdy.reshape((6, 7, 6))
+mprdzmt = mprdz.reshape((6, 7, 6))
+spcdxmt = spcdx.reshape((6, 7, 6))
+spcdymt = spcdy.reshape((6, 7, 6))
+spcdzmt = spcdz.reshape((6, 7, 6))
+x, y, z, = np.meshgrid(np.arange(10.0, 80.0, 10.0), np.arange(10.0, 70.0, 10.0), np.arange(10.0, 70.0, 10.0))
+fig1 = plt.figure()
+ax1 = fig1.gca(projection='3d')
+ax1.quiver(x, y, z, mprdxmt, mprdymt, mprdzmt, length=2.0, color='green')
+fig2 = plt.figure()
+ax2 = fig2.gca(projection='3d')
+ax2.quiver(x, y, z, spcdxmt, spcdymt, spcdzmt, length=2.0, color='green')
+ax1.set_ylabel('X [mm]')
+ax1.set_xlabel('Y [mm]')
+ax1.set_zlabel('Z [mm]')
+ax1.set_title('SKYRA MPRAGE distortion map')
+ax2.set_ylabel('X [mm]')
+ax2.set_xlabel('Y [mm]')
+ax2.set_zlabel('Z [mm]')
+ax2.set_title('SKYRA SPACE distortion map')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+inf = open('2019-05-24 -- MPR Deviations SKYRA', 'r')
+rdr = csv.reader(inf)
+inf = open('2019-05-24 -- MPR Deviations SKYRA.csv', 'r')
+rdr = csv.reader(inf)
+mprdx = np.zeros((252))
+mprdy = np.zeros((252))
+mprdz = np.zeros((252))
+mprdr = np.zeros((252))
+i=0
+for row in rdr1:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    mprdr[i] = row[3]
+    i = i + 1
+i=0
+for row in rdr:
+    mprdx[i] = row[0]
+    mprdy[i] = row[1]
+    mprdz[i] = row[2]
+    mprdr[i] = row[3]
+    i = i + 1
+i=0
+np.mean(mprdx)
+np.mean(mprdy)
+np.mean(mprdz)
+np.mean(mprdr)
+np.histogram(mprdr)
+np.amin(mprdr)
+np.amax(mprdr)
+np.std(mprdr)
+np.histogram(mprdx)
+np.histogram(mprdy)
+plt.hist(mprdx)
+plt.hist(mprdy)
+plt.hist(mprdz)
+plt.hist(mprdr)
+plt.hist(mprdx, bins=252)
+plt.hist(mprdy, bins=252)
+plt.hist(mprdz, bins=252)
+plt.hist(mprdx, bins=25)
+plt.hist(mprdy, bins=25)
+plt.hist(mprdz, bins=25)
+plt.hist(mprdr, bins=25)
+devs = np.zeros((252))
+sqrt(4)
+import math as m
+for i in xrange(252):
+    devs[i] = m.sqrt(m.pow(mprdx[i], 2) + m.pow(mprdy[i], 2) + m.pow(mprdz[i], 2))
+    
+range(252)
+for i in range(252):
+    devs[i] = m.sqrt(m.pow(mprdx[i], 2) + m.pow(mprdy[i], 2) + m.pow(mprdz[i], 2))
+    
+devs
+plt.hist(mprdr, bins=25)
+plt.hist(devs, bins=25)
+np.amin(devs)
+np.amax(devs)
+np.mean(devs)
+np.std(devs)
+quit()
