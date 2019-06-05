@@ -1525,3 +1525,286 @@ np.amax(devs)
 np.mean(devs)
 np.std(devs)
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+input_file = open('2019-05-24 - MPR deviations AVANTO.csv', 'r')
+input_file_reader = csv.reader(input_file)
+x_devs = np.zeros((252))
+y_devs = np.zeros((252))
+z_devs = np.zeros((252))
+rad_devs = np.zeros((252))
+i=0
+for row in input_file_reader:
+    x_devs[i] = row[4]
+    y_devs[i] = row[6]
+    z_devs[i] = row[8]
+    rad_devs[i] = row[10]
+    i = i + 1
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+input_file = open('2019-05-24 - MPR deviations AVANTO.csv', 'r')
+input_file_reader = csv.reader(input_file)
+x_devs = np.zeros((252))
+y_devs = np.zeros((252))
+z_devs = np.zeros((252))
+rad_devs = np.zeros((252))
+i = 0
+for row in input_file_reader:
+    x_devs[i] = row[4]
+    y_devs[i] = row[6]
+    z_devs[i] = row[8]
+    rad_devs[i] = row[10]
+    i = i + 1
+    
+x_devs_mtrx = x_devs.reshape((6, 7, 6))
+x_devs_mtrx
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+input_file = open('2019-05-24 - MPR deviations AVANTO.csv', 'r')
+input_file_reader = csv.reader(input_file)
+x_devs = np.zeros((252))
+y_devs = np.zeros((252))
+z_devs = np.zeros((252))
+rad_devs = np.zeros((252))
+i = 0
+for row in input_file_reader:
+    x_devs[i] = row[4]
+    y_devs[i] = row[6]
+    z_devs[i] = row[8]
+    rad_devs[i] = row[10]
+    i = i + 1
+    
+x_devs_mtrx = x_devs.reshape((6, 7, 6))
+x_devs_mtrx
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+input_file = open('2019-05-24 - MPR deviations AVANTO.csv', 'r')
+input_file_reader = csv.reader(input_file)
+x_devs = np.zeros((252))
+y_devs = np.zeros((252))
+z_devs = np.zeros((252))
+rad_devs = np.zeros((252))
+i = 0
+for row in input_file_reader:
+    x_devs[i] = row[6]
+    y_devs[i] = row[8]
+    z_devs[i] = row[10]
+    rad_devs[i] = row[12]
+    i = i + 1
+    
+x_devs_mtrx = x_devs.reshape((6, 7, 6))
+x_devs_mtrx
+y_devs_mtrx = y_devs.reshape((6, 7, 6))
+z_devs_mtrx = z_devs.reshape((6, 7, 6))
+rad_devs_mtrx = rad_devs.reshape((6, 7, 6))
+fig, axes = plt.subplots(1, 6)
+titles = ['Layer 1', 'Layer 2', 'Layer 3', 'Layer 4', 'Layer 5', 'Layer 6']
+x_devs_mtrx[0::]
+x_devs_mtrx[::0]
+x_devs_mtrx[::1]
+x_devs_mtrx[1,:,:]
+x_devs_mtrx[0,:,:]
+for i in range(5):
+    axes[i].set_title(titles[i])
+    axes[i].imshow(x_devs_mtrx[i,:,:], cmap=plt.cm.nipy_spectral)
+    
+range(5)
+for i in range(5):
+    x_devs_mtrx[i,:,:]
+    
+for i in range(5):
+    print(x_devs_mtrx[i,:,:])
+    
+fig, axes = plt.subplots(1, 6)
+for i in range(6):
+    axes[i].set_title(titles[i])
+    axes[i].imshow(x_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    
+    
+fig = plt.figure()
+import matplotlib.gridspec as gs
+grid = gs.GridSpec(4, 1, figure=fig)
+grid = gs.GridSpec(4, 1, fig)
+ax1 = fig.add_subplot(grid[0, 0])
+fig = plt.figure()
+grid = fig.add_gridspec(ncols=1, nrows=4)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+input_file = open('2019-05-24 - MPR deviations AVANTO.csv', 'r')
+input_file_reader = csv.reader(input_file)
+x_devs = np.zeros((252))
+y_devs = np.zeros((252))
+z_devs = np.zeros((252))
+rad_devs = np.zeros((252))
+i = 0
+for row in input_file_reader:
+    x_devs[i] = row[6]
+    y_devs[i] = row[8]
+    z_devs[i] = row[10]
+    rad_devs[i] = row[12]
+    i = i + 1
+    
+x_devs_mtrx = x_devs.reshape((6, 7, 6))
+y_devs_mtrx = y_devs.reshape((6, 7, 6))
+z_devs_mtrx = z_devs.reshape((6, 7, 6))
+rad_devs_mtrx = rad_devs.reshape((6, 7, 6))
+fig = plt.figure()
+grid = fig.add_gridspec(ncols=1, nrows=4)
+fig, axes = plt.subplots(4, 6)
+titles = ['Layer 1', 'Layer 2', 'Layer 3', 'Layer 4', 'Layer 5', 'Layer 6']
+for i in range(6):
+    axes[i, 0].set_title(titles[i])
+    axes[i, 1].set_title(titles[i])
+    axes[i, 2].set_title(titles[i])
+    axes[i, 3].set_title(titles[i])
+    axes[i, 0].imshow(x_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    axes[i, 1].imshow(y_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    axes[i, 2].imshow(z_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    axes[i, 3].imshow(rad_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    
+for i in range(6):
+    axes[0, i].set_title(titles[i])
+    axes[1, i].set_title(titles[i])
+    axes[2, i].set_title(titles[i])
+    axes[3, i].set_title(titles[i])
+    axes[0, i].imshow(x_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    axes[1, i].imshow(y_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    axes[2, i].imshow(z_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    axes[3, i].imshow(rad_devs_mtrx[i,:,:], cmap=plt.cm.coolwarm)
+    
+row_titles = ['X-Axis Deviations Map', 'Y-Axis Deviations Map', 'Z-Axis Deviations Map', 'Radial Deviations Map']
+for i in range(4):
+    axes[i, 0].set_ylabel(row_titles[i])
+    
+fig, axes = plt.subplots(1, 1)
+axes[0].set_title(titles[i])
+axes.set_title(titles[i])
+axes.set_title(titles[1])
+axes.set_title(titles[0])
+axes.imshow(x_devs_mtrx[1,:,:], cmap=plt.cm.coolwarm)
+axes.imshow(x_devs_mtrx[0,:,:], cmap=plt.cm.coolwarm)
+axes.set_xticks(np.arange(6))
+axes.set_xticks(np.arange(7)[1:-1])
+axes.set_xticks(np.arange(7)[1:])
+axes.set_xticks(np.arange(6))
+axes.set_yticks(np.arange(7))
+x_ticks_labels = ['A', 'B', 'C', 'D', 'E', 'F']
+y_ticks_labels = ['1', '2', '3', '4', '5', '6', '7']
+axes.set_xticklabels(x_ticks_labels)
+axes.set_yticklabels(y_ticks_labels)
+for i in range(7):
+    for j in range(6):
+        text = axes.text(j, i, x_devs_mtrx[0,:,:], ha='center', va='center', color='black')
+        
+for i in range(7):
+    for j in range(6):
+        text = axes.text(j, i, x_devs_mtrx[0,j,i], ha='center', va='center', color='black')
+        
+        
+for i in range(7):
+    for j in range(6):
+        text = axes.text(j, i, x_devs_mtrx[0,i,j], ha='center', va='center', color='black')
+fig, axes = plt.subplots(1, 1)
+axes.set_title(titles[1])
+axes.set_title(titles[0])
+axes.imshow(x_devs_mtrx[0,:,:], cmap=plt.cm.coolwarm)
+axes.set_xticks(np.arange(6))
+axes.set_yticks(np.arange(7))
+axes.set_xticklabels(x_ticks_labels)
+axes.set_yticklabels(y_ticks_labels)
+for i in range(7):
+    for j in range(6):
+        text = axes.text(j, i, x_devs_mtrx[0,i,j], ha='center', va='center', color='black')
+axes.set_xlabel('Layer 1')
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+fig, axes = plt.subplots(1, 1)
+fig.suptitle('Hello!')
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+import distortions as dt
+deviations = dt.import_data('2019-05-24 - MPR deviations AVANTO.csv')
+dt.plot_deviation_map(deviations['x'], dt.row_titles[0])
+dt.plot_deviation_map(deviations['x'], dt.row_titles[0])
+dt.plot_deviation_map(deviations['x'], dt.row_titles[0])
+dt.plot_deviation_map(deviations['x'], dt.row_titles[0])
+dt.plot_deviation_map(deviations['x'], dt.row_titles[0])
+dt.plot_deviation_map(deviations['x'], dt.row_titles[0])
+dt.plot_deviation_map(deviations['y'], dt.row_titles[1])
+dt.plot_deviation_map(deviations['z'], dt.row_titles[2])
+dt.plot_deviation_map(deviations['r'], dt.row_titles[3])
+dt.plot_deviation_map(deviations['x'], dt.row_titles[0])
+dt.plot_deviation_map(deviations['y'], dt.row_titles[1])
+dt.plot_deviation_map(deviations['z'], dt.row_titles[2])
+dt.plot_deviation_map(deviations['r'], dt.row_titles[3])
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+import distortions as dt
+deviations = dt.import_data('2019-05-24 - MPR deviations AVANTO.csv')
+dt.plot_deviation_map(deviations['x'], 'MPR Deviations AVANTO', dt.row_titles[0])
+dt.plot_deviation_map(deviations['r'], 'MPR Deviations AVANTO', dt.row_titles[3])
+dt.plot_deviation_map(deviations['r'], 'Deviations Map for 3D MPrage Sequence on SIEMENS Avanto 1.5 T MRI Unit', dt.row_titles[3])
+dt.plot_deviation_map(deviations['r'], 'Deviations Map for 3D MPrage Sequence on SIEMENS Avanto 1.5 T MRI Unit', dt.row_titles[3])
+dt.plot_deviation_map(deviations['r'], 'Deviations Map for 3D MPrage Sequence on SIEMENS Avanto 1.5 T MRI Unit', dt.row_titles['r'])
+sd = dt.import_data('2019-05-24 - SPACE deviations AVANTO.csv')
+dt.plot_deviation_map(sd['r'], 'Deviations Map for T2 SPACE Sequence on SIEMENS Avanto 1.5 T MRI Unit', dt.row_titles['r'])
+sd = dt.import_data('2019-05-24 - MPR deviations SKYRA.csv')
+dt.plot_deviation_map(sd['r'], 'Deviations Map for T1 3D MPrage Sequence on SIEMENS Skyra 3 T MRI Unit', dt.row_titles['r'])
+dt.plot_deviation_map(sd['r'], 'Deviations Map for T1 3D MPrage Sequence on SIEMENS Skyra 3 T MRI Unit', dt.row_titles['r'])
+sd = dt.import_data('2019-05-24 - SPACE deviations SKYRA.csv')
+dt.plot_deviation_map(sd['r'], 'Deviations Map for T2 SPACE Sequence on SIEMENS Skyra 3 T MRI Unit', dt.row_titles['r'])
+quit()
