@@ -56,3 +56,46 @@ def plot_deviation_map(data=None, title='Deviations Map for \"SEQUENCE\" on \"UN
         for y in range(7):
             for x in range(6):
                 text = axes[c].text(x, y, data[c,y,x], ha='center', va='center', color='black')
+
+
+def plot_measurement_map(title='Control Points Measurement Map', subtitle='Selected Control Points'):
+    a = np.zeros((252))
+    data = a.reshape((6, 7, 6))
+    data[0, 0, 5] = 1.0
+    data[0, 1, 2] = 1.0
+    data[0, 5, 4] = 1.0
+    data[0, 6, 0] = 1.0
+    data[1, 0, 3] = 1.0
+    data[1, 2, 4] = 1.0
+    data[1, 4, 1] = 1.0
+    data[1, 6, 2] = 1.0
+    data[2, 2, 0] = 1.0
+    data[2, 2, 2] = 1.0
+    data[2, 4, 3] = 1.0
+    data[2, 4, 5] = 1.0
+    data[3, 2, 3] = 1.0
+    data[3, 2, 5] = 1.0
+    data[3, 4, 0] = 1.0
+    data[3, 4, 2] = 1.0
+    data[4, 0, 2] = 1.0
+    data[4, 2, 1] = 1.0
+    data[4, 4, 4] = 1.0
+    data[4, 6, 3] = 1.0
+    data[5, 0, 0] = 1.0
+    data[5, 1, 4] = 1.0
+    data[5, 5, 1] = 1.0
+    data[5, 6, 5] = 1.0
+
+    fig, axes = plt.subplots(1, 6, figsize=(20, 5))
+    fig.suptitle(title)
+    axes[0].set_ylabel(subtitle)
+    for c in range(6):
+        axes[c].set_title(col_titles[c])
+        axes[c].imshow(data[c,:,:], cmap=plt.cm.coolwarm)
+        axes[c].set_xticks(np.arange(6))
+        axes[c].set_yticks(np.arange(7))
+        axes[c].set_xticklabels(x_ticks_labels)
+        axes[c].set_yticklabels(y_ticks_labels)
+        for y in range(7):
+            for x in range(6):
+                text = axes[c].text(x, y, data[c,y,x], ha='center', va='center', color='black')

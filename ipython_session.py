@@ -1808,3 +1808,13 @@ dt.plot_deviation_map(sd['r'], 'Deviations Map for T1 3D MPrage Sequence on SIEM
 sd = dt.import_data('2019-05-24 - SPACE deviations SKYRA.csv')
 dt.plot_deviation_map(sd['r'], 'Deviations Map for T2 SPACE Sequence on SIEMENS Skyra 3 T MRI Unit', dt.row_titles['r'])
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+import distortions as dt
+dt.plot_measurement_map()
+dt.plot_measurement_map()
+dt.plot_measurement_map()
+quit()
