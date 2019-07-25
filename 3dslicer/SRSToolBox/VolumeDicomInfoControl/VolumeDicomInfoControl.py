@@ -127,16 +127,16 @@ class DicomAttributesTableWidget(qt.QTableWidget):
 
     qt.QTableWidget.__init__(parent)
 
-    self.setColumnCount(2)
-    #self.table.setRowCount(24)
-    self.setRowCount(len(TAGLIST))
-    self.setHorizontalHeaderLabels(["Attribute", "Value"]) # This must follow table resize
-    self.setAlternatingRowColors(True)
-    self.setShowGrid(False)
-    self.verticalHeader().hide()
+  #  self.setColumnCount(2)
+  #  #self.table.setRowCount(24)
+  #  self.setRowCount(len(TAGLIST))
+  #  self.setHorizontalHeaderLabels(["Attribute", "Value"]) # This must follow table resize
+  #  self.setAlternatingRowColors(True)
+  #  self.setShowGrid(False)
+  #  self.verticalHeader().hide()
 
-    listdata = DicomAttributesDictionary(None)
-    self.set_table_data(listdata)
+  #  listdata = DicomAttributesDictionary(None)
+  #  self.set_table_data(listdata)
 
   def set_table_data(self, data_dict):
     """ Write doccumentation.
@@ -150,6 +150,17 @@ class DicomAttributesTableWidget(qt.QTableWidget):
         self.setItem(i, 1, qt.QTableWidgetItem(u'N/A'))
     self.resizeColumnsToContents()
     self.resizeRowsToContents()
+
+  def set_up_table(self):
+    """ Write documentation.
+    """
+
+    self.setColumnCount(2)
+    self.setRowCount(len(TAGLIST))
+    self.setHorizontalHeaderLabels(["Attribute", "Value"]) # This must follow table resize
+    self.setAlternatingRowColors(True)
+    self.setShowGrid(False)
+    self.verticalHeader().hide()
 
 
 #
@@ -224,6 +235,7 @@ class VolumeDicomInfoControlWidget(ScriptedLoadableModuleWidget):
     #
     self.table = DicomAttributesTableWidget(parametersCollapsibleButton)
     parametersFormLayout.addRow("Volume Info:", self.table)
+    self.table.set_up_table()
 
     # connections
     self.inputSelector.connect('currentNodeChanged(bool)', self.onSelectNode)
