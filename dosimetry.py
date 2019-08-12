@@ -3,6 +3,19 @@
 
 
 from datetime import date
+from fnmatch import fnmatch
+from os import path
+
+
+def isSncLog(fn):
+    """ Test if given path is an Sun Nuclear PC Electrometer Log file.
+    """
+
+    if not path.exists(fn):
+        raise ValueError('Given file does not exist.', fn)
+        return False
+
+    return True
 
 
 class EnvConds(object):
