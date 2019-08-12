@@ -1818,3 +1818,14 @@ dt.plot_measurement_map()
 dt.plot_measurement_map()
 dt.plot_measurement_map()
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+words = ['look','into','my','eyes','look','into','my','eyes','the','eyes','the','eyes','the','eyes','not','around','the','eyes',"don't",'look','around','the','eyes','look','into','my','eyes',"you're",'under']
+from collections import CO
+from collections import Counter
+word_counts = Counter(words)
+word_counts
+exit()
