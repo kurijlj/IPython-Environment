@@ -4,18 +4,51 @@
 
 from datetime import date
 from fnmatch import fnmatch
-from os import path
+#from os import path
 
 
-def isSncLog(fn):
-    """ Test if given path is an Sun Nuclear PC Electrometer Log file.
+def is_snc_log(fn):
+    """ Test if the given path is a valid Sun Nuclear PC Electrometer log file.
+    Test is performed by reading the first 53 bytes of the file and checking
+    that they match the standard PC Electrometer log file header.
+
+    It is up to the user to first check if the file exists on the disk.
+
+    If the file is a valid log file, the function returns True, otherwise
+    it returns False.
     """
 
-    if not path.exists(fn):
-        raise ValueError('Given file does not exist.', fn)
-        return False
+    #if not path.exists(fn):
+    #    raise ValueError('Given file does not exist.', fn)
+    #    return False
 
-    return True
+    # Header for PC Electrometer log file is 53 bytes long
+    header_length = 53
+
+    # Define standard header lines
+    header_line_1 = 'Sun Nuclear Corporation'
+    header_line_2 = 'PC Electrometer - Log file'
+
+    # Define default result
+    result = True
+
+    # Save old pointer position
+    pointer = fn.tell()
+
+    # Put file pointer to beginning of the file
+    fn.seek(0, 0)
+
+    header = fn.read(header_length).splitlines()
+
+    if not fnmatch(header[0], header_line_1):
+        result = False
+    elif not fnmatch(header[1], header_line_2):
+        result = False
+
+    # Return file pointer to starting position
+    fn.seek(pointer, 0)
+
+    return result
 
 
 class EnvConds(object):
