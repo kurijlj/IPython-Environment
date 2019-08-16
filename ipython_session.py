@@ -1829,3 +1829,17 @@ from collections import Counter
 word_counts = Counter(words)
 word_counts
 exit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from dosimetry import map_measurements
+snlog = open('(2016-08-09) -- Output.txt', 'rt', encoding='utf-8')
+map_measurements(snlog)
+map_measurements(snlog)
+map_measurements(snlog)
+map_measurements(snlog)
+map_measurements(snlog)
+map_measurements(snlog)
+exit()

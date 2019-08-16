@@ -51,6 +51,29 @@ def is_snc_log(fn):
     return result
 
 
+def map_measurements(snlog):
+    """ Map position of measurements in a Sun Nuclear PC Electrometer Log file.
+    """
+
+    pos = []
+
+    # Define line counter
+    counter = 1
+
+    # Define measurement header
+    msr_header = '* new measurement *'
+
+    # Set file pointer to beginning of the measurement data
+    snlog.seek(0, 0)
+
+    for line in snlog:
+        if fnmatch(line, msr_header):
+            pos.append(counter)
+        counter += 1
+
+    return tuple(pos)
+
+
 class EnvConds(object):
     """
     """
