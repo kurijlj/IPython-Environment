@@ -32,10 +32,10 @@ def is_snc_log(fn):
     # Define default result
     result = True
 
-    # Save old pointer position
+    # Save old file pointer position
     pointer = fn.tell()
 
-    # Put file pointer to beginning of the file
+    # Set file pointer to beginning of the file
     fn.seek(0, 0)
 
     header = fn.read(header_length).splitlines()
@@ -45,33 +45,42 @@ def is_snc_log(fn):
     elif not fnmatch(header[1], header_line_2):
         result = False
 
-    # Return file pointer to starting position
+    # Set file pointer to saved position
     fn.seek(pointer, 0)
 
     return result
 
 
 def map_measurements(snlog):
-    """ Map position of measurements in a Sun Nuclear PC Electrometer Log file.
+    """ Map position of measurement entries in a Sun Nuclear PC Electrometer
+    Log file.
     """
 
-    pos = []
+    # Define structure to hold list of pointers to measurements entry in the
+    # file. The list contains line indexes of each measurement entry.
+    msrmnt_pointers = []
 
-    # Define line counter
-    counter = 1
+    # Define current pointer
+    pointer = 0
 
     # Define measurement header
-    msr_header = '* new measurement *'
+    msrmnt_header = '* new measurement *'
 
-    # Set file pointer to beginning of the measurement data
+    # Save old file pointer position
+    old_pos = snlog.tell()
+
+    # Set file pointer to beginning of the file
     snlog.seek(0, 0)
 
     for line in snlog:
-        if fnmatch(line, msr_header):
-            pos.append(counter)
-        counter += 1
+        if fnmatch(line, msrmnt_header):
+            msrmnt_pointers.append(pointer)
+        pointer += len(line)
 
-    return tuple(pos)
+    # Set file pointer to saved position
+    snlog.seek(old_pos, 0)
+
+    return tuple(msrmnt_pointers)
 
 
 class EnvConds(object):

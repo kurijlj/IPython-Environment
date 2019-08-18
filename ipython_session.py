@@ -1843,3 +1843,58 @@ map_measurements(snlog)
 map_measurements(snlog)
 map_measurements(snlog)
 exit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+get_ipython().run_line_magic('clear', '')
+from dosimetry import map_measurements
+snlog = open('./\(2016-08-09) -- Output.txt', 'rt', encoding='utf-8')
+snlog = open('./(2016-08-09) -- Output.txt', 'rt', encoding='utf-8')
+map_measurements(snlog)
+snlog.tell()
+snlog.seek(0)
+map_measurements(snlog)
+map_measurements(snlog)
+snlog.tell()
+map_measurements(snlog)
+map_measurements(snlog)
+map_measurements(snlog)
+map_measurements(snlog)
+exit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+snlog = open('./(2016-08-09) -- Output.txt', 'rt', encoding='utf-8')
+from dosimetry import map_measurements
+map_measurements(snlog)
+snlog.tell()
+snlog.seek(99)
+46710 - 99
+snlog.read(46611)
+snlog.seek(0)
+map_measurements(snlog)
+46664 - 53
+snlog.seek(53)
+snlog.read(46611)
+snlog.seek(0)
+snlog.seek(55)
+46664 - 55
+snlog.read(46609)
+snlog.seek(0)
+snlog.seek(53)
+measurement = snlog.read(46611)
+for line in measurement:
+    print(line)
+    
+for line in measurement.split():
+    print(line)
+    
+for line in measurement.splitlines():
+    print(line)
+    
+snlog.close()
+exit()
