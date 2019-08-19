@@ -1898,3 +1898,19 @@ for line in measurement.splitlines():
     
 snlog.close()
 exit()
+seq = (1, 2, 3, 4, 5, 6)
+for index, item in enumerate(seq):
+    print(index, item)
+    
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from dosimetry import measurements
+snlog = open('./(2016-08-09) -- Output.txt', 'rt', encoding='utf-8')
+res = measurements(snlog)
+res
+len(res)
+get_ipython().run_line_magic('man', 'egrep')
+exit()

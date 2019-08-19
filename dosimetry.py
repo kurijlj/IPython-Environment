@@ -83,6 +83,40 @@ def map_measurements(snlog):
     return tuple(msrmnt_pointers)
 
 
+def measurements(snlog):
+    """Retrieve measurements from an Sun Nuclear PC Electrometer Log file as
+    list.
+    """
+
+    result = []
+    msrmap = map_measurements(snlog)
+    old_pos = snlog.tell()
+
+    for index, cur_pntr in enumerate(msrmap):
+        if index > 0:
+            prev_pntr = msrmap[index - 1]
+            snlog.seek(prev_pntr, 0)
+            buffer_size = cur_pntr - prev_pntr
+            measurement = PCELogMeasurement(snlog.read(buffer_size))
+            result.append(measurement)
+
+    snlog.seek(old_pos, 0)
+    return tuple(result)
+
+
+class PCELogMeasurement(object):
+    """This is one measurement entry from Sun Nuclear PC Electrometer Log file.
+    It holds text lines loaded from log file that contain data for given
+    measurement. Use class methods to access measurement data.
+    """
+
+    def __init__(self, text_buffer=None):
+        self._text_buffer = text_buffer
+
+    def __repr__(self):
+        return self._text_buffer
+
+
 class EnvConds(object):
     """
     """
