@@ -1914,3 +1914,29 @@ res
 len(res)
 get_ipython().run_line_magic('man', 'egrep')
 exit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+somelist = (1, 2, 3, 4, 5, 6, 7)
+print(len(somelist))
+for index, item in enumerate(somelist):
+    print(index, item)
+    
+somelist = (1, 2, 4, 8, 16, 32, 64)
+difflist = (1, 2, 4, 8, 16, 32)
+print(len(somelist))
+for index, item in enumerate(somelist):
+    if index < len(somelist) - 1:
+        print(somelist[index + 1] - item)
+    else:
+        print(item - 1)
+        
+from dosimetry import measurements
+snlog = open('(2016-08-09) -- Output.txt', 'rt', encoding='utf-8')
+measurements(snlog)
+res = measurements(snlog)
+len(res)
+print(res[20])
+print(res[19])

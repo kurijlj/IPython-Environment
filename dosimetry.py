@@ -88,17 +88,22 @@ def measurements(snlog):
     list.
     """
 
-    result = []
     msrmap = map_measurements(snlog)
+    measurement = None
+    result = []
     old_pos = snlog.tell()
 
-    for index, cur_pntr in enumerate(msrmap):
-        if index > 0:
-            prev_pntr = msrmap[index - 1]
-            snlog.seek(prev_pntr, 0)
-            buffer_size = cur_pntr - prev_pntr
+    for index, pointer in enumerate(msrmap):
+        # Determine topmost index value
+        top = len(msrmap) - 1
+        snlog.seek(pointer, 0)
+        if index < top:
+            next_ptr = msrmap[index + 1]
+            buffer_size = next_ptr - pointer
             measurement = PCELogMeasurement(snlog.read(buffer_size))
-            result.append(measurement)
+        else:
+            measurement = PCELogMeasurement(snlog.read())
+        result.append(measurement)
 
     snlog.seek(old_pos, 0)
     return tuple(result)
