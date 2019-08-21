@@ -5,8 +5,13 @@
 from datetime import date
 from fnmatch import fnmatch
 from datetime import datetime
+from collections import namedtuple
 #from os import path
 
+PCECharge = namedtuple('PCECharge', ['input1', 'input2'])
+PCECurrent = namedtuple('PCECurrent', ['input1', 'input2'])
+PCECorrection = namedtuple('PCECorrection', ['input1', 'input2'])
+PCECalibration = namedtuple('PCECalibration', ['input1', 'input2'])
 
 def is_snc_log(fn):
     """ Test if the given path is a valid Sun Nuclear PC Electrometer log file.
@@ -123,16 +128,16 @@ class PCELogMeasurement(object):
         return self._text_buffer
 
     def app_version(self):
-        data = self._text_buffer.splitlines()[2]
-        return data.split()[2]
+        str_data = self._text_buffer.splitlines()[2]
+        return str_data.split()[2]
 
     def log_datetime(self):
-        data = self._text_buffer.splitlines()[3]
-        split_data = data.split()
+        str_data = self._text_buffer.splitlines()[3]
+        lst_data = str_data.split()
         str_datetime = '{0} {1} {2}'.format(
-                split_data[2],
-                split_data[3],
-                split_data[4]
+                lst_data[2],
+                lst_data[3],
+                lst_data[4]
             )
         return datetime.strptime(str_datetime, '%m-%d-%Y %I:%M %p')
 
@@ -145,9 +150,33 @@ class PCELogMeasurement(object):
         return log_datetime.time()
 
     def pce_serial_number(self):
-        data = self._text_buffer.splitlines()[4]
-        return data.split()[3]
+        str_data = self._text_buffer.splitlines()[4]
+        return str_data.split()[3]
 
+    def bkg_compensation(self):
+        str_data = self._text_buffer.splitlines()[5]
+        lst_data = str_data.split()
+        str_val = lst_data[2].rstrip(',')
+        return  bool('yes' == str_val.lower())
+
+    def bkg_current(self):
+        str_data = self._text_buffer.splitlines()[5]
+        lst_data = str_data.split()
+        value1 = lst_data[6]
+        value2 = lst_data[9]
+        return PCECurrent(float(value1), float(value2))
+
+    def input_correction(self):
+        lines = self._text_buffer.splitlines()
+        lst_data1 = lines[6].split()
+        lst_data2 = lines[7].split()
+        return PCECorrection(float(lst_data1[6].rstrip(',')), float(lst_data2[6].rstrip(',')))
+
+    def input_calibration(self):
+        lines = self._text_buffer.splitlines()
+        lst_data1 = lines[6].split()
+        lst_data2 = lines[7].split()
+        return PCECalibration(float(lst_data1[-1]), float(lst_data2[-1]))
 
 class EnvConds(object):
     """
