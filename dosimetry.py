@@ -4,6 +4,7 @@
 
 from datetime import date
 from fnmatch import fnmatch
+from datetime import datetime
 #from os import path
 
 
@@ -120,6 +121,32 @@ class PCELogMeasurement(object):
 
     def __repr__(self):
         return self._text_buffer
+
+    def app_version(self):
+        data = self._text_buffer.splitlines()[2]
+        return data.split()[2]
+
+    def log_datetime(self):
+        data = self._text_buffer.splitlines()[3]
+        split_data = data.split()
+        str_datetime = '{0} {1} {2}'.format(
+                split_data[2],
+                split_data[3],
+                split_data[4]
+            )
+        return datetime.strptime(str_datetime, '%m-%d-%Y %I:%M %p')
+
+    def log_date(self):
+        log_datetime = self.log_datetime()
+        return log_datetime.date()
+
+    def log_time(self):
+        log_datetime = self.log_datetime()
+        return log_datetime.time()
+
+    def pce_serial_number(self):
+        data = self._text_buffer.splitlines()[4]
+        return data.split()[3]
 
 
 class EnvConds(object):
