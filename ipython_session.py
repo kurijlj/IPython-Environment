@@ -2081,3 +2081,13 @@ result[1].input_correction()
 result[1].input_calibration()
 result[19].bkg_current()
 exit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+from dosimetry import measurements
+from dosimetry import PCELogMeasurement
+nonemsr = PCELogMeasurement()
+print(nonemsr)
+exit()

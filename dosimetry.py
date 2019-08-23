@@ -125,58 +125,91 @@ class PCELogMeasurement(object):
         self._text_buffer = text_buffer
 
     def __repr__(self):
-        return self._text_buffer
+        if self._text_buffer is None:
+            return None
+        else:
+            return self._text_buffer
+
+    def data(text_buffer):
+        self._text_buffer = text_buffer
 
     def app_version(self):
-        str_data = self._text_buffer.splitlines()[2]
-        return str_data.split()[2]
+        if self._text_buffer is None:
+            return None
+        else:
+            str_data = self._text_buffer.splitlines()[2]
+            return str_data.split()[2]
 
     def log_datetime(self):
-        str_data = self._text_buffer.splitlines()[3]
-        lst_data = str_data.split()
-        str_datetime = '{0} {1} {2}'.format(
-                lst_data[2],
-                lst_data[3],
-                lst_data[4]
-            )
-        return datetime.strptime(str_datetime, '%m-%d-%Y %I:%M %p')
+        if self._text_buffer is None:
+            return None
+        else:
+            str_data = self._text_buffer.splitlines()[3]
+            lst_data = str_data.split()
+            str_datetime = '{0} {1} {2}'.format(
+                    lst_data[2],
+                    lst_data[3],
+                    lst_data[4]
+                )
+            return datetime.strptime(str_datetime, '%m-%d-%Y %I:%M %p')
 
     def log_date(self):
-        log_datetime = self.log_datetime()
-        return log_datetime.date()
+        if self._text_buffer is None:
+            return None
+        else:
+            log_datetime = self.log_datetime()
+            return log_datetime.date()
 
     def log_time(self):
-        log_datetime = self.log_datetime()
-        return log_datetime.time()
+        if self._text_buffer is None:
+            return None
+        else:
+            log_datetime = self.log_datetime()
+            return log_datetime.time()
 
     def pce_serial_number(self):
-        str_data = self._text_buffer.splitlines()[4]
-        return str_data.split()[3]
+        if self._text_buffer is None:
+            return None
+        else:
+            str_data = self._text_buffer.splitlines()[4]
+            return str_data.split()[3]
 
     def bkg_compensation(self):
-        str_data = self._text_buffer.splitlines()[5]
-        lst_data = str_data.split()
-        str_val = lst_data[2].rstrip(',')
-        return  bool('yes' == str_val.lower())
+        if self._text_buffer is None:
+            return None
+        else:
+            str_data = self._text_buffer.splitlines()[5]
+            lst_data = str_data.split()
+            str_val = lst_data[2].rstrip(',')
+            return  bool('yes' == str_val.lower())
 
     def bkg_current(self):
-        str_data = self._text_buffer.splitlines()[5]
-        lst_data = str_data.split()
-        value1 = lst_data[6]
-        value2 = lst_data[9]
-        return PCECurrent(float(value1), float(value2))
+        if self._text_buffer is None:
+            return None
+        else:
+            str_data = self._text_buffer.splitlines()[5]
+            lst_data = str_data.split()
+            value1 = lst_data[6]
+            value2 = lst_data[9]
+            return PCECurrent(float(value1), float(value2))
 
     def input_correction(self):
-        lines = self._text_buffer.splitlines()
-        lst_data1 = lines[6].split()
-        lst_data2 = lines[7].split()
-        return PCECorrection(float(lst_data1[6].rstrip(',')), float(lst_data2[6].rstrip(',')))
+        if self._text_buffer is None:
+            return None
+        else:
+            lines = self._text_buffer.splitlines()
+            lst_data1 = lines[6].split()
+            lst_data2 = lines[7].split()
+            return PCECorrection(float(lst_data1[6].rstrip(',')), float(lst_data2[6].rstrip(',')))
 
     def input_calibration(self):
-        lines = self._text_buffer.splitlines()
-        lst_data1 = lines[6].split()
-        lst_data2 = lines[7].split()
-        return PCECalibration(float(lst_data1[-1]), float(lst_data2[-1]))
+        if self._text_buffer is None:
+            return None
+        else:
+            lines = self._text_buffer.splitlines()
+            lst_data1 = lines[6].split()
+            lst_data2 = lines[7].split()
+            return PCECalibration(float(lst_data1[-1]), float(lst_data2[-1]))
 
 class EnvConds(object):
     """
