@@ -13,6 +13,18 @@ PCECurrent = namedtuple('PCECurrent', ['input1', 'input2'])
 PCECorrection = namedtuple('PCECorrection', ['input1', 'input2'])
 PCECalibration = namedtuple('PCECalibration', ['input1', 'input2'])
 
+# Define named ranges of relative line positions of data entries to
+# "* new measurement *" header.
+PCEL_APP_VER = 2
+PCEL_DATE_TIME = 3
+PCEL_SER_NO = 4
+PCEL_BKG_CMP = 5
+PCEL_IN1_CORR = 6
+PCEL_IN2_CORR = 7
+PCEL_BIAS_TYPE = 8
+PCEL_DET1 = 9
+PCEL_DET2 = 10
+
 def is_snc_log(fn):
     """ Test if the given path is a valid Sun Nuclear PC Electrometer log file.
     Test is performed by reading the first 53 bytes of the file and checking
@@ -137,19 +149,27 @@ class PCELogMeasurement(object):
         if self._text_buffer is None:
             return None
         else:
-            str_data = self._text_buffer.splitlines()[2]
-            return str_data.split()[2]
+            # Define named range of application version data field.
+            app_ver_fld = 2
+
+            str_data = self._text_buffer.splitlines()[PCEL_APP_VER]
+            return str_data.split()[app_ver_fld]
 
     def log_datetime(self):
         if self._text_buffer is None:
             return None
         else:
-            str_data = self._text_buffer.splitlines()[3]
+            # Define named ranges of log date and time data fields.
+            date_fld = 2
+            time_fld = 3
+            ampm_fld = 4
+
+            str_data = self._text_buffer.splitlines()[PCEL_DATE_TIME]
             lst_data = str_data.split()
             str_datetime = '{0} {1} {2}'.format(
-                    lst_data[2],
-                    lst_data[3],
-                    lst_data[4]
+                    lst_data[date_fld],
+                    lst_data[time_fld],
+                    lst_data[ampm_fld]
                 )
             return datetime.strptime(str_datetime, '%m-%d-%Y %I:%M %p')
 
@@ -171,45 +191,93 @@ class PCELogMeasurement(object):
         if self._text_buffer is None:
             return None
         else:
-            str_data = self._text_buffer.splitlines()[4]
-            return str_data.split()[3]
+            # Define named range of electrometer serial number data field.
+            sno_fld = 3
+
+            str_data = self._text_buffer.splitlines()[PCEL_SER_NO]
+            return str_data.split()[sno_fld]
 
     def bkg_compensation(self):
         if self._text_buffer is None:
             return None
         else:
-            str_data = self._text_buffer.splitlines()[5]
+            # Define named range of background compensation data field.
+            bkg_cmp_fld = 2
+
+            str_data = self._text_buffer.splitlines()[PCEL_BKG_CMP]
             lst_data = str_data.split()
-            str_val = lst_data[2].rstrip(',')
+            str_val = lst_data[bkg_cmp_fld].rstrip(',')
             return  bool('yes' == str_val.lower())
 
     def bkg_current(self):
         if self._text_buffer is None:
             return None
         else:
-            str_data = self._text_buffer.splitlines()[5]
+            # Define named ranges of background current data fields.
+            bkg_curr1_fld = 6
+            bkg_curr2_fld = 9
+
+            str_data = self._text_buffer.splitlines()[PCEL_BKG_CMP]
             lst_data = str_data.split()
-            value1 = lst_data[6]
-            value2 = lst_data[9]
+            value1 = lst_data[bkg_curr1_fld]
+            value2 = lst_data[bkg_curr2_fld]
             return PCECurrent(float(value1), float(value2))
 
     def input_correction(self):
         if self._text_buffer is None:
             return None
         else:
+            # Define named range of correction transform data fields.
+            corr_qnt_fld = 6
+
             lines = self._text_buffer.splitlines()
-            lst_data1 = lines[6].split()
-            lst_data2 = lines[7].split()
-            return PCECorrection(float(lst_data1[6].rstrip(',')), float(lst_data2[6].rstrip(',')))
+            lst_data1 = lines[PCEL_IN1_CORR].split()
+            lst_data2 = lines[PCEL_IN2_CORR].split()
+            return PCECorrection(
+                    float(lst_data1[corr_qnt_fld].rstrip(',')),
+                    float(lst_data2[corr_qnt_fld].rstrip(','))
+                )
 
     def input_calibration(self):
         if self._text_buffer is None:
             return None
         else:
+            # Define named range of input laboratory calibration data fields. It
+            # is the last field in the sequence, henceforth -1 index.
+            lab_cal_fld = -1
+
             lines = self._text_buffer.splitlines()
-            lst_data1 = lines[6].split()
-            lst_data2 = lines[7].split()
-            return PCECalibration(float(lst_data1[-1]), float(lst_data2[-1]))
+            lst_data1 = lines[PCEL_IN1_CORR].split()
+            lst_data2 = lines[PCEL_IN2_CORR].split()
+            return PCECalibration(
+                    float(lst_data1[lab_cal_fld]),
+                    float(lst_data2[lab_cal_fld])
+                )
+
+    def bias_voltage(self):
+        if self._text_buffer is None:
+            return None
+        else:
+            # Define named range of bias voltage data field.
+            bias_fld = 2
+
+            lines = self._text_buffer.splitlines()[PCEL_BIAS_TYPE]
+            lst_data = str_data.split()
+            str_val = lst_data[bias_fld]
+            return int(str_val)
+
+    def beam_type(self):
+        if self._text_buffer is None:
+            return None
+        else:
+            # Define named range of beam type data field. It is the last field
+            # in the sequence, hencforth -1 index.
+            beam_type_fld = -1
+
+            lines = self._text_buffer.splitlines()[PCEL_BIAS_TYPE]
+            lst_data = str_data.split()
+            return lst_data[beam_type_fld]
+
 
 class EnvConds(object):
     """
