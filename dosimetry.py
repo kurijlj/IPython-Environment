@@ -134,15 +134,33 @@ class PCELogMeasurement(object):
     """
 
     def __init__(self, text_buffer=None):
+
+        # text_buffer must be string or NoneType, else raise TypeError.
+        if text_buffer is not None and type(text_buffer) is not str:
+            raise TypeError(
+                "\'text_buffer\' must be string or NoneType, not {0}".format(
+                    text_buffer.__class__.__name__
+                )
+            )
+
         self._text_buffer = text_buffer
 
     def __repr__(self):
         if self._text_buffer is None:
-            return None
+            return 'None'
         else:
             return self._text_buffer
 
-    def data(text_buffer):
+    def data(self, text_buffer):
+
+        # text_buffer must be string or NoneType, else raise TypeError.
+        if text_buffer is not None and type(text_buffer) is not str:
+            raise TypeError(
+                "\'text_buffer\' must be string or NoneType, not {0}".format(
+                    text_buffer.__class__.__name__
+                )
+            )
+
         self._text_buffer = text_buffer
 
     def app_version(self):

@@ -2091,3 +2091,61 @@ from dosimetry import PCELogMeasurement
 nonemsr = PCELogMeasurement()
 print(nonemsr)
 exit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+get_ipython().run_line_magic('clear', '')
+from dosimetry import measurements
+snlog = open('./(2016-08-09) -- Output.txt', 'rt', encoding='utf-8', newline='\n')
+result = measurements(snlog)
+len(result)
+result[0].application_version()
+result[0].app_version()
+from dosimetry import PCELogMeasurement
+newlog = PCELogMeasurement()
+print(newlog)
+nelog
+newlog
+newlog
+print(newlog)
+newlog.data(3)
+newlog.data(None)
+newlog.data('')
+newlog.data(3)
+print(newlog)
+sin(3)
+from math import sin
+sin(3)
+sin(None)
+type('hello')
+newlog = PCELogMeasurement()
+newlog = PCELogMeasurement()
+type(None)
+newlog = PCELogMeasurement()
+'a' is str
+'ab' is str
+type('ab') is str
+newlog = PCELogMeasurement()
+newlog = PCELogMeasurement(34)
+newlog = PCELogMeasurement(34)
+newlog = PCELogMeasurement()
+newlog = PCELogMeasurement(None)
+newlog = PCELogMeasurement('Hello')
+newlog = PCELogMeasurement(34)
+newlog = PCELogMeasurement(3.4)
+type(int)
+type(int)._str_
+type(int).__str__()
+type(int)._str_()
+str(type(int))
+type(int).__repr__()
+type(int).__name__
+newlog = PCELogMeasurement(3.4)
+newlog = PCELogMeasurement(34)
+newlog = PCELogMeasurement()
+newlog.data(34)
+newlog.data(3.4)
+newlog.data('Hello;')
+exit()
