@@ -24,6 +24,9 @@ PCEL_IN2_CORR = 7
 PCEL_BIAS_TYPE = 8
 PCEL_DET1 = 9
 PCEL_DET2 = 10
+PCEL_DET_FACTORS1 = 11
+PCEL_DET_FACTORS2 = 12
+PCEL_MEASUREMENTS = 14
 
 def is_snc_log(fn):
     """ Test if the given path is a valid Sun Nuclear PC Electrometer log file.
@@ -135,10 +138,10 @@ class PCELogMeasurement(object):
 
     def __init__(self, text_buffer=None):
 
-        # text_buffer must be string or NoneType, else raise TypeError.
+        # Text buffer must be string or NoneType, else raise TypeError.
         if text_buffer is not None and type(text_buffer) is not str:
             raise TypeError(
-                "\'text_buffer\' must be string or NoneType, not {0}".format(
+                "Text buffer must be string or NoneType, not {0}".format(
                     text_buffer.__class__.__name__
                 )
             )
@@ -153,10 +156,10 @@ class PCELogMeasurement(object):
 
     def data(self, text_buffer):
 
-        # text_buffer must be string or NoneType, else raise TypeError.
+        # Text buffer must be string or NoneType, else raise TypeError.
         if text_buffer is not None and type(text_buffer) is not str:
             raise TypeError(
-                "\'text_buffer\' must be string or NoneType, not {0}".format(
+                "Text buffer must be string or NoneType, not {0}".format(
                     text_buffer.__class__.__name__
                 )
             )
@@ -289,70 +292,174 @@ class PCELogMeasurement(object):
             return None
         else:
             # Define named range of beam type data field. It is the last field
-            # in the sequence, hencforth -1 index.
+            # in the sequence, henceforth -1 index.
             beam_type_fld = -1
 
             lines = self._text_buffer.splitlines()[PCEL_BIAS_TYPE]
             lst_data = str_data.split()
             return lst_data[beam_type_fld]
 
+    def specified_detectors(self):
+        """Return how many detectors (ionization chambers) are specified in the
+        measurement. One of following values is possible:
+        0 - no detector is specified;
+        1 - one detector is specified;
+        2 - both detectors are specified.
+        """
 
-class EnvConds(object):
-    """
+        result = 0
+
+        if self._text_buffer is None:
+            return result
+        else:
+            # Define named range for detector and detector's serial number
+            # field. Because of the data format line is first split
+            # regarding to comma (',') character, and then extract data
+            # from individual fiels by splitting regarding to colon (':')
+            # character and refering to values with -1 index.
+            detector_dataset_fld = 0
+            detector_fld = -1
+
+            # Define not specified detector value.
+            no_detector_specified = 'none'
+
+            line1 = self._text_buffer.splitlines()[PCEL_DET1]
+            line2 = self._text_buffer.splitlines()[PCEL_DET2]
+            detector_dataset1 = line1.split(',')[detector_dataset_fld]
+            detector_dataset2 = line2.split(',')[detector_dataset_fld]
+
+            if not fnmatch(
+                detector_dataset1[detector_fld],
+                no_detector_specified
+            ):
+                result = result + 1
+
+        return result
+
+
+# Create function for tenperature and preassure correction factor taking
+# EnvironmentalConditions objects as parameters.
+
+class EnvironmentalConditions(object):
+    """This is one measurement entry of environmental conditions. It stores
+    data on air temperature [°C], air preassure [kPa] and relative humidity [%].
     """
 
-    def __init__(self,
-                 t: float = 20.0,
-                 p: float = 101.3,
-                 RH: float = 50.0,
-                 ref: bool = True,
-                 ):
+    def __init__(self, t=None, p=None, RH=None):
+
+        # Do sanity checks first.
+
+        # Temperature must be float or NoneType, else raise TypeError.
+        if t is not None and type(t) is not float:
+            raise TypeError(
+                "Temperature must be float or NoneType, not {0}".format(
+                    t.__class__.__name__
+                )
+            )
+
+        # Preassure must be float or NoneType, else raise TypeError.
+        if p is not None and type(p) is not float:
+            raise TypeError(
+                "Preassure must be float or NoneType, not {0}".format(
+                    p.__class__.__name__
+                )
+            )
+
+        # Relative humidity must be float or NoneType, else raise TypeError.
+        if RH is not None and type(RH) is not float:
+            raise TypeError(
+                "Relative humidity must be float or NoneType, not {0}".format(
+                    RH.__class__.__name__
+                )
+            )
+
         self._t = t
         self._p = p
         self._RH = RH
-        self._ref = ref
 
     def __repr__(self):
-        objstr = str()
-        if self._ref:
-            objstr = (self.__class__.__name__ +
-                      ('(t0={0} 0C, p0={1} kPa, RH={2} %)'
-                          .format(self._t, self._p, self._RH)))
-        else:
-            objstr = (self.__class__.__name__ +
-                      ('(t0={0} 0C, p0={1} kPa, RH={2} %)'
-                          .format(self._t, self._p, self._RH)))
+        str_tmp = str()
+        str_prs = str()
+        str_rhm = str()
 
-        return objstr
+        if self._t:
+            str_tmp = 't={0} °C'.format(self._t)
+        else:
+            str_tmp = 'none'
+
+        if self._p:
+            str_prs = 'p={0} kPa'.format(self._p)
+        else:
+            str_prs = 'none'
+
+        if self._RH:
+            str_rhm = 'RH={0} %'.format(self._RH)
+        else:
+            str_rhm = 'none'
+
+        str_val = '({0}, {1}, {2})'.format(
+            str_tmp,
+            str_prs,
+            str_rhm
+        )
+
+        return self.__class__.__name__ + str_val
+
+    # Define geters and setters for environment conditions properties.
 
     @property
     def t(self):
-        """
-        """
-
         return self._t
+
+    @t.setter
+    def t(self, newval):
+        # Do sanity check first. Temperature must be float or NoneType,
+        # else raise TypeError.
+        if newval is not None and type(newval) is not float:
+            raise TypeError(
+                "Temperature must be float or NoneType, not {0}".format(
+                    newval.__class__.__name__
+                )
+            )
+
+        self._t = newval
 
     @property
     def p(self):
-        """
-        """
-
         return self._p
+
+    @p.setter
+    def p(self, newval):
+        # Do sanity checks first. Preassure must be float or NoneType,
+        # else raise TypeError.
+        if newval is not None and type(newval) is not float:
+            raise TypeError(
+                "Preassure must be float or NoneType, not {0}".format(
+                    newval.__class__.__name__
+                )
+            )
+
+        self._p = newval
 
     @property
     def RH(self):
-        """
-        """
-
         return self._RH
 
+    @RH.setter
+    def RH(self, newval):
+        # Do sanity checks first. Relative humidity must be float or NoneType,
+        # else raise TypeError.
+        if newval is not None and type(newval) is not float:
+            raise TypeError(
+                "Relative humidity must be float or NoneType, not {0}".format(
+                    newval.__class__.__name__
+                )
+            )
+
+        self._RH = newval
+
     def asdict(self):
-        """
-        """
-        if self._ref:
-            return {'t0': self._t, 'p0': self._p, 'RH': self._RH}
-        else:
-            return {'t': self._t, 'p': self._p, 'RH': self._RH}
+        return {'t': self._t, 'p': self._p, 'RH': self._RH}
 
 
 class CalibratedInstrument(object):
