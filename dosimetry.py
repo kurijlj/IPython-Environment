@@ -149,10 +149,16 @@ class PCELogMeasurement(object):
         self._text_buffer = text_buffer
 
     def __repr__(self):
+        str_val = None
+
         if self._text_buffer is None:
-            return 'None'
+            str_val = '(None)'
         else:
-            return self._text_buffer
+            str_val = '(<Wrapper for str object, id={0}>)'.format(
+                id(self._text_buffer)
+            )
+
+        return self.__class__.__name__ + str_val
 
     def data(self, text_buffer):
 
@@ -378,24 +384,24 @@ class EnvironmentalConditions(object):
         self._RH = RH
 
     def __repr__(self):
-        str_tmp = str()
-        str_prs = str()
-        str_rhm = str()
+        str_tmp = None
+        str_prs = None
+        str_rhm = None
 
         if self._t:
             str_tmp = 't={0} °C'.format(self._t)
         else:
-            str_tmp = 'none'
+            str_tmp = 'None'
 
         if self._p:
             str_prs = 'p={0} kPa'.format(self._p)
         else:
-            str_prs = 'none'
+            str_prs = 'None'
 
         if self._RH:
             str_rhm = 'RH={0} %'.format(self._RH)
         else:
-            str_rhm = 'none'
+            str_rhm = 'None'
 
         str_val = '({0}, {1}, {2})'.format(
             str_tmp,
