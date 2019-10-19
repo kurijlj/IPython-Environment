@@ -33,38 +33,51 @@ import argparse
 import numpy as np
 import tkinter as tk
 import tkinter.ttk as ttk
-import egsdosetools as edt
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+from PIL import Image
 from enum import Enum
+from imghdr import what
 from matplotlib import (cbook, use)
+from os.path import basename
 from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.colors import LinearSegmentedColormap
+    FigureCanvasTkAgg,
+    NavigationToolbar2Tk
+)
 
-use('TkAgg')
+use("TkAgg")
 plt.style.use('dark_background')
 
 
-dosecm = LinearSegmentedColormap.from_list(
-        '',
-        ['darkblue', 'purple', 'blue', 'cyan', 'green', 'yellow',
-            'magenta', 'red', 'white']
-    )
+# =============================================================================
+# Global constants
+# =============================================================================
+
+# Centimeters per inch.
+CM_PER_IN = 2.54
 
 
 # =============================================================================
 # Utility classes and functions
 # =============================================================================
 
-class DisplayPlane(Enum):
-    """Class to wrap up enumerated values that describe plane of 3D space to
+class ImageFormats(Enum):
+    """Class to wrap up enumerated values that define supoported image formats.
+    """
+
+    png = 'png'
+    tiff = 'tiff'
+
+
+class DisplayData(Enum):
+    """Class to wrap up enumerated values that describe what image data to
     be displayed.
     """
 
-    xz = 0
-    yz = 1
-    xy = 2
+    original = 0
+    red = 1
+    green = 2
+    blue = 3
 
 
 class ProgramAction(object):
@@ -127,30 +140,24 @@ def _formulate_action(Action, **kwargs):
     return Action(**kwargs)
 
 
-def _is_phantom_file(filename):
-    """Test if file is dosxyznrc phantom file, i.e. chechk if .egsphant
-    suffix is present in the given filename.
+def _is_image_format_supported(filename):
+    """Test if file is one of the image formats supported by application.
+    Supported image formats are defined by enumerated class ImageFormats at the
+    beginning of this script.
     """
 
-    ext = filename.split('.')[-1]
+    image_type = what(filename)
 
-    if 'egsphant' == ext:
-        return True
-    else:
-        return False
+    if image_type:
+        try:
+            ImageFormats(image_type)
+            return True
+        except ValueError:
+            # We just want to stop exception to propagate further up. Nothing
+            # to do here actually, so we just pass.
+            pass
 
-
-def _is_dose_file(filename):
-    """Test if file is dosxyznrc dose file, i.e. chechk if .3ddose
-    suffix is present in the given filename.
-    """
-
-    ext = filename.split('.')[-1]
-
-    if '3ddose' == ext:
-        return True
-    else:
-        return False
+    return False
 
 
 # =============================================================================
@@ -284,7 +291,7 @@ class CommandLineApp(object):
                 exitf=self._parser.exit)
 
         else:
-            filelist = (arguments.phantomfile, arguments.dosefile)
+            filelist = (arguments.iradimage, arguments.preiradimage)
             self._action = _formulate_action(
                 DefaultAction,
                 prog=self._parser.prog,
@@ -302,8 +309,8 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
-class DosXYZNavigationToolbar(NavigationToolbar2Tk):
-    """ TODO: Add class descritpion.
+class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
+    """ TODO: Add class description.
     """
 
     def __init__(self, canvas, window):
@@ -344,159 +351,64 @@ class DosXYZNavigationToolbar(NavigationToolbar2Tk):
             self.set_message(self.mode)
 
 
-class SliceTracker(object):
-    """ A class that actually does the drawing of the slice view.
+class ImageRenderer(object):
+    """ A class that actually does the drawing of the image view.
     """
 
-    def __init__(self, figure, axes, phantomData, doseData, plane):
+    def __init__(self, figure, axes, imagedata, what):
         self._figure = figure
         self._axes = axes
-        self._phantomdata = phantomData
-        self._dosedata = doseData
-        self._plane = plane
-
-        if DisplayPlane.xy == self._plane:
-            self._slices = phantomData.shape[0]
-
-        elif DisplayPlane.yz == self._plane:
-            self._slices = phantomData.shape[1]
-
-        else:
-            self._slices = phantomData.shape[2]
-
-        self._index = self._slices // 2
-
-        # If 3ddose data supplide these will be set to True by check button
-        # invoke() method. There is no need to set them to True here.
-        self._showdosewash = False
-        self._showdoselines = False
-
-    @property
-    def voxsdens(self):
-        return self._phantomdata.voxelsdensity
-
-    @property
-    def voxsdens_min(self):
-        # So far we gonna disregard local voxels density minima and use elctron
-        # density value for vacuum (0.0).
-
-        # return self._phantomdata.voxelsdensity.min()
-        return 0.0
-
-    @property
-    def voxsdens_max(self):
-        # So far we gonna disregard local voxels density maxima and use elctron
-        # density value of 3.0. Electron density from pegs files can vary from
-        # 0.0 for vacuum up to 20.0, but because we usually work with materials
-        # that have electron density close to water and we would like to those
-        # materials are represented nicely on screen we choose such values
-        # range for display. All materials with densities above 3.0 are
-        # diplayed saturated.
-
-        # return self._phantomdata.voxelsdensity.max()
-        return 3.0
-
-    @property
-    def dose(self):
-        return (self._dosedata.dose / self._dosedata.dose.max()) * 100.0
-
-    @property
-    def dose_min(self):
-        return (self._dosedata.dose.min() / self._dosedata.dose.max()) * 100.0
-
-    @property
-    def dose_max(self):
-        # We return 100 because all dose data is normalized to 100%.
-        return 100.0
-
-    def toggle_dosewash(self):
-        self._showdosewash = not self._showdosewash
-        self._update()
-
-    def toggle_doselines(self):
-        self._showdoselines = not self._showdoselines
-        self._update()
-
-    def on_scroll(self, event):
-        if event.button == 'up':
-            self._index = (self._index + 1) % self._slices
-        else:
-            self._index = (self._index - 1) % self._slices
-        self._update()
+        self._imagedata = imagedata
+        self._what = what
 
     def _update(self):
-        self.on_update()
-
-    def on_update(self):
         self._axes.clear()
 
         title = None
-        density = None
-        dose = None
-        localdosemax = None
+        cmap = None
+        displaydata = None
 
-        if DisplayPlane.xy == self._plane:
-            title = 'XY plane'
-            density = self.voxsdens[self._index, :, :]
-            if self._dosedata and (self._showdosewash or self._showdoselines):
-                dose = self.dose[self._index, :, :]
-                localdosemax = self.dose[self._index, :, :].max()
+        if DisplayData.red == self._what:
+            title = 'Red channel'
+            cmap = cm.gray
+            displaydata = np.asarray(self._imagedata.getchannel('R'))
 
-        elif DisplayPlane.yz == self._plane:
-            title = 'YZ plane'
-            density = self.voxsdens[:, self._index, :]
-            if self._dosedata and (self._showdosewash or self._showdoselines):
-                dose = self.dose[:, self._index, :]
-                localdosemax = self.dose[:, self._index, :].max()
+        elif DisplayData.green == self._what:
+            title = 'Green channel'
+            cmap = cm.gray
+            displaydata = np.asarray(self._imagedata.getchannel('G'))
+
+        elif DisplayData.blue == self._what:
+            title = 'Blue channel'
+            cmap = cm.gray
+            displaydata = np.asarray(self._imagedata.getchannel('B'))
 
         else:
-            title = 'XZ plane'
-            density = self.voxsdens[:, :, self._index]
-            if self._dosedata and (self._showdosewash or self._showdoselines):
-                dose = self.dose[:, :, self._index]
-                localdosemax = self.dose[:, :, self._index].max()
+            title = 'Original'
+            displaydata = self._imagedata
 
         self._axes.set_title(title)
-        self._axes.set_xlabel('slice: {0}'.format(self._index))
         self._axes.imshow(
-                density,
-                cmap=cm.gray,
-                vmin=self.voxsdens_min,
-                vmax=self.voxsdens_max
+                displaydata,
+                cmap=cmap
             )
 
-        if self._dosedata:
-            if self._showdosewash:
-                self._axes.imshow(
-                        dose,
-                        cmap=dosecm,
-                        interpolation="spline16",
-                        vmin=self.dose_min,
-                        vmax=self.dose_max,
-                        alpha=0.6)
-
-            if self._showdoselines:
-                levels = np.arange(10.0, localdosemax, 10.0)
-                if 0 != len(levels):
-                    contours = self._axes.contour(
-                            dose,
-                            levels,
-                            linewidths=0.3,
-                            cmap=dosecm)
-                    self._axes.clabel(contours, levels, fmt='%3d %%')
-
+        print('Drawing canvas.')
         self._figure.canvas.draw()
 
+    def on_update(self):
+        self._update()
 
-class SliceView(object):
-    """ A class used to hold and keep track of figure responsible for slice
-    display and canvas that figure is drawn on. It also implements a method to
-    connect canvas 'scroll_event' to coresponding slice tracker.
+
+class ImageView(object):
+    """ A class used to hold and keep track of figure responsible for image
+    display and canvas that figure is drawn on.
     """
 
     def __init__(self, master):
 
-        self._figure = plt.Figure(dpi=72)
+        # self._figure = plt.Figure(dpi=72)
+        self._figure = plt.Figure()
         FigureCanvasTkAgg(self._figure, master)
         self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self._figure.canvas.draw()
@@ -505,7 +417,7 @@ class SliceView(object):
         self._axes = self._figure.add_subplot(111)
 
         # Add toolbar to each view so user can zoom, take screenshots, etc.
-        self._toolbar = DosXYZNavigationToolbar(
+        self._toolbar = GKFilmQANavigationToolbar(
                 self._figure.canvas,
                 master
             )
@@ -521,145 +433,56 @@ class SliceView(object):
     def axes(self):
         return self._axes
 
-    def connect_tracker(self, tracker):
-        # Enable tracker to respond to scroll events.
-        self._figure.canvas.mpl_connect('scroll_event', tracker.on_scroll)
 
-
-class DosXZYMainScreen(tk.Tk):
-    """ A simple GUI application to show EGS phantom geometry and
-    3ddose data distribution in the phantom.
+class GKFilmQAMainScreen(tk.Tk):
+    """ Application's main screen.
     """
 
-    def __init__(self, phantomData, doseData):
+    def __init__(self, iraddata, preiraddata):
 
-        tk.Tk.__init__(self, className='DosXZYMainScreen')
+        tk.Tk.__init__(self, className='GKFilmQAMainScreen')
 
         # Set app icon, window title and make window nonresizable.
         # tk.Tk.iconbitmap(self, default='dosxyz_show.ico')
-        self.title('dosxyz_show.py v1.1')
-        self.resizable(False, False)
+        self.title(basename(iraddata.filename))
+        # self.resizable(False, False)
+        self.resizable(True, True)
 
-        # Split top frame into two main frames. One for displaying phantom
-        # geometry and dose distribution, other for controling display options.
+        # Split top frame into two main frames. One for displaying image
+        # and other for controling display options.
+
+        # Set up view frame.
         viewframe = ttk.LabelFrame(self, text='View')
+        view = ttk.Frame(viewframe, borderwidth=3)
 
-        # Split view frame into upper and lower half.
-        topview = ttk.Frame(viewframe)
-        xzframe = ttk.Frame(topview, borderwidth=3)
-        xzframe.pack(side=tk.LEFT)
-        yzframe = ttk.Frame(topview, borderwidth=3)
-        yzframe.pack(side=tk.LEFT)
-        topview.pack(side=tk.TOP, fill=tk.X)
-
-        # Set lower half of the view frame.
-        bottomview = ttk.Frame(viewframe)
-        xyframe = ttk.Frame(bottomview, borderwidth=3)
-        xyframe.pack(side=tk.LEFT)
-        # Next frame is just used to fill in empty space.
-        ttk.Frame(bottomview, borderwidth=3).pack(side=tk.LEFT, fill=tk.X)
-        bottomview.pack(side=tk.TOP, fill=tk.X)
-
-        # Connect view managers for each of the frames.
-        self._xzview = SliceView(xzframe)
-        self._yzview = SliceView(yzframe)
-        self._xyview = SliceView(xyframe)
-
-        self._xztracker = SliceTracker(
-                self._xzview.figure,
-                self._xzview.axes,
-                phantomData,
-                doseData,
-                DisplayPlane.xz
+        # Connect view manager for the image frame.
+        self._imageview = ImageView(view)
+        self._imagerenderer = ImageRenderer(
+                self._imageview.figure,
+                self._imageview.axes,
+                iraddata,
+                DisplayData.original
             )
-        self._yztracker = SliceTracker(
-                self._yzview.figure,
-                self._yzview.axes,
-                phantomData,
-                doseData,
-                DisplayPlane.yz
-            )
-        self._xytracker = SliceTracker(
-                self._xyview.figure,
-                self._xyview.axes,
-                phantomData,
-                doseData,
-                DisplayPlane.xy
-            )
-
-        self._xzview.connect_tracker(self._xztracker)
-        self._yzview.connect_tracker(self._yztracker)
-        self._xyview.connect_tracker(self._xytracker)
-        viewframe.pack(side=tk.LEFT, fill=tk.Y)
 
         # Set up control frame.
         controlframe = ttk.LabelFrame(self, text='Controls')
 
-        # Split control frame into upper and lower half. Upper one is to hold
-        # actual display controls, while lower one holds 'Quit' button only.
-        topcontrol = ttk.Frame(controlframe)
-
-        # Set check buttons. If dose data is supplied, enable check buttons.
-        state = 'disabled'
-        if doseData:
-            state = 'selected'
-        btndosewash = ttk.Checkbutton(
-                topcontrol,
-                text='show dose',
-                state=state,
-                command=self._on_check_dosewash
-            )
-        btndosewash.pack(side=tk.TOP, fill=tk.X)
-        btndosewash.invoke()
-        btndoselines = ttk.Checkbutton(
-                topcontrol,
-                text='show dose lines',
-                state=state,
-                command=self._on_check_doselines
-            )
-        btndoselines.pack(side=tk.TOP, fill=tk.X)
-        btndoselines.invoke()
-        topcontrol.pack(side=tk.TOP, fill=tk.X)
-        spacer = ttk.Frame(controlframe)
-        spacer.pack(side=tk.TOP, fill=tk.Y, expand=True)
-
         # Set appllication "Quit" button.
-        bottomcontrol = ttk.Frame(controlframe)
-        ttk.Button(bottomcontrol, text='Quit', command=self.destroy)\
+        ttk.Button(controlframe, text='Quit', command=self.destroy)\
             .pack(side=tk.TOP, fill=tk.X)
-        bottomcontrol.pack(side=tk.TOP, fill=tk.X)
 
-        controlframe.pack(side=tk.LEFT, fill=tk.Y)
+        # Packup all frames.
+        view.pack(side=tk.TOP, fill=tk.X)
+        viewframe.pack(side=tk.LEFT, fill=tk.Y)
+        controlframe.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # Update screen.
+        # Update display.
         self.update()
-
-    def _on_check_dosewash(self):
-        """Method to be called when 'Show dose' check button is pressed. It
-        invokes actual method that turns dose display on/off for each of the
-        slice trackers.
-        """
-
-        self._xztracker.toggle_dosewash()
-        self._yztracker.toggle_dosewash()
-        self._xytracker.toggle_dosewash()
-
-    def _on_check_doselines(self):
-        """Method to be called when 'Show dose lines' check button is pressed.
-        It invokes actual method that turns dose lines display on/off for each
-        of the slice trackers.
-        """
-
-        self._xztracker.toggle_doselines()
-        self._yztracker.toggle_doselines()
-        self._xytracker.toggle_doselines()
 
     def update(self):
         """Method to update diplay of main screen.
         """
-        self._xztracker.on_update()
-        self._yztracker.on_update()
-        self._xytracker.on_update()
+        self._imagerenderer.on_update()
 
 
 # =============================================================================
@@ -698,7 +521,9 @@ class ShowVersionAction(ProgramAction):
 
 
 class DefaultAction(ProgramAction):
-    """Program action that launches main application GUI.
+    """Program action that wraps some specific code to be executed based on
+    command line input. In this particular case it prints simple message
+    to the stdout.
     """
 
     def __init__(self, prog, exitf, filelist):
@@ -707,55 +532,84 @@ class DefaultAction(ProgramAction):
         self._filelist = filelist
 
     def execute(self):
-        # Set local variables first.
-        phantomdata = None
-        dosedata = None
-
-        # Do some basic sanity checks first for the phantom file.
+        # Do some basic sanity checks first.
         if self._filelist[0] is None:
-            print('{0}: Missing input phantom file.'.format(self._filelist[0]))
+            print('{0}: Missing input iradiated image file.'
+                  .format(self._programName))
             self._exit_app()
 
-        if not _is_phantom_file(self._filelist[0]):
+        if not _is_image_format_supported(self._filelist[0]):
             print(
-                    '{0}: File \'{1}\' is not a proper phantom file.'
+                    '{0}: File \'{1}\' is not of supported image format.'
                     .format(self._programName, self._filelist[0])
                 )
 
             self._exit_app()
 
-        # We have a proper phantom file. Load the data.
-        phantomdata = edt.xyzcls.PhantomFile(self._filelist[0])
-
-        # Check if dose data provided.
         if self._filelist[1] is not None:
-            if not _is_dose_file(self._filelist[1]):
+            if not _is_image_format_supported(self._filelist[1]):
                 print(
-                        '{0}: File \'{1}\' is not a proper dose file.'
+                        '{0}: File \'{1}\' is not of supported image format.'
                         .format(self._programName, self._filelist[1])
                     )
 
                 self._exit_app()
 
-            else:
-                # We have proper dose file. Load it too.
-                dosedata = edt.xyzcls.DoseFile(self._filelist[1])
+        # We have a proper iradiated image file. Load the image data.
+        iraddata = Image.open(self._filelist[0])
+        # print('Image file: {0}'.format(iraddata.filename))
+        # print('Image format: {0}'.format(iraddata.format))
+        # print('Image mode: {0}'.format(iraddata.mode))
+        # print('Resolution (dpi): {0} x {1}'.format(
+        #     iraddata.info['dpi'][0],
+        #     iraddata.info['dpi'][1]
+        #     ))
+        # print('Image size (px): {0} x {1}'.format(
+        #     iraddata.width,
+        #     iraddata.height
+        #     ))
+        # print('Image size (cm): {0} x {1}'.format(
+        #     (iraddata.width / iraddata.info['dpi'][0]) * CM_PER_IN,
+        #     (iraddata.height / iraddata.info['dpi'][1]) * CM_PER_IN,
+        #     ))
+        # print()
 
-                # Another sanity check. Number of segments along axes
-                # for two files must coincide.
-                if phantomdata.shape != dosedata.shape:
-                    print('{0}: (ERROR) Number of segments for phantom data\
- and dose data must coincide!'.format(self._programName))
-                    self._exit_app()
+        if self._filelist[1] is not None:
+            # We have proper preiradiated image file. Load it too.
+            preiraddata = Image.open(self._filelist[1])
+            # print('Image file: {0}'.format(preiraddata.filename))
+            # print('Image format: {0}'.format(preiraddata.format))
+            # print('Image mode: {0}'.format(preiraddata.mode))
+            # print('Resolution (dpi): {0} x {1}'.format(
+            #     preiraddata.info['dpi'][0],
+            #     preiraddata.info['dpi'][1]
+            #     ))
+            # print('Image size (px): {0} x {1}'.format(
+            #     preiraddata.width,
+            #     preiraddata.height
+            #     ))
+            # print('Image size (cm): {0} x {1}'.format(
+            #     (preiraddata.width / preiraddata.info['dpi'][0]) * CM_PER_IN,
+            #     (preiraddata.height / preiraddata.info['dpi'][1]) * CM_PER_IN,
+            #     ))
+            # print()
+
+        else:
+            preiraddata = None
 
         # We have all neccessary files. Start the GUI.
-        mainscreen = DosXZYMainScreen(
-                phantomData=phantomdata,
-                doseData=dosedata
+        mainscreen = GKFilmQAMainScreen(
+                iraddata=iraddata,
+                preiraddata=preiraddata
             )
         mainscreen.mainloop()
 
-        # Main screen is closed so exit the application.
+        # Do the cleanup and exit application.
+        iraddata.close()
+
+        if preiraddata is not None:
+            preiraddata.close()
+
         self._exit_app()
 
 
@@ -796,16 +650,17 @@ There is NO WARRANTY, to the extent permitted by law.'
             action='store_true',
             help='give a short usage message')
     program.add_argument(
-            'phantomfile',
-            metavar='PHANTOMFILE',
-            type=str,
-            help='dosxyznrc .egsphant file')
-    program.add_argument(
-            'dosefile',
-            metavar='DOSEFILE',
+            'iradimage',
+            metavar='IRADIMAGE',
             type=str,
             nargs='?',
-            help='dosxyznrc .3ddose file')
+            help='image of a scanned iradiated gafchromic film')
+    program.add_argument(
+            'preiradimage',
+            metavar='PREIRADIMAGE',
+            type=str,
+            nargs='?',
+            help='image of a scanned gafchromic film pre irradiation')
 
     program.parse_args()
     program.run()
