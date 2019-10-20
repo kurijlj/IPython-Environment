@@ -398,6 +398,10 @@ class ImageRenderer(object):
     def on_update(self):
         self._update()
 
+    def toggle_channel(self, what):
+        self._what = what
+        self._update()
+
 
 class ImageView(object):
     """ A class used to hold and keep track of figure responsible for image
@@ -542,16 +546,15 @@ class GKFilmQAMainScreen(tk.Tk):
         what = None
 
         if DisplayData.red.value == self._current_view.get():
-            what = 'Red channel.'
+            what = DisplayData.red
         elif DisplayData.green.value == self._current_view.get():
-            what = 'Green channel.'
+            what = DisplayData.green
         elif DisplayData.blue.value == self._current_view.get():
-            what = 'Blue channel.'
+            what = DisplayData.blue
         else:
-            what = 'Original image.'
+            what = DisplayData.original
 
-        print('{0}: {1}'.format(self._program_name, what))
-        # self._imagerenderer.toggle_channel(what)
+        self._imagerenderer.toggle_channel(what)
 
     def update(self):
         """Method to update diplay of main screen.
