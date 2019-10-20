@@ -38,15 +38,15 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from enum import Enum
 from imghdr import what
-from matplotlib import (cbook, use)
 from os.path import basename
+from matplotlib import (cbook, use)
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg,
     NavigationToolbar2Tk
 )
 
 use("TkAgg")
-plt.style.use('dark_background')
+plt.style.use('bmh')
 
 
 # =============================================================================
@@ -393,7 +393,6 @@ class ImageRenderer(object):
                 cmap=cmap
             )
 
-        print('Drawing canvas.')
         self._figure.canvas.draw()
 
     def on_update(self):
@@ -438,15 +437,17 @@ class GKFilmQAMainScreen(tk.Tk):
     """ Application's main screen.
     """
 
-    def __init__(self, iraddata, preiraddata):
+    def __init__(self, program_name, iraddata, preiraddata):
 
         tk.Tk.__init__(self, className='GKFilmQAMainScreen')
+
+        self._program_name = program_name
 
         # Set app icon, window title and make window nonresizable.
         # tk.Tk.iconbitmap(self, default='dosxyz_show.ico')
         self.title(basename(iraddata.filename))
         # self.resizable(False, False)
-        self.resizable(True, True)
+        self.resizable(False, False)
 
         # Split top frame into two main frames. One for displaying image
         # and other for controling display options.
@@ -454,6 +455,11 @@ class GKFilmQAMainScreen(tk.Tk):
         # Set up view frame.
         viewframe = ttk.LabelFrame(self, text='View')
         view = ttk.Frame(viewframe, borderwidth=3)
+        view.pack(side=tk.TOP, fill=tk.X)
+        viewframe.pack(side=tk.LEFT, fill=tk.Y)
+
+        # Print some info to the command line.
+        print('{0}: Loading image data ...'.format(self._program_name))
 
         # Connect view manager for the image frame.
         self._imageview = ImageView(view)
@@ -467,17 +473,85 @@ class GKFilmQAMainScreen(tk.Tk):
         # Set up control frame.
         controlframe = ttk.LabelFrame(self, text='Controls')
 
-        # Set appllication "Quit" button.
-        ttk.Button(controlframe, text='Quit', command=self.destroy)\
-            .pack(side=tk.TOP, fill=tk.X)
+        # Split control frame into upper and lower half. Upper one is to hold
+        # actual display controls, while lower one holds 'Quit' button only.
+        topcontrol = ttk.Frame(controlframe)
 
-        # Packup all frames.
-        view.pack(side=tk.TOP, fill=tk.X)
-        viewframe.pack(side=tk.LEFT, fill=tk.Y)
+        # Set channel selection controls.
+        self._current_view = tk.IntVar()
+
+        self._btnoriginal = ttk.Radiobutton(
+                topcontrol,
+                text='Original image',
+                command=self._on_select_channel,
+                value=DisplayData.original.value,
+                variable=self._current_view
+            )
+        self._btnoriginal.pack(side=tk.TOP, fill=tk.X)
+
+        self._btnred = ttk.Radiobutton(
+                topcontrol,
+                text='Red channel',
+                command=self._on_select_channel,
+                value=DisplayData.red.value,
+                variable=self._current_view
+            )
+        self._btnred.pack(side=tk.TOP, fill=tk.X)
+
+        self._btngreen = ttk.Radiobutton(
+                topcontrol,
+                text='Green channel',
+                command=self._on_select_channel,
+                value=DisplayData.green.value,
+                variable=self._current_view
+            )
+        self._btngreen.pack(side=tk.TOP, fill=tk.X)
+
+        self._btnblue = ttk.Radiobutton(
+                topcontrol,
+                text='Blue channel',
+                command=self._on_select_channel,
+                value=DisplayData.blue.value,
+                variable=self._current_view
+            )
+        self._btnblue.pack(side=tk.TOP, fill=tk.X)
+
+        # Set default channel.
+        self._current_view.set(DisplayData.original.value)
+
+        topcontrol.pack(side=tk.TOP, fill=tk.X)
+        spacer = ttk.Frame(controlframe)
+        spacer.pack(side=tk.TOP, fill=tk.Y, expand=True)
+
+        # Set appllication "Quit" button.
+        bottomcontrol = ttk.Frame(controlframe)
+        ttk.Button(bottomcontrol, text='Quit', command=self.destroy)\
+            .pack(side=tk.TOP, fill=tk.X)
+        bottomcontrol.pack(side=tk.BOTTOM, fill=tk.X)
+
         controlframe.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Update display.
         self.update()
+
+    def _on_select_channel(self):
+        """Method to be called when one of channel selection buttons is
+        checked. It invokes actual method that turns channel display on/off.
+        """
+
+        what = None
+
+        if DisplayData.red.value == self._current_view.get():
+            what = 'Red channel.'
+        elif DisplayData.green.value == self._current_view.get():
+            what = 'Green channel.'
+        elif DisplayData.blue.value == self._current_view.get():
+            what = 'Blue channel.'
+        else:
+            what = 'Original image.'
+
+        print('{0}: {1}'.format(self._program_name, what))
+        # self._imagerenderer.toggle_channel(what)
 
     def update(self):
         """Method to update diplay of main screen.
@@ -534,7 +608,7 @@ class DefaultAction(ProgramAction):
     def execute(self):
         # Do some basic sanity checks first.
         if self._filelist[0] is None:
-            print('{0}: Missing input iradiated image file.'
+            print('{0}: Missing image file.'
                   .format(self._programName))
             self._exit_app()
 
@@ -577,32 +651,23 @@ class DefaultAction(ProgramAction):
         if self._filelist[1] is not None:
             # We have proper preiradiated image file. Load it too.
             preiraddata = Image.open(self._filelist[1])
-            # print('Image file: {0}'.format(preiraddata.filename))
-            # print('Image format: {0}'.format(preiraddata.format))
-            # print('Image mode: {0}'.format(preiraddata.mode))
-            # print('Resolution (dpi): {0} x {1}'.format(
-            #     preiraddata.info['dpi'][0],
-            #     preiraddata.info['dpi'][1]
-            #     ))
-            # print('Image size (px): {0} x {1}'.format(
-            #     preiraddata.width,
-            #     preiraddata.height
-            #     ))
-            # print('Image size (cm): {0} x {1}'.format(
-            #     (preiraddata.width / preiraddata.info['dpi'][0]) * CM_PER_IN,
-            #     (preiraddata.height / preiraddata.info['dpi'][1]) * CM_PER_IN,
-            #     ))
-            # print()
 
         else:
             preiraddata = None
 
+        # Print some info to the command line.
+        print('{0}: Starting GUI ...'.format(self._programName))
+
         # We have all neccessary files. Start the GUI.
         mainscreen = GKFilmQAMainScreen(
+                program_name=self._programName,
                 iraddata=iraddata,
                 preiraddata=preiraddata
             )
         mainscreen.mainloop()
+
+        # Print to command line that we are freeing memory and closing app.
+        print('{0}: Freeing allocated memory ...'.format(self._programName))
 
         # Do the cleanup and exit application.
         iraddata.close()
