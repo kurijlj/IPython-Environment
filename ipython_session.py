@@ -2149,3 +2149,46 @@ newlog.data(34)
 newlog.data(3.4)
 newlog.data('Hello;')
 exit()
+df = open('data.csv', 'r')
+lst_edep = []
+lst_d = []
+for row in df:
+    lst_data = row.split()
+    lst_edep.append(float(lst_data[4]))
+    lst_d.append(float(lst_data[8]))
+    
+for row in df:
+    lst_data = row.split()
+    lst_edep.append(float(lst_data[4]))
+    lst_d.append(float(lst_data[8]))
+    
+lst_edep
+lst_d
+import numpy as np
+edep = np.array(lst_edep)
+dose = np.array(lst_d)
+edep
+dose
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+edep
+dose
+from matplotlib import pyplot as plt
+len(edep)
+xrange(1, 40)
+range(1, 40)
+fig, axes = plt.subplots(1, 2, num='PDD')
+axes[0].axis('off')
+axes[1].axis('off')
+axes[0].bar([x for x in range(1, 40)], edep, width=0.1)
+fig, axes = plt.subplots(1, 2, num='PDD')
+axes[0].bar([x for x in range(40)], edep, width=0.1)
+axes[1].bar([x for x in range(40)], dose, width=0.1)
+axes[0].plt([x for x in range(40)], edep, width=0.1)
+axes[0].plot([x for x in range(40)], edep, width=0.1)
+axes[0].plot([x for x in range(40)], edep)
+axes[1].plot([x for x in range(40)], dose)
+exit()
