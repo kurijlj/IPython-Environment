@@ -2192,3 +2192,75 @@ axes[0].plot([x for x in range(40)], edep, width=0.1)
 axes[0].plot([x for x in range(40)], edep)
 axes[1].plot([x for x in range(40)], dose)
 exit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+get_ipython().run_line_magic('clear', '')
+fd = open('data.csv', 'r')
+counter = 0
+lst_edep = []
+lst_dose = []
+for row in fd:
+    if 1 <= counter:
+        splitted = row.split()
+        lst_edep.append(float(splitted[4]))
+        lst_dose.append(float(splitted[8]))
+    counter = counter + 1
+    
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+get_ipython().run_line_magic('clear', '')
+fd = open('data.csv', 'r')
+counter = 0
+lst_edep = []
+lst_dose = []
+for row in fd:
+    if 1 <= counter:
+        splitted = row.split()
+        lst_edep.append(float(splitted[4]))
+        lst_dose.append(float(splitted[6]))
+    counter = counter + 1
+    
+row = '0 H2O521ICRU 1.000 0.0008 3.0872e-08 3.900 6.3002e-15 3.900'
+row.split()
+row.split()[4]
+float(row.split()[4])
+quot
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+fd = open('data.csv', 'r')
+counter = 0
+lst_edep = []
+lst_dose = []
+for row in fd:
+    if 1 < counter:
+        splitted = row.split()
+        lst_edep.append(float(splitted[4]))
+        lst_dose.append(float(splitted[6]))
+    counter = counter + 1
+    
+lst_edep
+len(lst_edep)
+lst_dose
+import numpy as np
+edep = np.array(lst_edep)
+dose = np.array(lst_dose)
+from matplotlib import pyplot as plt
+fig, axes = plt.subplots(1, 2, num='EDEP and PDD')
+axes[0].axis('off')
+axes[1].axis('off')
+axes[0].plot([x for x in range(len(lst_edep))], edep)
+axes[1].plot([x for x in range(len(lst_dose))], dose)
+axes[0].axis('on')
+axes[1].axis('on')
+quit()
