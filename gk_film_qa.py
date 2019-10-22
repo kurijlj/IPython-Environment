@@ -35,6 +35,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from PIL import Image
 from enum import Enum
 from imghdr import what
@@ -93,6 +94,22 @@ class ProgramAction(object):
 
     def execute(self):
         pass
+
+
+def points_to_centimeters(dpi, this_many_points):
+    """Utility function to convert from pixels (points) to centimeters
+    according to given dpi (dots per inch).
+    """
+
+    # Set deafult return value. Default is negative value that is used to
+    # indicate missing or false input values.
+    returnval = -1
+
+    # Do sam basic sanity checks first.
+    if 0 < dpi and 0 <= this_many_points:
+        returnval = (this_many_points / dpi) * CM_PER_IN
+
+    return returnval
 
 
 def _format_epilog(epilogAddition, bugMail):
@@ -313,9 +330,10 @@ class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
     """ TODO: Add class description.
     """
 
-    def __init__(self, canvas, window):
+    def __init__(self, canvas, window, image_dpi=None):
         self.canvas = canvas
         self.window = window
+        self._image_dpi = image_dpi
         NavigationToolbar2Tk.__init__(self, canvas, window)
 
     def mouse_move(self, event):
@@ -324,10 +342,24 @@ class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
         if event.inaxes and event.inaxes.get_navigate():
 
             try:
-                s = 'x:{0:d} y:{1:d}'.format(
-                        int(event.xdata),
-                        int(event.ydata)
+                xdata = event.xdata
+                ydata = event.ydata
+                x = int(xdata)
+                y = int(ydata)
+
+                if self._image_dpi:
+                    xcm = points_to_centimeters(
+                        self._image_dpi[0],
+                        float(xdata)
                     )
+                    ycm = points_to_centimeters(
+                        self._image_dpi[1],
+                        float(ydata)
+                    )
+                    s = 'x: {0:.2f} cm [{1:d} pxs], y: {2:.2f} cm [{3:d} pxs],\
+ value: '.format(xcm, x, ycm, y)
+                else:
+                    s = 'x: {0:d}, y: {1:d}, value: '.format(x, y)
             except (ValueError, OverflowError):
                 pass
             else:
@@ -387,7 +419,39 @@ class ImageRenderer(object):
             title = 'Original'
             displaydata = self._imagedata
 
+        # Try to determine image dpi.
+        image_dpi = None
+        try:
+            image_dpi = self._imagedata.info['dpi']
+        except KeyError:
+            # Image info does not contain dpi key so do nothing.
+            pass
+
         self._axes.set_title(title)
+
+        # Set default axes units.
+        units = '[px]'
+
+        # Try to set proper scale for axes (in centimeters), if image data
+        # supplied.
+        if image_dpi:
+            units = '[cm]'
+
+            ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:.2f}'.format(
+                points_to_centimeters(image_dpi[0], float(x))
+                ))
+            self._axes.xaxis.set_major_formatter(ticks_x)
+
+            ticks_y = ticker.FuncFormatter(lambda y, pos: '{0:.2f}'.format(
+                points_to_centimeters(image_dpi[1], float(y))
+                ))
+            self._axes.yaxis.set_major_formatter(ticks_y)
+
+        # Set units label.
+        self._axes.set_xlabel(units)
+        self._axes.set_ylabel(units)
+
+        # Show plot.
         self._axes.imshow(
                 displaydata,
                 cmap=cmap
@@ -408,7 +472,9 @@ class ImageView(object):
     display and canvas that figure is drawn on.
     """
 
-    def __init__(self, master):
+    def __init__(self, master, image_dpi=None):
+
+        self._dpi = image_dpi
 
         # self._figure = plt.Figure(dpi=72)
         self._figure = plt.Figure()
@@ -422,7 +488,8 @@ class ImageView(object):
         # Add toolbar to each view so user can zoom, take screenshots, etc.
         self._toolbar = GKFilmQANavigationToolbar(
                 self._figure.canvas,
-                master
+                master,
+                self._dpi
             )
 
         # Update toolbar display.
@@ -465,8 +532,16 @@ class GKFilmQAMainScreen(tk.Tk):
         # Print some info to the command line.
         print('{0}: Loading image data ...'.format(self._program_name))
 
+        # Try to determine image dpi.
+        image_dpi = None
+        try:
+            image_dpi = iraddata.info['dpi']
+        except KeyError:
+            # Image info does not contain dpi key so do nothing.
+            pass
+
         # Connect view manager for the image frame.
-        self._imageview = ImageView(view)
+        self._imageview = ImageView(view, image_dpi=image_dpi)
         self._imagerenderer = ImageRenderer(
                 self._imageview.figure,
                 self._imageview.axes,

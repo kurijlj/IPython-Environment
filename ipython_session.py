@@ -2264,3 +2264,54 @@ axes[1].plot([x for x in range(len(lst_dose))], dose)
 axes[0].axis('on')
 axes[1].axis('on')
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+df = open('data.csv', 'r')
+counter = 0
+lst_edep = []
+lst_dose = []
+for row in df:
+    if 1 < counter:
+        sp = row.split()
+        lst_edep.append(float(sp[4]))
+        lst_dose.append(float(sp[6]))
+        
+lst_edep
+lst_dose
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('cls', '')
+counter = 0
+lst_edep = []
+lst_dose = []
+for row in df:
+    if 1 < counter:
+        sp = row.split()
+        lst_edep.append(float(sp[4]))
+        lst_dose.append(float(sp[6]))
+    counter += 1
+    
+df = open('data.csv', 'r')
+for row in df:
+    if 1 < counter:
+        sp = row.split()
+        lst_edep.append(float(sp[4]))
+        lst_dose.append(float(sp[6]))
+    counter += 1
+    
+lst_edep
+import numpy as np
+edep = np.array(lst_edep)
+dose = np.array(lst_dose)
+len(edep)
+from matplotlib import pyplot as plt
+fig, axes = plt.subplots(1, 2, num='EDEP and PDD')
+axes[0].plot([x for x in range(len(edep))], edep)
+axes[1].plot([x for x in range(len(dose))], dose)
+quit()
