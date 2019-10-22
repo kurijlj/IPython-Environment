@@ -427,15 +427,14 @@ class ImageRenderer(object):
             # Image info does not contain dpi key so do nothing.
             pass
 
-        self._axes.set_title(title)
-
         # Set default axes units.
-        units = '[px]'
+        units_str = '[px]'
 
         # Try to set proper scale for axes (in centimeters), if image data
         # supplied.
         if image_dpi:
-            units = '[cm]'
+            units_str = '[cm]'
+            title = '{0} [dpi: {1}]'.format(title, image_dpi)
 
             ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:.2f}'.format(
                 points_to_centimeters(image_dpi[0], float(x))
@@ -447,9 +446,12 @@ class ImageRenderer(object):
                 ))
             self._axes.yaxis.set_major_formatter(ticks_y)
 
+        # Set title.
+        self._axes.set_title(title)
+
         # Set units label.
-        self._axes.set_xlabel(units)
-        self._axes.set_ylabel(units)
+        self._axes.set_xlabel(units_str)
+        self._axes.set_ylabel(units_str)
 
         # Show plot.
         self._axes.imshow(
@@ -527,7 +529,7 @@ class GKFilmQAMainScreen(tk.Tk):
         viewframe = ttk.LabelFrame(self, text='View')
         view = ttk.Frame(viewframe, borderwidth=3)
         view.pack(side=tk.TOP, fill=tk.X)
-        viewframe.pack(side=tk.LEFT, fill=tk.Y)
+        viewframe.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
 
         # Print some info to the command line.
         print('{0}: Loading image data ...'.format(self._program_name))
@@ -598,7 +600,7 @@ class GKFilmQAMainScreen(tk.Tk):
         # Set default channel.
         self._current_view.set(DisplayData.original.value)
 
-        topcontrol.pack(side=tk.TOP, fill=tk.X)
+        topcontrol.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
         spacer = ttk.Frame(controlframe)
         spacer.pack(side=tk.TOP, fill=tk.Y, expand=True)
 
@@ -606,9 +608,9 @@ class GKFilmQAMainScreen(tk.Tk):
         bottomcontrol = ttk.Frame(controlframe)
         ttk.Button(bottomcontrol, text='Quit', command=self.destroy)\
             .pack(side=tk.TOP, fill=tk.X)
-        bottomcontrol.pack(side=tk.BOTTOM, fill=tk.X)
+        bottomcontrol.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=5)
 
-        controlframe.pack(side=tk.RIGHT, fill=tk.Y)
+        controlframe.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
 
         # Update display.
         self.update()
