@@ -32,12 +32,16 @@
 import argparse
 import tkinter as tk
 import tkinter.ttk as ttk
+from sys import float_info as fi
 # from os.path import basename
 
 
 # =============================================================================
 # Global constants
 # =============================================================================
+
+MIN_FLOAT = fi.min
+MAX_FLOAT = fi.max
 
 
 # =============================================================================
@@ -252,6 +256,49 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
+class TkInputFloat(tk.Frame):
+    """ Custom widget to collect user input of float values.
+    """
+
+    def __init__(self, master=None, **kwargs):
+
+        # Following arguments we use locally and rest we send to superclass:
+        #          label: Label for input field. Text displayed above
+        #                 entry widget;
+        #     buttontext: Text displayed on control button explaining
+        #                 command to be executed;
+        #    bottomlimit: Bottom limit of possible values that can be entered.
+        #                 Default value is set to MIN_FLOAT;
+        #       toplimit: Top limit of possible values that can be entered.
+        #                 Default value is set to MAX_FLOAT;
+
+        label = None
+        buttontext = None
+
+        if 'label' in kwargs:
+            label = kwargs.pop('label')
+        else:
+            label = 'Float:'
+
+        if 'buttontext' in kwargs:
+            buttontext = kwargs.pop('buttontext')
+        else:
+            buttontext = 'Input'
+
+        if 'bottomlimit' in kwargs:
+            self._bottom = kwargs.pop('bottomlimit')
+        else:
+            self._bottom = MIN_FLOAT
+
+        if 'toplimit' in kwargs:
+            self._top in kwargs.pop('top')
+        else:
+            self._top = MAX_FLOAT
+
+        # Pass the rest of arguments to superclass.
+        tk.Frame.__init__(self, kwargs, className='TkInputFloat')
+
+
 class TkAppMainScreen(tk.Tk):
     """ Application's main screen.
     """
@@ -312,11 +359,27 @@ class TkAppMainScreen(tk.Tk):
         # Update display if necessary.
         # self.update()
 
-    def _on_rotate(self, *vals):
+    def _on_rotate(self):
         """A callback method for rotation_control.
         """
 
-        print(self._rotation_angle.get())
+        # Define storage for input angle value.
+        angle_val = 0.0
+
+        # Try to convert string value to float.
+        try:
+            angle_val = float(self._rotation_angle.get())
+        except ValueError:
+            # We just ignore values that are not of float type.
+            pass
+
+        # Also discard ridicules float values.
+        if angle_val > -360.0 and angle_val < 360.0 and 0 != angle_val:
+            print(angle_val)
+        else:
+            print('No rotation')
+
+        # Reset entry value.
         self._rotation_angle.set('')
 
     def _update(self):
