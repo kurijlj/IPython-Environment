@@ -287,7 +287,9 @@ class TkAppMainScreen(tk.Tk):
         # Frame to group and align entry field and command button.
         rc_entry_group = ttk.Frame(rotation_control)
 
-        tk.Entry(rc_entry_group, width=12)\
+        self._rotation_angle = tk.StringVar()
+
+        tk.Entry(rc_entry_group, width=12, textvariable=self._rotation_angle)\
             .pack(side=tk.LEFT, fill=tk.Y, padx=1, pady=1)
         tk.Button(rc_entry_group, text='Rotate', command=self._on_rotate)\
             .pack(side=tk.RIGHT, fill=tk.Y)
@@ -310,11 +312,12 @@ class TkAppMainScreen(tk.Tk):
         # Update display if necessary.
         # self.update()
 
-    def _on_rotate(self):
+    def _on_rotate(self, *vals):
         """A callback method for rotation_control.
         """
 
-        pass
+        print(self._rotation_angle.get())
+        self._rotation_angle.set('')
 
     def _update(self):
         """Method to update diplay of main screen.
