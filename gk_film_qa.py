@@ -40,6 +40,7 @@ from PIL import Image
 from enum import Enum
 from imghdr import what
 from os.path import basename
+from sys import float_info as fi
 from matplotlib import (cbook, use)
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg,
@@ -56,6 +57,9 @@ plt.style.use('bmh')
 
 # Centimeters per inch.
 CM_PER_IN = 2.54
+
+MIN_FLOAT = fi.min
+MAX_FLOAT = fi.max
 
 
 # =============================================================================
@@ -326,6 +330,93 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
+class TkInputFloat(tk.Frame):
+    """ Custom widget to collect user input of float values.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        # Following arguments we use locally and rest we send to superclass:
+        #          label: Label for input field. Text displayed above
+        #                 entry widget;
+        #     buttontext: Text displayed on control button explaining
+        #                 command to be executed;
+        #    bottomlimit: Bottom limit of possible values that can be entered.
+        #                 Default value is set to MIN_FLOAT;
+        #       toplimit: Top limit of possible values that can be entered.
+        #                 Default value is set to MAX_FLOAT;
+        #        command: A callback method for pasing input values.
+        #                 Default value is None.
+
+        label = None
+        buttontext = None
+
+        if 'label' in kwargs:
+            label = kwargs.pop('label')
+        else:
+            label = 'Float:'
+
+        if 'buttontext' in kwargs:
+            buttontext = kwargs.pop('buttontext')
+        else:
+            buttontext = 'Input'
+
+        if 'bottomlimit' in kwargs:
+            self._bottom = kwargs.pop('bottomlimit')
+        else:
+            self._bottom = MIN_FLOAT
+
+        if 'toplimit' in kwargs:
+            self._top = kwargs.pop('toplimit')
+        else:
+            self._top = MAX_FLOAT
+
+        if 'command' in kwargs:
+            self._command = kwargs.pop('command')
+        else:
+            self._command = None
+
+        # Pass the rest of arguments to superclass.
+        # tk.Frame.__init__(self, kwargs, className='TkInputFloat')
+        tk.Frame.__init__(self, *args, **kwargs)
+
+        # Initialize and arrange elemnts on the frame.
+        tk.Label(self, text=label, anchor='w').pack(side=tk.TOP, fill=tk.X)
+
+        # Frame to group and align entry field and command button.
+        entry_group = ttk.Frame(self)
+
+        # Set variable to keep track of input values.
+        self._str_val = tk.StringVar()
+
+        tk.Entry(entry_group, width=12, textvariable=self._str_val)\
+            .pack(side=tk.LEFT, fill=tk.Y, padx=1, pady=1)
+        tk.Button(entry_group, text=buttontext, command=self._button_pressed)\
+            .pack(side=tk.RIGHT, fill=tk.Y)
+        entry_group.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def _button_pressed(self):
+        val = 0.0
+
+        # Try to convert string value to float.
+        try:
+            val = float(self._str_val.get())
+        except ValueError:
+            # We just ignore values that are not of float type.
+            pass
+
+        # We only accept values in range [self._bottom, self._top].
+        if self._command:
+            if val < self._bottom or val > self._top:
+                # Out of range so rest to initial value.
+                val = 0.0
+
+            self._command(val)
+
+        # Reset entry value.
+        self._str_val.set('')
+
+
 class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
     """ TODO: Add class description.
     """
@@ -461,7 +552,16 @@ class ImageRenderer(object):
 
         self._figure.canvas.draw()
 
-    def on_update(self):
+    def update(self):
+        self._update()
+
+    def rotate_image(self, rotation_angle):
+        self._imagedata = self._imagedata.rotate(
+                angle=-rotation_angle,  # negative sign to rotate clockwise
+                resample=Image.NEAREST,
+                expand=True,
+                fillcolor='white'
+                )
         self._update()
 
     def toggle_channel(self, what):
@@ -564,7 +664,7 @@ class GKFilmQAMainScreen(tk.Tk):
         self._btnoriginal = ttk.Radiobutton(
                 topcontrol,
                 text='Original image',
-                command=self._on_select_channel,
+                command=self._select_channel,
                 value=DisplayData.original.value,
                 variable=self._current_view
             )
@@ -573,7 +673,7 @@ class GKFilmQAMainScreen(tk.Tk):
         self._btnred = ttk.Radiobutton(
                 topcontrol,
                 text='Red channel',
-                command=self._on_select_channel,
+                command=self._select_channel,
                 value=DisplayData.red.value,
                 variable=self._current_view
             )
@@ -582,7 +682,7 @@ class GKFilmQAMainScreen(tk.Tk):
         self._btngreen = ttk.Radiobutton(
                 topcontrol,
                 text='Green channel',
-                command=self._on_select_channel,
+                command=self._select_channel,
                 value=DisplayData.green.value,
                 variable=self._current_view
             )
@@ -591,7 +691,7 @@ class GKFilmQAMainScreen(tk.Tk):
         self._btnblue = ttk.Radiobutton(
                 topcontrol,
                 text='Blue channel',
-                command=self._on_select_channel,
+                command=self._select_channel,
                 value=DisplayData.blue.value,
                 variable=self._current_view
             )
@@ -599,6 +699,16 @@ class GKFilmQAMainScreen(tk.Tk):
 
         # Set default channel.
         self._current_view.set(DisplayData.original.value)
+
+        # Set image rotation control.
+        TkInputFloat(
+            topcontrol,
+            label='Image rotation:',
+            buttontext='Rotate',
+            bottomlimit=-359.0,
+            toplimit=359.0,
+            command=self._rotate_image
+            ).pack(side=tk.TOP, fill=tk.X)
 
         topcontrol.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
         spacer = ttk.Frame(controlframe)
@@ -615,7 +725,7 @@ class GKFilmQAMainScreen(tk.Tk):
         # Update display.
         self.update()
 
-    def _on_select_channel(self):
+    def _select_channel(self):
         """Method to be called when one of channel selection buttons is
         checked. It invokes actual method that turns channel display on/off.
         """
@@ -633,10 +743,17 @@ class GKFilmQAMainScreen(tk.Tk):
 
         self._imagerenderer.toggle_channel(what)
 
+    def _rotate_image(self, angle):
+        """A callback method for "Image rotation" control.
+        """
+
+        if angle:
+            self._imagerenderer.rotate_image(angle)
+
     def update(self):
         """Method to update diplay of main screen.
         """
-        self._imagerenderer.on_update()
+        self._imagerenderer.update()
 
 
 # =============================================================================

@@ -317,11 +317,11 @@ class TkInputFloat(tk.Frame):
 
         tk.Entry(entry_group, width=12, textvariable=self._str_val)\
             .pack(side=tk.LEFT, fill=tk.Y, padx=1, pady=1)
-        tk.Button(entry_group, text=buttontext, command=self._on_input)\
+        tk.Button(entry_group, text=buttontext, command=self._button_pressed)\
             .pack(side=tk.RIGHT, fill=tk.Y)
         entry_group.pack(side=tk.BOTTOM, fill=tk.X)
 
-    def _on_input(self):
+    def _button_pressed(self):
         val = 0.0
 
         # Try to convert string value to float.
@@ -391,10 +391,10 @@ class TkAppMainScreen(tk.Tk):
         TkInputFloat(
             main_panel,
             label='Image rotation:',
-            buttontext = 'Rotate',
-            bottomlimit = -359.0,
-            toplimit = 359.0,
-            command=self._on_rc_input
+            buttontext='Rotate',
+            bottomlimit=-359.0,
+            toplimit=359.0,
+            command=self._rc_input
             ).pack(side=tk.TOP, fill=tk.X)
 
         # ========================
@@ -435,7 +435,7 @@ class TkAppMainScreen(tk.Tk):
         # Reset entry value.
         self._rotation_angle.set('')
 
-    def _on_rc_input(self, angle):
+    def _rc_input(self, angle):
         """A callback method for rc control.
         """
 
