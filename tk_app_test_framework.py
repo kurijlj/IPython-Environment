@@ -260,7 +260,7 @@ class TkInputFloat(tk.Frame):
     """ Custom widget to collect user input of float values.
     """
 
-    def __init__(self, master=None, **kwargs):
+    def __init__(self, *args, **kwargs):
 
         # Following arguments we use locally and rest we send to superclass:
         #          label: Label for input field. Text displayed above
@@ -271,6 +271,8 @@ class TkInputFloat(tk.Frame):
         #                 Default value is set to MIN_FLOAT;
         #       toplimit: Top limit of possible values that can be entered.
         #                 Default value is set to MAX_FLOAT;
+        #        command: A callback method for pasing input values.
+        #                 Default value is None.
 
         label = None
         buttontext = None
@@ -291,12 +293,54 @@ class TkInputFloat(tk.Frame):
             self._bottom = MIN_FLOAT
 
         if 'toplimit' in kwargs:
-            self._top in kwargs.pop('top')
+            self._top = kwargs.pop('toplimit')
         else:
             self._top = MAX_FLOAT
 
+        if 'command' in kwargs:
+            self._command = kwargs.pop('command')
+        else:
+            self._command = None
+
         # Pass the rest of arguments to superclass.
-        tk.Frame.__init__(self, kwargs, className='TkInputFloat')
+        # tk.Frame.__init__(self, kwargs, className='TkInputFloat')
+        tk.Frame.__init__(self, *args, **kwargs)
+
+        # Initialize and arrange elemnts on the frame.
+        tk.Label(self, text=label, anchor='w').pack(side=tk.TOP, fill=tk.X)
+
+        # Frame to group and align entry field and command button.
+        entry_group = ttk.Frame(self)
+
+        # Set variable to keep track of input values.
+        self._str_val = tk.StringVar()
+
+        tk.Entry(entry_group, width=12, textvariable=self._str_val)\
+            .pack(side=tk.LEFT, fill=tk.Y, padx=1, pady=1)
+        tk.Button(entry_group, text=buttontext, command=self._on_input)\
+            .pack(side=tk.RIGHT, fill=tk.Y)
+        entry_group.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def _on_input(self):
+        val = 0.0
+
+        # Try to convert string value to float.
+        try:
+            val = float(self._str_val.get())
+        except ValueError:
+            # We just ignore values that are not of float type.
+            pass
+
+        # We only accept values in range [self._bottom, self._top].
+        if self._command:
+            if val < self._bottom or val > self._top:
+                # Out of range so rest to initial value.
+                val = 0.0
+
+            self._command(val)
+
+        # Reset entry value.
+        self._str_val.set('')
 
 
 class TkAppMainScreen(tk.Tk):
@@ -344,6 +388,15 @@ class TkAppMainScreen(tk.Tk):
 
         rotation_control.pack(side=tk.TOP, fill=tk.X)
 
+        TkInputFloat(
+            main_panel,
+            label='Image rotation:',
+            buttontext = 'Rotate',
+            bottomlimit = -359.0,
+            toplimit = 359.0,
+            command=self._on_rc_input
+            ).pack(side=tk.TOP, fill=tk.X)
+
         # ========================
 
         # Set up some space between test widgets and control widgets.
@@ -381,6 +434,15 @@ class TkAppMainScreen(tk.Tk):
 
         # Reset entry value.
         self._rotation_angle.set('')
+
+    def _on_rc_input(self, angle):
+        """A callback method for rc control.
+        """
+
+        if angle:
+            print('Rotate by {0:.2f}.'.format(angle))
+        else:
+            print('No rotation.')
 
     def _update(self):
         """Method to update diplay of main screen.
