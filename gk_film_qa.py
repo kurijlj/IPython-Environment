@@ -481,7 +481,7 @@ class ImageRenderer(object):
     def __init__(self, figure, axes, imagedata, what):
         self._figure = figure
         self._axes = axes
-        self._imagedata = imagedata
+        self._imagedata = [imagedata]
         self._what = what
 
     def _update(self):
@@ -494,26 +494,26 @@ class ImageRenderer(object):
         if DisplayData.red == self._what:
             title = 'Red channel'
             cmap = cm.gray
-            displaydata = np.asarray(self._imagedata.getchannel('R'))
+            displaydata = np.asarray(self._imagedata[-1].getchannel('R'))
 
         elif DisplayData.green == self._what:
             title = 'Green channel'
             cmap = cm.gray
-            displaydata = np.asarray(self._imagedata.getchannel('G'))
+            displaydata = np.asarray(self._imagedata[-1].getchannel('G'))
 
         elif DisplayData.blue == self._what:
             title = 'Blue channel'
             cmap = cm.gray
-            displaydata = np.asarray(self._imagedata.getchannel('B'))
+            displaydata = np.asarray(self._imagedata[-1].getchannel('B'))
 
         else:
             title = 'Original'
-            displaydata = self._imagedata
+            displaydata = self._imagedata[-1]
 
         # Try to determine image dpi.
         image_dpi = None
         try:
-            image_dpi = self._imagedata.info['dpi']
+            image_dpi = self._imagedata[-1].info['dpi']
         except KeyError:
             # Image info does not contain dpi key so do nothing.
             pass
@@ -556,13 +556,20 @@ class ImageRenderer(object):
         self._update()
 
     def rotate_image(self, rotation_angle):
-        self._imagedata = self._imagedata.rotate(
+        self._imagedata.append(self._imagedata[-1].rotate(
                 angle=-rotation_angle,  # negative sign to rotate clockwise
                 resample=Image.NEAREST,
                 expand=True,
                 fillcolor='white'
-                )
+                ))
         self._update()
+        print('Image stack size: {0}'.format(len(self._imagedata)))
+
+    def undo_rotation(self):
+        if 1 < len(self._imagedata):
+            self._imagedata.pop()
+            self._update()
+        print('Image stack size: {0}'.format(len(self._imagedata)))
 
     def toggle_channel(self, what):
         self._what = what
@@ -710,6 +717,13 @@ class GKFilmQAMainScreen(tk.Tk):
             command=self._rotate_image
             ).pack(side=tk.TOP, fill=tk.X)
 
+        # Set undo button.
+        ttk.Button(
+            topcontrol,
+            text='Undo rotation',
+            command=self._undo_rotation
+            ).pack(side=tk.TOP, fill=tk.X)
+
         topcontrol.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
         spacer = ttk.Frame(controlframe)
         spacer.pack(side=tk.TOP, fill=tk.Y, expand=True)
@@ -749,6 +763,12 @@ class GKFilmQAMainScreen(tk.Tk):
 
         if angle:
             self._imagerenderer.rotate_image(angle)
+
+    def _undo_rotation(self):
+        """A callback method for "Undo rotation" control.
+        """
+
+        self._imagerenderer.undo_rotation()
 
     def update(self):
         """Method to update diplay of main screen.
