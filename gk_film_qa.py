@@ -219,7 +219,7 @@ class CommandLineApp(object):
             )
 
         # Since we add argument options to groups by calling group
-        # method add_argument, we have to sore all that group objects
+        # method add_argument, we have to store all that group objects
         # somewhere before adding arguments. Since we want to store all
         # application relevant data in our application object we use
         # this list for that purpose.
@@ -312,7 +312,7 @@ class CommandLineApp(object):
                 exitf=self._parser.exit)
 
         else:
-            filelist = (arguments.iradimage, arguments.preiradimage)
+            filelist = (arguments.dataimage, arguments.controlimage)
             self._action = _formulate_action(
                 DefaultAction,
                 prog=self._parser.prog,
@@ -555,6 +555,30 @@ class ImageRenderer(object):
     def update(self):
         self._update()
 
+    def toggle_channel(self, what):
+        self._what = what
+        self._update()
+
+
+class ControlImageRenderer(ImageRenderer):
+    """ A subclass of the ImageRenderer class with methods implementing
+    functionality for the control image handling.
+    """
+
+    def __init__(self, figure, axes, imagedata, what):
+        super(ControlImageRenderer, self)\
+            .__init__(figure, axes, imagedata, what)
+
+
+class DataImageRenderer(ImageRenderer):
+    """ A subclass of the ImageRenderer class with methods implementing
+    functionality for the control image handling.
+    """
+
+    def __init__(self, figure, axes, imagedata, what):
+        super(DataImageRenderer, self)\
+            .__init__(figure, axes, imagedata, what)
+
     def rotate_image(self, rotation_angle):
         self._imagedata.append(self._imagedata[-1].rotate(
                 angle=-rotation_angle,  # negative sign to rotate clockwise
@@ -570,10 +594,6 @@ class ImageRenderer(object):
             self._imagedata.pop()
             self._update()
         print('Image stack size: {0}'.format(len(self._imagedata)))
-
-    def toggle_channel(self, what):
-        self._what = what
-        self._update()
 
 
 class ImageView(object):
@@ -617,7 +637,7 @@ class GKFilmQAMainScreen(tk.Tk):
     """ Application's main screen.
     """
 
-    def __init__(self, program_name, iraddata, preiraddata):
+    def __init__(self, program_name, dataimage, controlimage):
 
         tk.Tk.__init__(self, className='GKFilmQAMainScreen')
 
@@ -625,36 +645,51 @@ class GKFilmQAMainScreen(tk.Tk):
 
         # Set app icon, window title and make window nonresizable.
         # tk.Tk.iconbitmap(self, default='dosxyz_show.ico')
-        self.title(basename(iraddata.filename))
+        self.title('GK Film QA')
         # self.resizable(False, False)
         self.resizable(False, False)
 
         # Split top frame into two main frames. One for displaying image
         # and other for controling display options.
 
-        # Set up view frame.
-        viewframe = ttk.LabelFrame(self, text='View')
-        view = ttk.Frame(viewframe, borderwidth=3)
+        # If control image given set up control image view frame.
+        if controlimage:
+            controlframe = ttk.LabelFrame(
+                self,
+                text='Control image: {0}'.format(
+                    basename(controlimage.filename)
+                    )
+                )
+            view = ttk.Frame(controlframe, borderwidth=3)
+            view.pack(side=tk.TOP, fill=tk.X)
+            controlframe.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
+
+        # Set up data image view frame.
+        dataframe = ttk.LabelFrame(
+            self,
+            text='Data image: {0}'.format(basename(dataimage.filename))
+            )
+        view = ttk.Frame(dataframe, borderwidth=3)
         view.pack(side=tk.TOP, fill=tk.X)
-        viewframe.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
+        dataframe.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
 
         # Print some info to the command line.
         print('{0}: Loading image data ...'.format(self._program_name))
 
-        # Try to determine image dpi.
-        image_dpi = None
+        # Try to determine dpi of images.
+        data_image_dpi = None
         try:
-            image_dpi = iraddata.info['dpi']
+            data_image_dpi = dataimage.info['dpi']
         except KeyError:
             # Image info does not contain dpi key so do nothing.
             pass
 
         # Connect view manager for the image frame.
-        self._imageview = ImageView(view, image_dpi=image_dpi)
-        self._imagerenderer = ImageRenderer(
-                self._imageview.figure,
-                self._imageview.axes,
-                iraddata,
+        self._dataimageview = ImageView(view, image_dpi=data_image_dpi)
+        self._dataimagerenderer = DataImageRenderer(
+                self._dataimageview.figure,
+                self._dataimageview.axes,
+                dataimage,
                 DisplayData.original
             )
 
@@ -755,25 +790,25 @@ class GKFilmQAMainScreen(tk.Tk):
         else:
             what = DisplayData.original
 
-        self._imagerenderer.toggle_channel(what)
+        self._dataimagerenderer.toggle_channel(what)
 
     def _rotate_image(self, angle):
         """A callback method for "Image rotation" control.
         """
 
         if angle:
-            self._imagerenderer.rotate_image(angle)
+            self._dataimagerenderer.rotate_image(angle)
 
     def _undo_rotation(self):
         """A callback method for "Undo rotation" control.
         """
 
-        self._imagerenderer.undo_rotation()
+        self._dataimagerenderer.undo_rotation()
 
     def update(self):
         """Method to update diplay of main screen.
         """
-        self._imagerenderer.update()
+        self._dataimagerenderer.update()
 
 
 # =============================================================================
@@ -847,30 +882,14 @@ class DefaultAction(ProgramAction):
                 self._exit_app()
 
         # We have a proper iradiated image file. Load the image data.
-        iraddata = Image.open(self._filelist[0])
-        # print('Image file: {0}'.format(iraddata.filename))
-        # print('Image format: {0}'.format(iraddata.format))
-        # print('Image mode: {0}'.format(iraddata.mode))
-        # print('Resolution (dpi): {0} x {1}'.format(
-        #     iraddata.info['dpi'][0],
-        #     iraddata.info['dpi'][1]
-        #     ))
-        # print('Image size (px): {0} x {1}'.format(
-        #     iraddata.width,
-        #     iraddata.height
-        #     ))
-        # print('Image size (cm): {0} x {1}'.format(
-        #     (iraddata.width / iraddata.info['dpi'][0]) * CM_PER_IN,
-        #     (iraddata.height / iraddata.info['dpi'][1]) * CM_PER_IN,
-        #     ))
-        # print()
+        dataimage = Image.open(self._filelist[0])
 
         if self._filelist[1] is not None:
             # We have proper preiradiated image file. Load it too.
-            preiraddata = Image.open(self._filelist[1])
+            controlimage = Image.open(self._filelist[1])
 
         else:
-            preiraddata = None
+            controlimage = None
 
         # Print some info to the command line.
         print('{0}: Starting GUI ...'.format(self._programName))
@@ -878,8 +897,8 @@ class DefaultAction(ProgramAction):
         # We have all neccessary files. Start the GUI.
         mainscreen = GKFilmQAMainScreen(
                 program_name=self._programName,
-                iraddata=iraddata,
-                preiraddata=preiraddata
+                dataimage=dataimage,
+                controlimage=controlimage
             )
         mainscreen.mainloop()
 
@@ -887,10 +906,10 @@ class DefaultAction(ProgramAction):
         print('{0}: Freeing allocated memory ...'.format(self._programName))
 
         # Do the cleanup and exit application.
-        iraddata.close()
+        dataimage.close()
 
-        if preiraddata is not None:
-            preiraddata.close()
+        if controlimage is not None:
+            controlimage.close()
 
         self._exit_app()
 
@@ -932,14 +951,14 @@ There is NO WARRANTY, to the extent permitted by law.'
             action='store_true',
             help='give a short usage message')
     program.add_argument(
-            'iradimage',
-            metavar='IRADIMAGE',
+            'dataimage',
+            metavar='DATA_IMAGE',
             type=str,
             nargs='?',
             help='image of a scanned iradiated gafchromic film')
     program.add_argument(
-            'preiradimage',
-            metavar='PREIRADIMAGE',
+            'controlimage',
+            metavar='CONTROL_IMAGE',
             type=str,
             nargs='?',
             help='image of a scanned gafchromic film pre irradiation')
