@@ -678,11 +678,19 @@ class GKFilmQAMainScreen(tk.Tk):
 
         # Try to determine dpi of images.
         data_image_dpi = None
+        control_image_dpi = None
+
         try:
             data_image_dpi = dataimage.info['dpi']
         except KeyError:
             # Image info does not contain dpi key so do nothing.
             pass
+
+        if controlimage:
+            try:
+                data_image_dpi = dataimage.info['dpi']
+            except KeyError:
+                pass
 
         # Connect view manager for the image frame.
         self._dataimageview = ImageView(view, image_dpi=data_image_dpi)
