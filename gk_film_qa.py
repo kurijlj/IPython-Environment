@@ -652,26 +652,30 @@ class GKFilmQAMainScreen(tk.Tk):
         # Split top frame into two main frames. One for displaying image
         # and other for controling display options.
 
+        # Set frame to hold image views.
+        viewframe = ttk.Frame(self)
+
         # If control image given set up control image view frame.
         if controlimage:
-            controlframe = ttk.LabelFrame(
-                self,
+            control_image_frame = ttk.LabelFrame(
+                viewframe,
                 text='Control image: {0}'.format(
                     basename(controlimage.filename)
                     )
                 )
-            view = ttk.Frame(controlframe, borderwidth=3)
-            view.pack(side=tk.TOP, fill=tk.X)
-            controlframe.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
+            control_image_view = ttk.Frame(control_image_frame, borderwidth=3)
+            control_image_view.pack(side=tk.TOP, fill=tk.X)
+            control_image_frame.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
 
         # Set up data image view frame.
-        dataframe = ttk.LabelFrame(
-            self,
+        data_image_frame = ttk.LabelFrame(
+            viewframe,
             text='Data image: {0}'.format(basename(dataimage.filename))
             )
-        view = ttk.Frame(dataframe, borderwidth=3)
-        view.pack(side=tk.TOP, fill=tk.X)
-        dataframe.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
+        data_image_view = ttk.Frame(data_image_frame, borderwidth=3)
+        data_image_view.pack(side=tk.TOP, fill=tk.X)
+        data_image_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+        viewframe.pack(side=tk.LEFT, fill=tk.Y)
 
         # Print some info to the command line.
         print('{0}: Loading image data ...'.format(self._program_name))
@@ -680,20 +684,38 @@ class GKFilmQAMainScreen(tk.Tk):
         data_image_dpi = None
         control_image_dpi = None
 
+        if controlimage:
+            try:
+                control_image_dpi = controlimage.info['dpi']
+            except KeyError:
+                pass
+
         try:
             data_image_dpi = dataimage.info['dpi']
         except KeyError:
             # Image info does not contain dpi key so do nothing.
             pass
 
+        # If given connect view manager for the control image frame.
         if controlimage:
-            try:
-                data_image_dpi = dataimage.info['dpi']
-            except KeyError:
-                pass
+            self._controlimageview = ImageView(
+                control_image_view,
+                image_dpi=control_image_dpi
+                )
+            self._controlimagerenderer = ControlImageRenderer(
+                    self._controlimageview.figure,
+                    self._controlimageview.axes,
+                    controlimage,
+                    DisplayData.original
+                )
+        else:
+            self._controlimagerenderer = None
 
-        # Connect view manager for the image frame.
-        self._dataimageview = ImageView(view, image_dpi=data_image_dpi)
+        # Connect view manager for the data image frame.
+        self._dataimageview = ImageView(
+            data_image_view,
+            image_dpi=data_image_dpi
+            )
         self._dataimagerenderer = DataImageRenderer(
                 self._dataimageview.figure,
                 self._dataimageview.axes,
@@ -798,6 +820,8 @@ class GKFilmQAMainScreen(tk.Tk):
         else:
             what = DisplayData.original
 
+        if self._controlimagerenderer:
+            self._controlimagerenderer.toggle_channel(what)
         self._dataimagerenderer.toggle_channel(what)
 
     def _rotate_image(self, angle):
@@ -816,6 +840,9 @@ class GKFilmQAMainScreen(tk.Tk):
     def update(self):
         """Method to update diplay of main screen.
         """
+
+        if self._controlimagerenderer:
+            self._controlimagerenderer.update()
         self._dataimagerenderer.update()
 
 
