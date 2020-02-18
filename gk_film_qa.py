@@ -42,6 +42,7 @@ from imghdr import what
 from os.path import basename
 from sys import float_info as fi
 from matplotlib import (cbook, use)
+from matplotlib.widgets import RectangleSelector
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg,
     NavigationToolbar2Tk
@@ -569,6 +570,26 @@ class ControlImageRenderer(ImageRenderer):
         super(ControlImageRenderer, self)\
             .__init__(figure, axes, imagedata, what)
 
+        self._selector = RectangleSelector(
+            self._axes,
+            self._select_callback,
+            drawtype='box',
+            useblit=True,  # This enables selection box to be drawn.
+            button=[1],
+            minspanx=5,
+            minspany=5,
+            spancoords='pixels',
+            interactive=True
+            )
+
+    def _select_callback(self, click, release):
+        x1, y1 = click.xdata, click.ydata
+        x2, y2 = release.xdata, release.ydata
+        print("[{0}, {1}, {2}, {3}]".format(x1, y1, x2, y2))
+
+    def _update(self):
+        super(ControlImageRenderer, self)._update()
+        self._selector.update()
 
 class DataImageRenderer(ImageRenderer):
     """ A subclass of the ImageRenderer class with methods implementing
