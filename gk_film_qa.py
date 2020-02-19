@@ -41,6 +41,7 @@ from enum import Enum
 from imghdr import what
 from os.path import basename
 from sys import float_info as fi
+from collections import namedtuple
 from matplotlib import (cbook, use)
 from matplotlib.backend_bases import MouseButton
 from matplotlib.widgets import RectangleSelector
@@ -67,6 +68,12 @@ MAX_FLOAT = fi.max
 # =============================================================================
 # Utility classes and functions
 # =============================================================================
+
+# Named tuple used to hold which portion of a plot is currently selected.
+SelectionExtents = namedtuple(
+    'SelectionExtents',
+    ['top', 'left', 'bottom', 'right']
+    )
 
 class ImageFormats(Enum):
     """Class to wrap up enumerated values that define supoported image formats.
@@ -427,7 +434,8 @@ class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
         self.canvas = canvas
         self.window = window
         self._image_dpi = image_dpi
-        NavigationToolbar2Tk.__init__(self, canvas, window)
+        # NavigationToolbar2Tk.__init__(self, canvas, window)
+        super(GKFilmQANavigationToolbar, self).__init__(canvas, window)
 
     def mouse_move(self, event):
         self._set_cursor(event)
@@ -627,6 +635,23 @@ class ImageView(object):
         # Update toolbar display.
         self._toolbar.update()
 
+    @property
+    def figure(self):
+        return self._figure
+
+    @property
+    def axes(self):
+        return self._axes
+
+
+class ControlImageView(ImageView):
+    """ An ImageView subclass with specific methods for handling control image's
+    view controls.
+    """
+
+    def __init__(self, master, image_dpi=None):
+        super(ControlImageView, self).__init__(master, image_dpi)
+
         self._selector = RectangleSelector(
             self._axes,
             self._select_callback,
@@ -641,29 +666,35 @@ class ImageView(object):
 
         self._figure.canvas.mpl_connect('button_press_event', self._on_click)
 
-    @property
-    def figure(self):
-        return self._figure
-
-    @property
-    def axes(self):
-        return self._axes
+        #print(self._figure.get_figwidth() * self._figure.get_dpi())
+        #print(self._figure.get_figheight() * self._figure.get_dpi())
+        #print(self._axes.get_window_extent().transformed(
+        #    self._figure.dpi_scale_trans.inverted()
+        #    ))
 
     def _on_click(self, event):
         if MouseButton.RIGHT == event.button:
-            self._on_right_click()
+            self._on_right_click(event.xdata, event.ydata)
+        elif MouseButton.LEFT == event.button:
+            # User is trying to make new selection so make
+            # selector visible again.
+            self._selector.set_visible(True)
+            print(self._axes.get_images()[0].get_extent())
 
-    def _on_right_click(self):
-        pass
+    def _on_right_click(self, x, y):
+        # Clear current selection.
+        self._selector.set_visible(False)
+        self._selector.extents = x, x, y, y
+        self._selector.update()
 
     def _select_callback(self, click, release):
         x1, y1 = click.xdata, click.ydata
         x2, y2 = release.xdata, release.ydata
-        print("[{0}, {1}, {2}, {3}]".format(x1, y1, x2, y2))
+        print("[{0}, {1}, {2}, {3}]".format(int(x1), int(y1), int(x2), int(y2)))
 
-    def _update(self):
-        self._figure.update()
+    def update(self):
         self._selector.update()
+        print(self._axes.get_images()[0].get_extent())
 
 
 class GKFilmQAMainScreen(tk.Tk):
@@ -731,7 +762,7 @@ class GKFilmQAMainScreen(tk.Tk):
 
         # If given connect view manager for the control image frame.
         if controlimage:
-            self._controlimageview = ImageView(
+            self._controlimageview = ControlImageView(
                 control_image_view,
                 image_dpi=control_image_dpi
                 )
@@ -742,6 +773,7 @@ class GKFilmQAMainScreen(tk.Tk):
                     DisplayData.original
                 )
         else:
+            self._controlimageview = None
             self._controlimagerenderer = None
 
         # Connect view manager for the data image frame.
@@ -876,6 +908,9 @@ class GKFilmQAMainScreen(tk.Tk):
 
         if self._controlimagerenderer:
             self._controlimagerenderer.update()
+            # We need to update image view after update of the renderer so we
+            # could enable access to image from Axes object from the view.
+            self._controlimageview.update()
         self._dataimagerenderer.update()
 
 
