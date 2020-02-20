@@ -70,8 +70,8 @@ MAX_FLOAT = fi.max
 # =============================================================================
 
 # Named tuple used to hold which portion of a plot is currently selected.
-SelectionExtents = namedtuple(
-    'SelectionExtents',
+SelectionExtent = namedtuple(
+    'SelectionExtent',
     ['top', 'left', 'bottom', 'right']
     )
 
@@ -652,34 +652,34 @@ class ControlImageView(ImageView):
     def __init__(self, master, image_dpi=None):
         super(ControlImageView, self).__init__(master, image_dpi)
 
+        self._current_selection = None
+
         self._selector = RectangleSelector(
             self._axes,
             self._select_callback,
             drawtype='box',
             useblit=True,  # This enables selection box to be drawn.
             button=[1],
-            minspanx=5,
-            minspany=5,
+            minspanx=10,
+            minspany=10,
             spancoords='pixels',
             interactive=True
             )
 
-        self._figure.canvas.mpl_connect('button_press_event', self._on_click)
+        self._figure.canvas.mpl_connect(
+            'button_press_event',
+            self._on_button_click
+            )
 
-        #print(self._figure.get_figwidth() * self._figure.get_dpi())
-        #print(self._figure.get_figheight() * self._figure.get_dpi())
-        #print(self._axes.get_window_extent().transformed(
-        #    self._figure.dpi_scale_trans.inverted()
-        #    ))
+        self._figure.canvas.mpl_connect('button_release_event', self._on_click)
 
-    def _on_click(self, event):
+    def _on_button_click(self, event):
         if MouseButton.RIGHT == event.button:
             self._on_right_click(event.xdata, event.ydata)
         elif MouseButton.LEFT == event.button:
             # User is trying to make new selection so make
             # selector visible again.
             self._selector.set_visible(True)
-            print(self._axes.get_images()[0].get_extent())
 
     def _on_right_click(self, x, y):
         # Clear current selection.
@@ -692,9 +692,34 @@ class ControlImageView(ImageView):
         x2, y2 = release.xdata, release.ydata
         print("[{0}, {1}, {2}, {3}]".format(int(x1), int(y1), int(x2), int(y2)))
 
+    def image_extent(self):
+        extent = None
+        result = None
+
+        try:
+            extent = self._axes.get_images()[0].get_extent()
+        except IndexError:
+            tk.messagebox.showerror(
+                title='Error',
+                message='No control image loaded'
+                )
+            print('Error: No control image loaded.')
+
+        if extent:
+            result = SelectionExtent(
+                top=int(extent[3]),
+                left=int(extent[0]),
+                bottom=int(extent[2]),
+                right=int(extent[1]),
+                )
+
+        return result
+
     def update(self):
         self._selector.update()
-        print(self._axes.get_images()[0].get_extent())
+        if not self._current_selection:
+            self._current_selection = self.image_extent()
+            print(self._current_selection)
 
 
 class GKFilmQAMainScreen(tk.Tk):
