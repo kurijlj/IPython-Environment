@@ -26,6 +26,8 @@
 #
 # * <programfilename>.py: created.
 #
+# 2020-02-26 TODO: class SelectionExtent add better implenetation and
+# a class description.
 # =============================================================================
 
 
@@ -70,10 +72,19 @@ MAX_FLOAT = fi.max
 # =============================================================================
 
 # Named tuple used to hold which portion of a plot is currently selected.
-SelectionExtent = namedtuple(
-    'SelectionExtent',
-    ['top', 'left', 'bottom', 'right']
-    )
+class SelectionExtent(object):
+    """TODO: Add class description and better class implenetation.
+    """
+
+    def __init__(self, top, left, bottom, right):
+        self.top = top
+        self.left = left
+        self.bottom = bottom
+        self.right = right
+
+    def __str__(self):
+        return 'SelectionExtent(top={0}, left={1}, bottom={2}, right={3})'.\
+            format(self.top, self.left, self.bottom, self.right)
 
 class ImageFormats(Enum):
     """Class to wrap up enumerated values that define supoported image formats.
@@ -671,8 +682,6 @@ class ControlImageView(ImageView):
             self._on_button_click
             )
 
-        self._figure.canvas.mpl_connect('button_release_event', self._on_click)
-
     def _on_button_click(self, event):
         if MouseButton.RIGHT == event.button:
             self._on_right_click(event.xdata, event.ydata)
@@ -688,9 +697,31 @@ class ControlImageView(ImageView):
         self._selector.update()
 
     def _select_callback(self, click, release):
-        x1, y1 = click.xdata, click.ydata
-        x2, y2 = release.xdata, release.ydata
-        print("[{0}, {1}, {2}, {3}]".format(int(x1), int(y1), int(x2), int(y2)))
+        left, top = int(click.xdata), int(click.ydata)
+        right, bottom = int(release.xdata), int(release.ydata)
+
+        # Here we update current selection. Before any update is performed first
+        # we have to ensure that at leats 10% of an image are is selected.
+        ref_len = self.image_extent().right
+        rel_width = int(((right - left) / ref_len) * 100.0)
+        # Here we compare with width of an image rather then with a height.
+        rel_height = int(((bottom - top) / ref_len) * 100.0)
+
+        if rel_width >= 20 and rel_height >= 20:
+            self._current_selection.left = left
+            self._current_selection.top = top
+            self._current_selection.right = right
+            self._current_selection.bottom = bottom
+
+        else:
+            # Selected region too small. Set current selection to whole image
+            # and clear selector.
+            self._current_selection = self.image_extent()
+            self._selector.set_visible(False)
+            self._selector.extents = left, left, top, top
+            self._selector.update()
+
+        print(self._current_selection)
 
     def image_extent(self):
         extent = None
