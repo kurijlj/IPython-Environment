@@ -26,8 +26,6 @@
 #
 # * <programfilename>.py: created.
 #
-# 2020-02-26 TODO: class SelectionExtent add better implenetation and
-# a class description.
 # =============================================================================
 
 
@@ -72,19 +70,11 @@ MAX_FLOAT = fi.max
 # =============================================================================
 
 # Named tuple used to hold which portion of a plot is currently selected.
-class SelectionExtent(object):
-    """TODO: Add class description and better class implenetation.
-    """
+SelectionExtent = namedtuple(
+    'SelectionExtent',
+    ['top', 'left', 'bottom', 'right']
+    )
 
-    def __init__(self, top, left, bottom, right):
-        self.top = top
-        self.left = left
-        self.bottom = bottom
-        self.right = right
-
-    def __str__(self):
-        return 'SelectionExtent(top={0}, left={1}, bottom={2}, right={3})'.\
-            format(self.top, self.left, self.bottom, self.right)
 
 class ImageFormats(Enum):
     """Class to wrap up enumerated values that define supoported image formats.
@@ -590,6 +580,29 @@ class ControlImageRenderer(ImageRenderer):
         super(ControlImageRenderer, self)\
             .__init__(figure, axes, imagedata, what)
 
+    def visible_pixels(self):
+        result = None
+
+        if DisplayData.red == self._what:
+            result = self._imagedata[-1].getchannel('R')
+        elif DisplayData.green == self._what:
+            result = self._imagedata[-1].getchannel('G')
+        elif DisplayData.blue == self._what:
+            result = self._imagedata[-1].getchannel('B')
+        else:
+            result = self._imagedata[-1]
+
+        return result
+
+    def pixels_from_selection(self, area):
+        pixels = self.visible_pixels().crop((
+            area.left,
+            area.top,
+            area.right,
+            area.bottom
+            ))
+        print('Shape: {0}'.format(np.asarray(pixels).shape))
+
 
 class DataImageRenderer(ImageRenderer):
     """ A subclass of the ImageRenderer class with methods implementing
@@ -663,6 +676,7 @@ class ControlImageView(ImageView):
     def __init__(self, master, image_dpi=None):
         super(ControlImageView, self).__init__(master, image_dpi)
 
+        self._pixels_from_selection = None
         self._current_selection = None
 
         self._selector = RectangleSelector(
@@ -691,27 +705,35 @@ class ControlImageView(ImageView):
             self._selector.set_visible(True)
 
     def _on_right_click(self, x, y):
-        # Clear current selection.
+        # Clear selector.
         self._selector.set_visible(False)
         self._selector.extents = x, x, y, y
         self._selector.update()
+
+        # Set current selection to whole image area.
+        self._current_selection = self.image_extent()
+        print(self._current_selection)
+        self._pixels_from_selection(self._current_selection)
 
     def _select_callback(self, click, release):
         left, top = int(click.xdata), int(click.ydata)
         right, bottom = int(release.xdata), int(release.ydata)
 
-        # Here we update current selection. Before any update is performed first
-        # we have to ensure that at leats 10% of an image are is selected.
+        # Here we update current selection. Before any update is performed
+        # first we have to ensure that at leats 10% of an image area
+        # is selected.
         ref_len = self.image_extent().right
         rel_width = int(((right - left) / ref_len) * 100.0)
         # Here we compare with width of an image rather then with a height.
         rel_height = int(((bottom - top) / ref_len) * 100.0)
 
         if rel_width >= 20 and rel_height >= 20:
-            self._current_selection.left = left
-            self._current_selection.top = top
-            self._current_selection.right = right
-            self._current_selection.bottom = bottom
+            self._current_selection = SelectionExtent(
+                left=left,
+                top=top,
+                right=right,
+                bottom=bottom
+                )
 
         else:
             # Selected region too small. Set current selection to whole image
@@ -722,6 +744,10 @@ class ControlImageView(ImageView):
             self._selector.update()
 
         print(self._current_selection)
+        self._pixels_from_selection(self._current_selection)
+
+    def assing_pixs_frm_sel_callback(self, method):
+        self._pixels_from_selection = method
 
     def image_extent(self):
         extent = None
@@ -751,6 +777,7 @@ class ControlImageView(ImageView):
         if not self._current_selection:
             self._current_selection = self.image_extent()
             print(self._current_selection)
+            self._pixels_from_selection(self._current_selection)
 
 
 class GKFilmQAMainScreen(tk.Tk):
@@ -827,6 +854,12 @@ class GKFilmQAMainScreen(tk.Tk):
                     self._controlimageview.axes,
                     controlimage,
                     DisplayData.original
+                )
+
+            # Connect method to retrieve image pixels from image renderer to
+            # image view control.
+            self._controlimageview.assing_pixs_frm_sel_callback(
+                    self._controlimagerenderer.pixels_from_selection
                 )
         else:
             self._controlimageview = None
