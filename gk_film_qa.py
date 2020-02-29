@@ -83,6 +83,7 @@ class Message(Enum):
     cntrl_view_update = 0
     img_view_update = 1
 
+
 class ImageFormats(Enum):
     """Class to wrap up enumerated values that define supoported image formats.
     """
@@ -131,6 +132,14 @@ def points_to_centimeters(dpi, this_many_points):
         returnval = (this_many_points / dpi) * CM_PER_IN
 
     return returnval
+
+
+def rgb_to_grayscale(red, green, blue):
+    """Utility function to calculate grayscale value of an RGB pixel using
+    luminosity method: 0.3R + 0.59G + 0.11B.
+    """
+
+    return 0.3 * red + 0.59 * green + 0.11 * blue
 
 
 def _format_epilog(epilogAddition, bugMail):
@@ -629,7 +638,7 @@ class ControlImageRenderer(ImageRenderer):
             mean_R = selection[:,:,0].mean()
             mean_G = selection[:,:,1].mean()
             mean_B = selection[:,:,2].mean()
-            mean = 0.3 * mean_R + 0.59 * mean_G + 0.11 * mean_B
+            mean = rgb_to_grayscale(mean_R, mean_G, mean_B)
         else:
             mean = selection.mean()
 
@@ -672,7 +681,6 @@ class ImageView(object):
         self._dpi = image_dpi
         self._mediator = mediator
 
-        # self._figure = plt.Figure(dpi=72)
         self._figure = plt.Figure()
         FigureCanvasTkAgg(self._figure, master)
         self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
@@ -811,6 +819,46 @@ class ControlImageView(ImageView):
 
         # Dispatch messeg to mediator that view is updated.
         self._mediator.dispatch(self, Message.cntrl_view_update)
+
+
+class DataView(object):
+    """ A class used to hold and keep track of figure responsible for image
+    data display and canvas that figure is drawn on.
+    """
+
+    def __init__(self, master, mediator):
+
+        self._mediator = mediator
+
+        self._figure = plt.Figure()
+        FigureCanvasTkAgg(self._figure, master)
+        self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self._figure.canvas.draw()
+
+    @property
+    def figure(self):
+        return self._figure
+
+    @property
+    def axes(self):
+        return self._axes
+
+
+class ControlImageDataView(DataView):
+    """ A class responsible for presenting control image data and data plots.
+    """
+
+    def __init__(self, master, mediator, histogram):
+        super(DataView, self).__init__(master, mediator)
+
+        # Initialize axes.
+        self._axes = self._figure.add_subplot(111)
+        self._axes.bar(
+            [x for x in range(histogram.size)],
+            histogram,
+            width=1.0,
+            color='#297ae5'
+        )
 
 
 class GKFilmQAMainScreen(tk.Tk):
