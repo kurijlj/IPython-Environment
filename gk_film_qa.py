@@ -776,8 +776,9 @@ class ControlImageView(ImageView):
         self._selector.update()
         if not self._current_selection:
             self._current_selection = self.image_extent()
-            print(self._current_selection)
-            self._pixels_from_selection(self._current_selection)
+
+        print(self._current_selection)
+        self._pixels_from_selection(self._current_selection)
 
 
 class GKFilmQAMainScreen(tk.Tk):
@@ -976,6 +977,7 @@ class GKFilmQAMainScreen(tk.Tk):
 
         if self._controlimagerenderer:
             self._controlimagerenderer.toggle_channel(what)
+            self._controlimageview.update()
         self._dataimagerenderer.toggle_channel(what)
 
     def _rotate_image(self, angle):
