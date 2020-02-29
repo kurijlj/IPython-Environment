@@ -76,6 +76,13 @@ SelectionExtent = namedtuple(
     )
 
 
+class Message(Enum):
+    """TODO: Add class description.
+    """
+
+    cntrl_view_update = 0
+    img_view_update = 1
+
 class ImageFormats(Enum):
     """Class to wrap up enumerated values that define supoported image formats.
     """
@@ -489,7 +496,8 @@ class ImageRenderer(object):
     """ A class that actually does the drawing of the image view.
     """
 
-    def __init__(self, figure, axes, imagedata, what):
+    def __init__(self, mediator, figure, axes, imagedata, what):
+        self._mediator = mediator
         self._figure = figure
         self._axes = axes
         self._imagedata = [imagedata]
@@ -576,32 +584,56 @@ class ControlImageRenderer(ImageRenderer):
     functionality for the control image handling.
     """
 
-    def __init__(self, figure, axes, imagedata, what):
+    def __init__(self, mediator, figure, axes, imagedata, what):
         super(ControlImageRenderer, self)\
-            .__init__(figure, axes, imagedata, what)
+            .__init__(mediator, figure, axes, imagedata, what)
 
     def visible_pixels(self):
         result = None
 
         if DisplayData.red == self._what:
-            result = self._imagedata[-1].getchannel('R')
+            result = np.asarray(self._imagedata[-1].getchannel('R'))
         elif DisplayData.green == self._what:
-            result = self._imagedata[-1].getchannel('G')
+            result = np.asarray(self._imagedata[-1].getchannel('G'))
         elif DisplayData.blue == self._what:
-            result = self._imagedata[-1].getchannel('B')
+            result = np.asarray(self._imagedata[-1].getchannel('B'))
         else:
-            result = self._imagedata[-1]
+            result = np.asarray(self._imagedata[-1])
 
         return result
 
-    def pixels_from_selection(self, area):
-        pixels = self.visible_pixels().crop((
-            area.left,
-            area.top,
-            area.right,
-            area.bottom
-            ))
-        print('Shape: {0}'.format(np.asarray(pixels).shape))
+    def pixels_from_selection(self, limits):
+        visible = self.visible_pixels()
+        selection = None
+
+        if 2 < len(visible.shape):
+            # We are dealing wiht a full color image.
+            selection = visible[
+                limits.top:limits.bottom+1,
+                limits.left:limits.right+1,
+                :]
+        else:
+            # We are dealing wiht a only one color channel.
+            selection = visible[
+                limits.top:limits.bottom+1,
+                limits.left:limits.right+1]
+
+        return selection
+
+    def mean_from_selection(self, limits):
+        selection = self.pixels_from_selection(limits)
+        mean = 0
+
+        if 2 < len(selection.shape):
+            # We are dealing wiht a full color image.
+            mean_R = selection[:,:,0].mean()
+            mean_G = selection[:,:,1].mean()
+            mean_B = selection[:,:,2].mean()
+            mean = 0.3 * mean_R + 0.59 * mean_G + 0.11 * mean_B
+        else:
+            mean = selection.mean()
+
+        return mean
 
 
 class DataImageRenderer(ImageRenderer):
@@ -609,9 +641,9 @@ class DataImageRenderer(ImageRenderer):
     functionality for the control image handling.
     """
 
-    def __init__(self, figure, axes, imagedata, what):
+    def __init__(self, mediator, figure, axes, imagedata, what):
         super(DataImageRenderer, self)\
-            .__init__(figure, axes, imagedata, what)
+            .__init__(mediator, figure, axes, imagedata, what)
 
     def rotate_image(self, rotation_angle):
         self._imagedata.append(self._imagedata[-1].rotate(
@@ -635,9 +667,10 @@ class ImageView(object):
     display and canvas that figure is drawn on.
     """
 
-    def __init__(self, master, image_dpi=None):
+    def __init__(self, master, mediator, image_dpi=None):
 
         self._dpi = image_dpi
+        self._mediator = mediator
 
         # self._figure = plt.Figure(dpi=72)
         self._figure = plt.Figure()
@@ -673,10 +706,9 @@ class ControlImageView(ImageView):
     view controls.
     """
 
-    def __init__(self, master, image_dpi=None):
-        super(ControlImageView, self).__init__(master, image_dpi)
+    def __init__(self, master, mediator, image_dpi=None):
+        super(ControlImageView, self).__init__(master, mediator, image_dpi)
 
-        self._pixels_from_selection = None
         self._current_selection = None
 
         self._selector = RectangleSelector(
@@ -712,8 +744,8 @@ class ControlImageView(ImageView):
 
         # Set current selection to whole image area.
         self._current_selection = self.image_extent()
-        print(self._current_selection)
-        self._pixels_from_selection(self._current_selection)
+
+        self.update()
 
     def _select_callback(self, click, release):
         left, top = int(click.xdata), int(click.ydata)
@@ -734,7 +766,6 @@ class ControlImageView(ImageView):
                 right=right,
                 bottom=bottom
                 )
-
         else:
             # Selected region too small. Set current selection to whole image
             # and clear selector.
@@ -743,11 +774,11 @@ class ControlImageView(ImageView):
             self._selector.extents = left, left, top, top
             self._selector.update()
 
-        print(self._current_selection)
-        self._pixels_from_selection(self._current_selection)
+        self.update()
 
-    def assing_pixs_frm_sel_callback(self, method):
-        self._pixels_from_selection = method
+    @property
+    def current_selection(self):
+        return self._current_selection
 
     def image_extent(self):
         extent = None
@@ -774,11 +805,12 @@ class ControlImageView(ImageView):
 
     def update(self):
         self._selector.update()
+
         if not self._current_selection:
             self._current_selection = self.image_extent()
 
-        print(self._current_selection)
-        self._pixels_from_selection(self._current_selection)
+        # Dispatch messeg to mediator that view is updated.
+        self._mediator.dispatch(self, Message.cntrl_view_update)
 
 
 class GKFilmQAMainScreen(tk.Tk):
@@ -848,20 +880,17 @@ class GKFilmQAMainScreen(tk.Tk):
         if controlimage:
             self._controlimageview = ControlImageView(
                 control_image_view,
+                self,
                 image_dpi=control_image_dpi
                 )
             self._controlimagerenderer = ControlImageRenderer(
+                    self,
                     self._controlimageview.figure,
                     self._controlimageview.axes,
                     controlimage,
                     DisplayData.original
                 )
 
-            # Connect method to retrieve image pixels from image renderer to
-            # image view control.
-            self._controlimageview.assing_pixs_frm_sel_callback(
-                    self._controlimagerenderer.pixels_from_selection
-                )
         else:
             self._controlimageview = None
             self._controlimagerenderer = None
@@ -869,9 +898,11 @@ class GKFilmQAMainScreen(tk.Tk):
         # Connect view manager for the data image frame.
         self._dataimageview = ImageView(
             data_image_view,
+            self,
             image_dpi=data_image_dpi
             )
         self._dataimagerenderer = DataImageRenderer(
+                self,
                 self._dataimageview.figure,
                 self._dataimageview.axes,
                 dataimage,
@@ -992,6 +1023,18 @@ class GKFilmQAMainScreen(tk.Tk):
         """
 
         self._dataimagerenderer.undo_rotation()
+
+    def dispatch(self, sender, event):
+        """A method to mediate messages between GUI objects.
+        """
+
+        if Message.cntrl_view_update == event:
+            print('Selection mean: {0}'.format(int(
+                self._controlimagerenderer.mean_from_selection(
+                    sender.current_selection
+                    )
+                ))
+            )
 
     def update(self):
         """Method to update diplay of main screen.
