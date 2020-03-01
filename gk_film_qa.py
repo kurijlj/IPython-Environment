@@ -829,6 +829,7 @@ class DataView(object):
     def __init__(self, master, mediator):
 
         self._mediator = mediator
+        self._data = None
 
         self._figure = plt.Figure()
         FigureCanvasTkAgg(self._figure, master)
@@ -848,17 +849,31 @@ class ControlImageDataView(DataView):
     """ A class responsible for presenting control image data and data plots.
     """
 
-    def __init__(self, master, mediator, histogram):
-        super(DataView, self).__init__(master, mediator)
+    def __init__(self, master, mediator):
+        super(ControlImageDataView, self).__init__(master, mediator)
 
         # Initialize axes.
         self._axes = self._figure.add_subplot(111)
-        self._axes.bar(
-            [x for x in range(histogram.size)],
-            histogram,
-            width=1.0,
-            color='#297ae5'
-        )
+
+    def _update(self):
+        self._axes.clear()
+
+        if self._data:
+            self._axes.bar(
+                [x for x in range(self._data.size)],
+                self._data,
+                width=1.0,
+                color='#297ae5'
+            )
+
+        self._figure.canvas.draw()
+
+    def plot_histogram(self, hst):
+        self._data = hst
+        self._update()
+
+    def update(self):
+        self._update()
 
 
 class GKFilmQAMainScreen(tk.Tk):
@@ -880,13 +895,16 @@ class GKFilmQAMainScreen(tk.Tk):
         # Split top frame into two main frames. One for displaying image
         # and other for controling display options.
 
-        # Set frame to hold image views.
+        # Set frame to hold image and data views.
         viewframe = ttk.Frame(self)
+
+        # Set frame to hold image views.
+        imageframe = ttk.Frame(viewframe)
 
         # If control image given set up control image view frame.
         if controlimage:
             control_image_frame = ttk.LabelFrame(
-                viewframe,
+                imageframe,
                 text='Control image: {0}'.format(
                     basename(controlimage.filename)
                     )
@@ -897,12 +915,49 @@ class GKFilmQAMainScreen(tk.Tk):
 
         # Set up data image view frame.
         data_image_frame = ttk.LabelFrame(
-            viewframe,
+            imageframe,
             text='Data image: {0}'.format(basename(dataimage.filename))
             )
         data_image_view = ttk.Frame(data_image_frame, borderwidth=3)
         data_image_view.pack(side=tk.TOP, fill=tk.X)
         data_image_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+        imageframe.pack(side=tk.TOP, fill=tk.X)
+
+        # Set frame to hold data views.
+        dataframe = ttk.Frame(viewframe)
+
+        # Set up control image data view frame.
+        if controlimage:
+            control_image_data_frame = ttk.LabelFrame(
+                dataframe,
+                text='Selection histogram'
+            )
+            control_image_data_view = ttk.Frame(
+                control_image_data_frame,
+                borderwidth=3
+                )
+            control_image_data_view.pack(side=tk.TOP, fill=tk.X)
+            control_image_data_frame.pack(
+                side=tk.LEFT,
+                fill=tk.Y,
+                padx=5,
+                pady=5
+                )
+
+        # Set up data image data view frame.
+        data_image_data_frame = ttk.LabelFrame(
+            dataframe,
+            text='Dose profile'
+        )
+        data_image_data_view = ttk.Frame(
+            data_image_data_frame,
+            borderwidth=3
+            )
+        data_image_data_view.pack(side=tk.TOP, fill=tk.X)
+        data_image_data_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+
+        dataframe.pack(side=tk.BOTTOM, fill=tk.X)
+
         viewframe.pack(side=tk.LEFT, fill=tk.Y)
 
         # Print some info to the command line.
@@ -938,10 +993,15 @@ class GKFilmQAMainScreen(tk.Tk):
                     controlimage,
                     DisplayData.original
                 )
+            self._controlimagedataview = ControlImageDataView(
+                control_image_data_view,
+                self
+            )
 
         else:
             self._controlimageview = None
             self._controlimagerenderer = None
+            self._controlimagedataview = None
 
         # Connect view manager for the data image frame.
         self._dataimageview = ImageView(
@@ -1083,6 +1143,12 @@ class GKFilmQAMainScreen(tk.Tk):
                     )
                 ))
             )
+            data = self._controlimagerenderer.pixels_from_selection(
+                self._controlimageview.current_selection
+            )
+            self._controlimagedataview.plot_histogram(
+                np.histogram(data, bins=256)
+            )
 
     def update(self):
         """Method to update diplay of main screen.
@@ -1093,6 +1159,12 @@ class GKFilmQAMainScreen(tk.Tk):
             # We need to update image view after update of the renderer so we
             # could enable access to image from Axes object from the view.
             self._controlimageview.update()
+            data = self._controlimagerenderer.pixels_from_selection(
+                self._controlimageview.current_selection
+            )
+            self._controlimagedataview.plot_histogram(
+                np.histogram(data, bins=256)
+            )
         self._dataimagerenderer.update()
 
 
