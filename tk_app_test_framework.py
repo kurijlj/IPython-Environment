@@ -30,9 +30,14 @@
 
 
 import argparse
+import numpy as np
 import tkinter as tk
 import tkinter.ttk as ttk
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from sys import float_info as fi
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # from os.path import basename
 
 
@@ -106,6 +111,10 @@ def _formulate_action(Action, **kwargs):
     """
 
     return Action(**kwargs)
+
+
+def gauss(x, a, x0, sigma):
+    return (a/sigma*np.sqrt(2*np.pi))*np.exp(-0.5*((x-x0)/sigma)**2)
 
 
 # =============================================================================
@@ -256,91 +265,59 @@ class CommandLineApp(object):
 # GUI classes
 # =============================================================================
 
-class TkInputFloat(tk.Frame):
-    """ Custom widget to collect user input of float values.
+class HistogramViewControl(tk.Frame):
+    """ Custom widget to display normalized histogram data.
     """
 
     def __init__(self, *args, **kwargs):
 
-        # Following arguments we use locally and rest we send to superclass:
-        #          label: Label for input field. Text displayed above
-        #                 entry widget;
-        #     buttontext: Text displayed on control button explaining
-        #                 command to be executed;
-        #    bottomlimit: Bottom limit of possible values that can be entered.
-        #                 Default value is set to MIN_FLOAT;
-        #       toplimit: Top limit of possible values that can be entered.
-        #                 Default value is set to MAX_FLOAT;
-        #        command: A callback method for pasing input values.
-        #                 Default value is None.
-
         label = None
-        buttontext = None
+        bins = None
+        data = None
+        self._edges = None
 
         if 'label' in kwargs:
             label = kwargs.pop('label')
         else:
-            label = 'Float:'
+            label = 'Histogram'
 
-        if 'buttontext' in kwargs:
-            buttontext = kwargs.pop('buttontext')
+        if 'bins' in kwargs:
+            bins = kwargs.pop('bins')
         else:
-            buttontext = 'Input'
+            # Set default bins value.
+            bins = 256
 
-        if 'bottomlimit' in kwargs:
-            self._bottom = kwargs.pop('bottomlimit')
+        if 'hstdata' in kwargs:
+            data = kwargs.pop('hstdata')
         else:
-            self._bottom = MIN_FLOAT
+            # Generate histogram of a normal distribution for display purposes.
+            maxx = 128
+            maxy = 1.0
+            sigma = 64
+            x = np.arange(256)
+            data = np.empty_like(x, dtype=float)
+            for xi in x:
+                data[xi] = gauss(xi, maxy, maxx, sigma)
 
-        if 'toplimit' in kwargs:
-            self._top = kwargs.pop('toplimit')
-        else:
-            self._top = MAX_FLOAT
+        self._data, self._edges = np.histogram(data, bins)
 
-        if 'command' in kwargs:
-            self._command = kwargs.pop('command')
-        else:
-            self._command = None
-
-        # Pass the rest of arguments to superclass.
-        # tk.Frame.__init__(self, kwargs, className='TkInputFloat')
+        # Pass the rest of arguments to the superclass.
         tk.Frame.__init__(self, *args, **kwargs)
 
-        # Initialize and arrange elemnts on the frame.
-        tk.Label(self, text=label, anchor='w').pack(side=tk.TOP, fill=tk.X)
+        self._figure = plt.Figure()
+        FigureCanvasTkAgg(self._figure, args[0])
+        self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self._axes = self._figure.add_subplot(111)
 
-        # Frame to group and align entry field and command button.
-        entry_group = ttk.Frame(self)
+        self._update()
 
-        # Set variable to keep track of input values.
-        self._str_val = tk.StringVar()
+    def _update(self):
+        self._axes.clear()
+        self._axes.bar(np.arange(self._data.size), self._data)
+        self._figure.canvas.draw()
 
-        tk.Entry(entry_group, width=12, textvariable=self._str_val)\
-            .pack(side=tk.LEFT, fill=tk.Y, padx=1, pady=1)
-        tk.Button(entry_group, text=buttontext, command=self._button_pressed)\
-            .pack(side=tk.RIGHT, fill=tk.Y)
-        entry_group.pack(side=tk.BOTTOM, fill=tk.X)
-
-    def _button_pressed(self):
-        val = 0.0
-
-        # Try to convert string value to float.
-        try:
-            val = float(self._str_val.get())
-        except ValueError:
-            # We just ignore values that are not of float type.
-            pass
-
-        # We only accept values in range [self._bottom, self._top].
-        if self._command:
-            if val < self._bottom or val > self._top:
-                # Out of range so rest to initial value.
-                val = 0.0
-
-            self._command(val)
-
-        # Reset entry value.
-        self._str_val.set('')
+    def update(self):
+        self._update()
 
 
 class TkAppMainScreen(tk.Tk):
@@ -370,32 +347,7 @@ class TkAppMainScreen(tk.Tk):
         # Place your widgets here.
         # ========================
 
-        # Set up rotation control.
-        rotation_control = ttk.Frame(main_panel)
-        tk.Label(rotation_control, text='Image rotation:', anchor='w')\
-            .pack(side=tk.TOP, fill=tk.X)
-
-        # Frame to group and align entry field and command button.
-        rc_entry_group = ttk.Frame(rotation_control)
-
-        self._rotation_angle = tk.StringVar()
-
-        tk.Entry(rc_entry_group, width=12, textvariable=self._rotation_angle)\
-            .pack(side=tk.LEFT, fill=tk.Y, padx=1, pady=1)
-        tk.Button(rc_entry_group, text='Rotate', command=self._on_rotate)\
-            .pack(side=tk.RIGHT, fill=tk.Y)
-        rc_entry_group.pack(side=tk.BOTTOM, fill=tk.X)
-
-        rotation_control.pack(side=tk.TOP, fill=tk.X)
-
-        TkInputFloat(
-            main_panel,
-            label='Image rotation:',
-            buttontext='Rotate',
-            bottomlimit=-359.0,
-            toplimit=359.0,
-            command=self._rc_input
-            ).pack(side=tk.TOP, fill=tk.X)
+        HistogramViewControl(main_panel).pack(side=tk.TOP, fill=tk.X)
 
         # ========================
 
