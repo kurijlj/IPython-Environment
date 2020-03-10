@@ -305,6 +305,8 @@ class HistogramViewControl(tk.Frame):
         tk.Frame.__init__(self, *args, **kwargs)
 
         self._figure = plt.Figure()
+        defht = self._figure.get_figheight()
+        self._figure.set_figheight(defht*0.45)
         FigureCanvasTkAgg(self._figure, args[0])
         self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self._axes = self._figure.add_subplot(111)
@@ -313,7 +315,12 @@ class HistogramViewControl(tk.Frame):
 
     def _update(self):
         self._axes.clear()
-        self._axes.bar(np.arange(self._data.size), self._data)
+        self._axes.bar(
+            np.arange(self._data.size),
+            self._data,
+            width=0.5,
+            color='#0504aa'
+            )
         self._figure.canvas.draw()
 
     def update(self):
@@ -347,7 +354,8 @@ class TkAppMainScreen(tk.Tk):
         # Place your widgets here.
         # ========================
 
-        HistogramViewControl(main_panel).pack(side=tk.TOP, fill=tk.X)
+        hstview = HistogramViewControl(main_panel)
+        hstview.pack(side=tk.TOP, fill=tk.X)
 
         # ========================
 
