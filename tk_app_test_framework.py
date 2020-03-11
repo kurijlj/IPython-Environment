@@ -321,6 +321,60 @@ class HistogramViewControl(tk.Frame):
             width=0.5,
             color='#0504aa'
             )
+        self._axes.set_xlim(left=0, right=256)
+        self._axes.set_ylim(bottom=0, top=max(self._data))
+        self._axes.set_axis_off()
+        self._axes.set_frame_on(True)
+        self._figure.canvas.draw()
+
+    def update(self):
+        self._update()
+
+
+class HistogramViewControl_N(tk.Frame):
+    """ Custom widget to display normalized histogram data.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        self._bins = None
+        self._data = None
+
+        if 'bins' in kwargs:
+            self._bins = kwargs.pop('bins')
+        else:
+            # Set default bins value.
+            self._bins = 256
+
+        if 'hstdata' in kwargs:
+            self._data = kwargs.pop('hstdata')
+        else:
+            # Generate histogram of a normal distribution for display purposes.
+            mean = 128
+            sigma = 32
+            size = 50000
+            self._data = np.random.normal(mean, sigma, size)
+
+        # Pass the rest of arguments to the superclass.
+        tk.Frame.__init__(self, *args, **kwargs)
+
+        self._figure = plt.Figure()
+        defht = self._figure.get_figheight()
+        self._figure.set_figheight(defht*0.10)
+        FigureCanvasTkAgg(self._figure, args[0])
+        self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self._axes = self._figure.add_subplot(111)
+
+        self._update()
+
+    def _update(self):
+        self._axes.clear()
+        self._axes.hist(self._data, self._bins)
+        self._axes.set_xlim(left=0, right=256)
+        self._axes.tick_params(axis="x", labelbottom=False)
+        self._axes.set_xticks([])
+        self._axes.tick_params(axis="y", labelleft=False)
+        self._axes.set_yticks([])
         self._figure.canvas.draw()
 
     def update(self):
@@ -354,8 +408,8 @@ class TkAppMainScreen(tk.Tk):
         # Place your widgets here.
         # ========================
 
-        hstview = HistogramViewControl(main_panel)
-        hstview.pack(side=tk.TOP, fill=tk.X)
+        self._hstview = HistogramViewControl_N(main_panel)
+        self._hstview.pack(side=tk.TOP, fill=tk.X)
 
         # ========================
 
@@ -370,45 +424,14 @@ class TkAppMainScreen(tk.Tk):
         main_panel.pack(side=tk.TOP, fill=tk.X, padx=2, pady=2)
 
         # Update display if necessary.
-        # self.update()
-
-    def _on_rotate(self):
-        """A callback method for rotation_control.
-        """
-
-        # Define storage for input angle value.
-        angle_val = 0.0
-
-        # Try to convert string value to float.
-        try:
-            angle_val = float(self._rotation_angle.get())
-        except ValueError:
-            # We just ignore values that are not of float type.
-            pass
-
-        # Also discard ridicules float values.
-        if angle_val > -360.0 and angle_val < 360.0 and 0 != angle_val:
-            print(angle_val)
-        else:
-            print('No rotation')
-
-        # Reset entry value.
-        self._rotation_angle.set('')
-
-    def _rc_input(self, angle):
-        """A callback method for rc control.
-        """
-
-        if angle:
-            print('Rotate by {0:.2f}.'.format(angle))
-        else:
-            print('No rotation.')
+        self._update()
 
     def _update(self):
-        """Method to update diplay of main screen.
+        """Method to update display of main screen.
         """
 
-        pass
+        self._hstview.update()
+
 
 
 # =============================================================================

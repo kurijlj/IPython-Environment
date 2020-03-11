@@ -875,6 +875,62 @@ class ControlImageDataView(DataView):
     def update(self):
         self._update()
 
+class HistogramViewControl(tk.Frame):
+    """ Custom widget to display normalized histogram data.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        self._bins = None
+        self._data = None
+
+        if 'bins' in kwargs:
+            self._bins = kwargs.pop('bins')
+        else:
+            # Set default bins value.
+            self._bins = 256
+
+        if 'hstdata' in kwargs:
+            self._data = kwargs.pop('hstdata')
+        else:
+            # Generate histogram of a normal distribution for display purposes.
+            mean = 128
+            sigma = 32
+            size = 50000
+            self._data = np.random.normal(mean, sigma, size)
+
+        # Pass the rest of arguments to the superclass.
+        tk.Frame.__init__(self, *args, **kwargs)
+
+        self._figure = plt.Figure()
+        defht = self._figure.get_figheight()
+        self._figure.set_figheight(defht*0.10)
+        FigureCanvasTkAgg(self._figure, args[0])
+        self._figure.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self._axes = self._figure.add_subplot(111)
+
+        self._update()
+
+    def _update(self):
+        self._axes.clear()
+        self._axes.hist(self._data, self._bins)
+        self._axes.set_xlim(left=0, right=self._bins)
+        self._axes.tick_params(axis="x", labelbottom=False)
+        self._axes.set_xticks([])
+        self._axes.tick_params(axis="y", labelleft=False)
+        self._axes.set_yticks([])
+        self._figure.canvas.draw()
+
+    def show_histogram(data, nbins):
+        if data:
+            self._data = data
+        if nbins:
+            self._bins = nbins
+        self._update()
+
+    def update(self):
+        self._update()
+
 
 class GKFilmQAMainScreen(tk.Tk):
     """ Application's main screen.
@@ -993,9 +1049,8 @@ class GKFilmQAMainScreen(tk.Tk):
                     controlimage,
                     DisplayData.original
                 )
-            self._controlimagedataview = ControlImageDataView(
+            self._controlimagedataview = HistogramViewControl(
                 control_image_data_view,
-                self
             )
 
         else:
@@ -1146,9 +1201,7 @@ class GKFilmQAMainScreen(tk.Tk):
             data = self._controlimagerenderer.pixels_from_selection(
                 self._controlimageview.current_selection
             )
-            self._controlimagedataview.plot_histogram(
-                np.histogram(data, bins=256)
-            )
+            # self._controlimagedataview.show_histogram(data=data, bins=256)
 
     def update(self):
         """Method to update diplay of main screen.
@@ -1162,9 +1215,9 @@ class GKFilmQAMainScreen(tk.Tk):
             data = self._controlimagerenderer.pixels_from_selection(
                 self._controlimageview.current_selection
             )
-            self._controlimagedataview.plot_histogram(
-                np.histogram(data, bins=256)
-            )
+            # self._controlimagedataview.plot_histogram(
+            #     np.histogram(data, bins=256)
+            # )
         self._dataimagerenderer.update()
 
 
