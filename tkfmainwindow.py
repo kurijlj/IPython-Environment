@@ -29,7 +29,7 @@
 # =============================================================================
 
 
-import tkinter as tk
+import tkinter as tki
 import tkinter.ttk as ttk
 import tkfviews as tkfv
 
@@ -48,13 +48,13 @@ import tkfviews as tkfv
 # GUI classes
 # =============================================================================
 
-class TkiAppMainWindow(tk.Tk):
+class TkiAppMainWindow(tki.Tk):
     """ Application's main window.
     """
 
     def __init__(self, program_name):
 
-        tk.Tk.__init__(self, className='TkiAppMAinWindow')
+        tki.Tk.__init__(self, className='TkiAppMAinWindow')
 
         self._program_name = program_name
 
@@ -72,22 +72,22 @@ class TkiAppMainWindow(tk.Tk):
                 )
 
         # Pack top container widget.
-        main_panel.pack(side=tk.TOP, fill=tk.X, padx=2, pady=2)
-
-        # Set up some space between test widgets and control widgets.
-        ttk.Frame(main_panel).pack(side=tk.TOP, fill=tk.Y, expand=True)
-
-        # Set up control widgets and pack.
-        ttk.Button(main_panel, text='Quit', command=self.destroy)\
-            .pack(side=tk.BOTTOM, fill=tk.X, padx=1, pady=1)
+        main_panel.pack(side=tki.TOP, fill=tki.X, padx=2, pady=2)
 
         # ======================================================================
         # Place your widgets here.
         # ======================================================================
 
-        tkfv.UserView(self).pack(side=tk.TOP, fill=tk.X)
+        tkfv.UserView(main_panel).pack(side=tki.TOP, fill=tki.X)
 
         # ======================================================================
+
+        # Set up some space between test widgets and control widgets.
+        ttk.Frame(main_panel).pack(side=tki.TOP, fill=tki.Y, expand=True)
+
+        # Set up control widgets and pack.
+        ttk.Button(main_panel, text='Quit', command=self.destroy)\
+            .pack(side=tki.BOTTOM, fill=tki.X, padx=1, pady=1)
 
         # Update display if necessary.
         self._update()

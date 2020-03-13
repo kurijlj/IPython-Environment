@@ -29,8 +29,7 @@
 # =============================================================================
 
 
-import tkinter as tk
-import tkinter.ttk as ttk
+import tkinter as tki
 
 
 # =============================================================================
@@ -42,20 +41,26 @@ import tkinter.ttk as ttk
 # View classes
 # =============================================================================
 
-class UserView(tk.Frame):
+class UserView(tki.Frame):
     """ A demo class representing Tk widget to view user data.
     """
 
     def __init__(self, *args, **kwargs):
         # Pass initialization to superclass.
-        tk.Frame.__init__(self, *args, **kwargs)
-        ttk.LabelFrame(self, text='UserView', borderwidth=3).\
-            pack(side=tk.TOP, fill=tk.X)
+        tki.Frame.__init__(self, *args, **kwargs)
+        self._view_username = tki.Label(self, text='Username', anchor='w').\
+            pack(side=tki.TOP, fill=tki.X)
+        self._view_password = tki.Label(self, text='Password', anchor='w').\
+            pack(side=tki.TOP, fill=tki.X)
+        self._view_firstname = tki.Label(self, text='First name', anchor='w').\
+            pack(side=tki.TOP, fill=tki.X)
+        self._view_lastname = tki.Label(self, text='Last name', anchor='w').\
+            pack(side=tki.TOP, fill=tki.X)
 
         self._update()
 
     def _update(self):
-        print(self.config())
+        pass
 
     def update(self):
         self._update()
