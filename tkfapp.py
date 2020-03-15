@@ -30,7 +30,7 @@
 
 
 import argparse
-from tkfmainwindow import TkiAppMainWindow
+import tkfactions as tkfa
 
 
 # =============================================================================
@@ -41,21 +41,6 @@ from tkfmainwindow import TkiAppMainWindow
 # =============================================================================
 # Utility classes and functions
 # =============================================================================
-
-class ProgramAction(object):
-    """Abstract base class for all program actions, that provides execute.
-
-    The execute method contains code that will actually be executed after
-    arguments parsing is finished. The method is called from within method
-    run of the CommandLineApp instance.
-    """
-
-    def __init__(self, exitf):
-        self._exit_app = exitf
-
-    def execute(self):
-        pass
-
 
 def _format_epilog(epilogAddition, bugMail):
     """Formatter for generating help epilogue text. Help epilogue text is an
@@ -93,13 +78,6 @@ def _format_epilog(epilogAddition, bugMail):
             .format(addition=epilogAddition, mail=fmtMail)
 
     return fmtEpilog
-
-
-def _formulate_action(Action, **kwargs):
-    """Factory method to create and return proper action object.
-    """
-
-    return Action(**kwargs)
 
 
 # =============================================================================
@@ -217,14 +195,14 @@ class CommandLineApp(object):
         arguments = self._parser.parse_args(args, namespace)
 
         if arguments.usage:
-            self._action = _formulate_action(
-                ProgramUsageAction,
+            self._action = tkfa.formulate_action(
+                tkfa.ProgramUsageAction,
                 parser=self._parser,
                 exitf=self._parser.exit)
 
         elif arguments.version:
-            self._action = _formulate_action(
-                ShowVersionAction,
+            self._action = tkfa.formulate_action(
+                tkfa.ShowVersionAction,
                 prog=self._parser.prog,
                 ver=self.versionString,
                 year=self.yearString,
@@ -233,8 +211,8 @@ class CommandLineApp(object):
                 exitf=self._parser.exit)
 
         else:
-            self._action = _formulate_action(
-                DefaultAction,
+            self._action = tkfa.formulate_action(
+                tkfa.DefaultAction,
                 prog=self._parser.prog,
                 exitf=self._parser.exit
                 )
@@ -244,69 +222,6 @@ class CommandLineApp(object):
         """
 
         self._action.execute()
-
-
-# =============================================================================
-# App action classes
-# =============================================================================
-
-class ProgramUsageAction(ProgramAction):
-    """Program action that formats and displays usage message to the stdout.
-    """
-
-    def __init__(self, parser, exitf):
-        self._usageMessage = \
-                '{usage}Try \'{prog} --help\' for more information.'\
-                .format(usage=parser.format_usage(), prog=parser.prog)
-        self._exit_app = exitf
-
-    def execute(self):
-        print(self._usageMessage)
-        self._exit_app()
-
-
-class ShowVersionAction(ProgramAction):
-    """Program action that formats and displays program version information
-    to the stdout.
-    """
-
-    def __init__(self, prog, ver, year, author, license, exitf):
-        self._versionMessage = \
-                '{0} {1} Copyright (C) {2} {3}\n{4}'\
-                .format(prog, ver, year, author, license)
-        self._exit_app = exitf
-
-    def execute(self):
-        print(self._versionMessage)
-        self._exit_app()
-
-
-class DefaultAction(ProgramAction):
-    """Program action that wraps some specific code to be executed based on
-    command line input. In this particular case it prints simple message
-    to the stdout.
-    """
-
-    def __init__(self, prog, exitf):
-        self._programName = prog
-        self._exit_app = exitf
-
-    def execute(self):
-
-        # Print some info to the command line.
-        print('{0}: Starting GUI ...'.format(self._programName))
-
-        # We have all neccessary files. Start the GUI.
-        mainscreen = TkiAppMainWindow(
-                program_name=self._programName
-                )
-        mainscreen.mainloop()
-
-        # Print to command line that we are freeing memory and closing app.
-        print('{0}: Freeing allocated memory ...'.format(self._programName))
-
-        # Do the cleanup and exit application.
-        self._exit_app()
 
 
 # =============================================================================

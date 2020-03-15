@@ -33,19 +33,17 @@
 # Utility classes and functions
 # =============================================================================
 
-def checktype(tp, var, vardsc):
+def _checktype(tp, var, vardsc):
     """ Utility routine used to check if given variable (var) is of requested
     type (tp). If not it raises TypeError exception with a appropriate message.
     """
 
     if var is not None and type(var) is not tp:
-        raise TypeError(
-        '{0} must be {1} or NoneType, not {2}'.format(
+        raise TypeError('{0} must be {1} or NoneType, not {2}'.format(
             vardsc,
             tp.__name__,
             type(var).__name__
-        )
-    )
+        ))
 
 
 # =============================================================================
@@ -56,13 +54,11 @@ class User(object):
     """ A demo class representing user with general data about user.
     """
 
-    def __init__(self, un='User', psswd='p4s5w0rd',
-            fn=None, ln=None):
+    def __init__(self, un='user', psswd='p4s5w0rd', fn=None, ln=None):
         self._username = un
         self._password = psswd
         self._firstname = fn
         self._lastname = ln
-
 
     def __repr__(self):
         str_type = type(self).__name__
@@ -83,15 +79,15 @@ class User(object):
             str_fn + ',\n' + str_ln + '\n)'
 
     def changepassword(self, pw):
-        checktype(str, pw, 'Password')
+        _checktype(str, pw, 'Password')
         self._password = pw
 
     def changefirstname(self, fn):
-        checktype(str, fn, 'First name')
+        _checktype(str, fn, 'First name')
         self._firstname = fn
 
     def changelastname(self, ln):
-        checktype(str, ln, 'Last name')
+        _checktype(str, ln, 'Last name')
         self._lastname = ln
 
     @property
