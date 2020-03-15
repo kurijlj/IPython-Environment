@@ -29,8 +29,11 @@
 # =============================================================================
 
 
-import tkfmodels as tkfm
+# import tkfmodels as tkfm
 import tkfviews as tkfv
+from PIL import Image
+from enum import Enum  # Required by ImageFromats
+from imghdr import what  # Required by _is_mage_format_supported()
 
 
 # =============================================================================
@@ -41,6 +44,14 @@ import tkfviews as tkfv
 # =============================================================================
 # Utility classes and functions
 # =============================================================================
+
+class ImageFormats(Enum):
+    """Class to wrap up enumerated values that define supoported image formats.
+    """
+
+    png = 'png'
+    tiff = 'tiff'
+
 
 class ProgramAction(object):
     """Abstract base class for all program actions, that provides execute.
@@ -62,6 +73,26 @@ def formulate_action(Action, **kwargs):
     """
 
     return Action(**kwargs)
+
+
+def _is_image_format_supported(filename):
+    """Test if file is one of the image formats supported by application.
+    Supported image formats are defined by enumerated class ImageFormats at the
+    beginning of this script.
+    """
+
+    image_type = what(filename)
+
+    if image_type:
+        try:
+            ImageFormats(image_type)
+            return True
+        except ValueError:
+            # We just want to stop exception to propagate further up. Nothing
+            # to do here actually, so we just pass.
+            pass
+
+    return False
 
 
 # =============================================================================
@@ -105,23 +136,56 @@ class DefaultAction(ProgramAction):
     to the stdout.
     """
 
-    def __init__(self, prog, exitf):
+    def __init__(self, prog, exitf, filelist):
         self._programName = prog
         self._exit_app = exitf
+        self._filelist = filelist
 
         # Define all models.
-        self.usermodel = None
+        self.model = None
 
         # Initialize views.
         self._mainscreen = tkfv.TkiAppMainWindow(controller=self)
 
     def execute(self):
+        # Do some basic sanity checks first.
+        if self._filelist[0] is None:
+            print('{0}: Missing image file.'
+                  .format(self._programName))
+            self._exit_app()
+
+        if not _is_image_format_supported(self._filelist[0]):
+            print(
+                    '{0}: File \'{1}\' is not of supported image format.'
+                    .format(self._programName, self._filelist[0])
+                )
+
+            self._exit_app()
+
+        if self._filelist[1] is not None:
+            if not _is_image_format_supported(self._filelist[1]):
+                print(
+                        '{0}: File \'{1}\' is not of supported image format.'
+                        .format(self._programName, self._filelist[1])
+                    )
+
+                self._exit_app()
+
+        # We have a proper iradiated image file. Load the image data.
+        dataimage = Image.open(self._filelist[0])
+
+        if self._filelist[1] is not None:
+            # We have proper preiradiated image file. Load it too.
+            controlimage = Image.open(self._filelist[1])
+
+        else:
+            controlimage = None
 
         # Print some info to the command line.
         print('{0}: Starting GUI ...'.format(self._programName))
+        print(self._filelist)
 
         # Initialize all models.
-        self.usermodel = tkfm.User(un='root')  # Create root user.
 
         # We have all neccessary files. Start the GUI.
         self._mainscreen.title(self._programName)
@@ -132,4 +196,9 @@ class DefaultAction(ProgramAction):
         print('{0}: Freeing allocated memory ...'.format(self._programName))
 
         # Do the cleanup and exit application.
+        dataimage.close()
+
+        if controlimage is not None:
+            controlimage.close()
+
         self._exit_app()

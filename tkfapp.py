@@ -84,11 +84,10 @@ def _format_epilog(epilogAddition, bugMail):
 # Command line app class
 # =============================================================================
 
-class CommandLineApp(object):
-    """Actual command line app object containing all relevant application
-    information (NAME, VERSION, DESCRIPTION, ...) and which instantiates
-    action that will be executed depending on the user input from
-    command line.
+class BasicCommandLineApp(object):
+    """ This is a base class for a command line application class implementing
+    common methods. Actual application class must be subclassed from this class
+    and virutal method parse_args must be overridden.
     """
 
     def __init__(
@@ -187,6 +186,51 @@ class CommandLineApp(object):
                 group.add_argument(*args, **kwargsr)
 
     def parse_args(self, args=None, namespace=None):
+        """Virtual method. Must be overriden in a derived class.
+        """
+
+        raise NotImplementedError(
+                'Trying to call a virtual method. Override it in a subclass.'
+            )
+
+    def run(self):
+        """This method executes action code.
+        """
+
+        self._action.execute()
+
+
+class CommandLineApp(BasicCommandLineApp):
+    """Actual command line app object containing all relevant application
+    information (NAME, VERSION, DESCRIPTION, ...) and which instantiates
+    action that will be executed depending on the user input from
+    command line.
+    """
+
+    def __init__(
+            self,
+            programName=None,
+            programDescription=None,
+            programLicense=None,
+            versionString=None,
+            yearString=None,
+            authorName=None,
+            authorMail=None,
+            epilog=None):
+
+        # Pass initialization to a superclass.
+        super().__init__(
+                programName,
+                programDescription,
+                programLicense,
+                versionString,
+                yearString,
+                authorName,
+                authorMail,
+                epilog
+            )
+
+    def parse_args(self, args=None, namespace=None):
         """Wrapper for parse_args method of a parser object. It also
         instantiates action object that will be executed based on a
         input from command line.
@@ -196,32 +240,30 @@ class CommandLineApp(object):
 
         if arguments.usage:
             self._action = tkfa.formulate_action(
-                tkfa.ProgramUsageAction,
-                parser=self._parser,
-                exitf=self._parser.exit)
+                    tkfa.ProgramUsageAction,
+                    parser=self._parser,
+                    exitf=self._parser.exit
+                )
 
         elif arguments.version:
             self._action = tkfa.formulate_action(
-                tkfa.ShowVersionAction,
-                prog=self._parser.prog,
-                ver=self.versionString,
-                year=self.yearString,
-                author=self.authorName,
-                license=self.programLicense,
-                exitf=self._parser.exit)
-
-        else:
-            self._action = tkfa.formulate_action(
-                tkfa.DefaultAction,
-                prog=self._parser.prog,
-                exitf=self._parser.exit
+                    tkfa.ShowVersionAction,
+                    prog=self._parser.prog,
+                    ver=self.versionString,
+                    year=self.yearString,
+                    author=self.authorName,
+                    license=self.programLicense,
+                    exitf=self._parser.exit
                 )
 
-    def run(self):
-        """This method executes action code.
-        """
-
-        self._action.execute()
+        else:
+            filelist = (arguments.dataimage, arguments.controlimage)
+            self._action = tkfa.formulate_action(
+                    tkfa.DefaultAction,
+                    prog=self._parser.prog,
+                    exitf=self._parser.exit,
+                    filelist=filelist
+                )
 
 
 # =============================================================================
@@ -243,10 +285,10 @@ There is NO WARRANTY, to the extent permitted by law.'
     program = CommandLineApp(
         programDescription=description.replace('\t', ''),
         programLicense=license.replace('\t', ''),
-        versionString='i.i',
-        yearString='yyyy',
-        authorName='Author Name',
-        authorMail='author@mail.com',
+        versionString='0.3',
+        yearString='2020',
+        authorName='Ljubomir Kurij',
+        authorMail='ljubomir_kurij@protonmail.com',
         epilog=None)
 
     program.add_argument_group('general options')
@@ -260,6 +302,18 @@ There is NO WARRANTY, to the extent permitted by law.'
             '--usage',
             action='store_true',
             help='give a short usage message')
+    program.add_argument(
+            'dataimage',
+            metavar='DATA_IMAGE',
+            type=str,
+            nargs='?',
+            help='image of a scanned iradiated gafchromic film')
+    program.add_argument(
+            'controlimage',
+            metavar='CONTROL_IMAGE',
+            type=str,
+            nargs='?',
+            help='image of a scanned gafchromic film pre irradiation')
 
     program.parse_args()
     program.run()
