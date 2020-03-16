@@ -28,6 +28,7 @@
 #
 # =============================================================================
 
+from PIL import Image
 
 # =============================================================================
 # Utility classes and functions
@@ -105,3 +106,63 @@ class User(object):
     @property
     def lastname(self):
         return self._lastname
+
+
+class QAFilm(object):
+    """ An abstract base class used to represent scanned dosimetric film image
+    and a set of common methods to access and manipulate film data.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # It is up to user to ensure that proper image data is passed.
+        self._controller = controller
+        self._imagedata = imgdata
+
+    def selection_full(self, bounds):
+        # Method to return selected area of a image in a fullcolor (RGB).
+        pixels = np.asarray(self._imagedata)
+        selection = pixels[
+                bounds.top : bounds.bottom+1,
+                bounds.left : bounds.right+1,
+                :
+            ]
+        return selection
+
+    def selection_grayscale(self, bounds):
+        # Method to return selected area of a image in a grayscale.
+        raise NotImplementedError('Feature not implemented yet.')
+
+    def selection_red(self, bounds):
+        # Method to return red channel of a selected image area.
+        pixels = np.asarray(self._imagedata.getchannel('R'))
+        selection = pixels[
+                bounds.top : bounds.bottom+1,
+                bounds.left : bounds.right+1
+            ]
+        return selection
+
+    def selection_green(self, bounds):
+        # Method to return green channel of a selected image area.
+        pixels = np.asarray(self._imagedata.getchannel('G'))
+        selection = pixels[
+                bounds.top : bounds.bottom+1,
+                bounds.left : bounds.right+1
+            ]
+        return selection
+
+    def selection_blue(self, bounds):
+        # Method to return blue channel data of a selected image area.
+        pixels = np.asarray(self._imagedata.getchannel('B'))
+        selection = pixels[
+                bounds.top : bounds.bottom+1,
+                bounds.left : bounds.right+1
+            ]
+        return selection
+
+    @property
+    def image_dpi(self):
+        # Read value of an image dpi.
+        result = None
+        if 'dpi' in self._imagedata.info:
+            result = self._imagedata.info['dpi']
+        return result
