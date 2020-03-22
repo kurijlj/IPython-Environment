@@ -34,7 +34,7 @@ import tkinter.ttk as ttk
 
 
 # =============================================================================
-# Utility classes and functions
+# View specific utility classes and functions
 # =============================================================================
 
 

@@ -39,10 +39,10 @@ import tkfactions as tkfa
 
 
 # =============================================================================
-# Utility classes and functions
+# App specific utility classes and functions
 # =============================================================================
 
-def _format_epilog(epilogAddition, bugMail):
+def format_epilog(epilogAddition, bugMail):
     """Formatter for generating help epilogue text. Help epilogue text is an
     additional description of the program that is displayed after the
     description of the arguments. Usually it consists only of line informing
@@ -107,7 +107,7 @@ class BasicCommandLineApp(object):
         self.authorName = authorName
         self.authorMail = authorMail
 
-        fmtEpilog = _format_epilog(epilog, authorMail)
+        fmtEpilog = format_epilog(epilog, authorMail)
 
         self._parser = argparse.ArgumentParser(
                 prog=programName,

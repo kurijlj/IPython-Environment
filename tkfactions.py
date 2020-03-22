@@ -29,11 +29,10 @@
 # =============================================================================
 
 
-# import tkfmodels as tkfm
 import tkfviews as tkfv
 from PIL import Image
-from enum import Enum  # Required by ImageFromats
-from imghdr import what  # Required by _is_mage_format_supported()
+from os.path import isfile
+from tkfutils import is_image_format_supported
 
 
 # =============================================================================
@@ -42,16 +41,8 @@ from imghdr import what  # Required by _is_mage_format_supported()
 
 
 # =============================================================================
-# Utility classes and functions
+# Actions specific utility classes and functions
 # =============================================================================
-
-class ImageFormats(Enum):
-    """Class to wrap up enumerated values that define supoported image formats.
-    """
-
-    png = 'png'
-    tiff = 'tiff'
-
 
 class ProgramAction(object):
     """Abstract base class for all program actions, that provides execute.
@@ -73,26 +64,6 @@ def formulate_action(Action, **kwargs):
     """
 
     return Action(**kwargs)
-
-
-def _is_image_format_supported(filename):
-    """Test if file is one of the image formats supported by application.
-    Supported image formats are defined by enumerated class ImageFormats at the
-    beginning of this script.
-    """
-
-    image_type = what(filename)
-
-    if image_type:
-        try:
-            ImageFormats(image_type)
-            return True
-        except ValueError:
-            # We just want to stop exception to propagate further up. Nothing
-            # to do here actually, so we just pass.
-            pass
-
-    return False
 
 
 # =============================================================================
@@ -154,7 +125,26 @@ class DefaultAction(ProgramAction):
                   .format(self._programName))
             self._exit_app()
 
-        if not _is_image_format_supported(self._filelist[0]):
+        # First check if given files exist at all.
+        if not isfile(self._filelist[0]):
+            print(
+                    '{0}: File \'{1}\' does not exist or is directory.'
+                    .format(self._programName, self._filelist[0])
+                )
+
+            self._exit_app()
+
+        if self._filelist[1] is not None:
+            if not isfile(self._filelist[1]):
+                print(
+                        '{0}: File \'{1}\' does not exist or is directory.'
+                        .format(self._programName, self._filelist[1])
+                    )
+
+                self._exit_app()
+
+        # Now check if we are dealing with supported image format.
+        if not is_image_format_supported(self._filelist[0]):
             print(
                     '{0}: File \'{1}\' is not of supported image format.'
                     .format(self._programName, self._filelist[0])
@@ -163,7 +153,7 @@ class DefaultAction(ProgramAction):
             self._exit_app()
 
         if self._filelist[1] is not None:
-            if not _is_image_format_supported(self._filelist[1]):
+            if not is_image_format_supported(self._filelist[1]):
                 print(
                         '{0}: File \'{1}\' is not of supported image format.'
                         .format(self._programName, self._filelist[1])

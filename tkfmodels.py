@@ -28,23 +28,13 @@
 #
 # =============================================================================
 
-from PIL import Image
+import numpy as np
+from PIL import Image  # Required by image rotation in the QAFilm class
+from tkfutils import checktype, ImageColorMode
 
 # =============================================================================
-# Utility classes and functions
+# Models specific utility classes and functions
 # =============================================================================
-
-def _checktype(tp, var, vardsc):
-    """ Utility routine used to check if given variable (var) is of requested
-    type (tp). If not it raises TypeError exception with a appropriate message.
-    """
-
-    if var is not None and type(var) is not tp:
-        raise TypeError('{0} must be {1} or NoneType, not {2}'.format(
-            vardsc,
-            tp.__name__,
-            type(var).__name__
-        ))
 
 
 # =============================================================================
@@ -80,15 +70,15 @@ class User(object):
             str_fn + ',\n' + str_ln + '\n)'
 
     def changepassword(self, pw):
-        _checktype(str, pw, 'Password')
+        checktype(str, pw, 'Password')
         self._password = pw
 
     def changefirstname(self, fn):
-        _checktype(str, fn, 'First name')
+        checktype(str, fn, 'First name')
         self._firstname = fn
 
     def changelastname(self, ln):
-        _checktype(str, ln, 'Last name')
+        checktype(str, ln, 'Last name')
         self._lastname = ln
 
     @property
@@ -113,50 +103,54 @@ class QAFilm(object):
     and a set of common methods to access and manipulate film data.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, imagedata, controller):
         # It is up to user to ensure that proper image data is passed.
+        self._imagedata = imagedata
         self._controller = controller
-        self._imagedata = imgdata
+        self._imagerotation = np.array([0.0], np.single)
 
-    def selection_full(self, bounds):
-        # Method to return selected area of a image in a fullcolor (RGB).
-        pixels = np.asarray(self._imagedata)
+    def rotate(self, angle):
+        self._imagerotation = np.append(self._imagerotation, angle)
+
+    def undo_rotation(self):
+        if 1 < self._imagerotation.size:
+            self._imagerotation = np.delete(self._imagerotation, -1)
+
+    def pixels_from_selection(self, bounds, colormode):
+        # Method to return selection from image as numpy array. Selection
+        # extents are defined by "bounds" variable which is of type
+        # SelectionExtents. Variable "colormode" is used to specify which data
+        # of a selection to retrieve: fullcolor, grayscale, red channel, green
+        # channel or blue channel. Default value is fullcolor.
+
+        pixels = None
+        selection = None
+
+        # First roatate image according to rotation history data array.
+        img_rt = self._imagedata.rotate(
+                angle=-self._imagerotation.sum(),  # negative sign to rotate
+                                                   # clockwise
+                resample=Image.NEAREST,
+                expand=True,
+                fillcolor='white'
+            )
+
+        if ImageColorMode.grayscale == colormode:
+            raise NotImplementedError('Feature not implemented yet.')
+        elif ImageColorMode.red == colormode:
+            pixels = np.asarray(img_rt.getchannel('R'))
+        elif ImageColorMode.green == colormode:
+            pixels = np.asarray(img_rt.getchannel('G'))
+        elif ImageColorMode.blue == colormode:
+            pixels = np.asarray(img_rt.getchannel('B'))
+        else:
+            pixels = np.asarray(img_rt._imagedata)
+
         selection = pixels[
-                bounds.top : bounds.bottom+1,
-                bounds.left : bounds.right+1,
-                :
+                bounds.top:bounds.bottom+1,
+                bounds.left:bounds.right+1
             ]
-        return selection
 
-    def selection_grayscale(self, bounds):
-        # Method to return selected area of a image in a grayscale.
-        raise NotImplementedError('Feature not implemented yet.')
-
-    def selection_red(self, bounds):
-        # Method to return red channel of a selected image area.
-        pixels = np.asarray(self._imagedata.getchannel('R'))
-        selection = pixels[
-                bounds.top : bounds.bottom+1,
-                bounds.left : bounds.right+1
-            ]
-        return selection
-
-    def selection_green(self, bounds):
-        # Method to return green channel of a selected image area.
-        pixels = np.asarray(self._imagedata.getchannel('G'))
-        selection = pixels[
-                bounds.top : bounds.bottom+1,
-                bounds.left : bounds.right+1
-            ]
-        return selection
-
-    def selection_blue(self, bounds):
-        # Method to return blue channel data of a selected image area.
-        pixels = np.asarray(self._imagedata.getchannel('B'))
-        selection = pixels[
-                bounds.top : bounds.bottom+1,
-                bounds.left : bounds.right+1
-            ]
         return selection
 
     @property
