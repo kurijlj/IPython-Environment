@@ -30,7 +30,7 @@
 
 import numpy as np
 from PIL import Image  # Required by image rotation in the QAFilm class
-from tkfutils import checktype, ImageColorMode
+from tkfutils import (checktype, ImageColorMode)
 
 # =============================================================================
 # Models specific utility classes and functions
@@ -107,12 +107,22 @@ class QAFilm(object):
         # It is up to user to ensure that proper image data is passed.
         self._imagedata = imagedata
         self._controller = controller
+        # Array used to accumulate subsequent rotations of the image.
         self._imagerotation = np.array([0.0], np.single)
 
     def rotate(self, angle):
+        # By calling rotate method we are not doing actual rotation of an
+        # image, we are just recording the angle by wich to rotate a copy of
+        # the image when accessing image pixels using pixels_from_selection()
+        # method. This is done for better image preview after rotation, because
+        # we set flag "expand" to "True" on rotate() method call. Subsequent
+        # image rotations are recorded as an array and final image rotation is
+        # calculated as sum of all subsequent image rotations.
         self._imagerotation = np.append(self._imagerotation, angle)
 
     def undo_rotation(self):
+        # Removes last rotation (last element of the array). If only initial
+        # angle of rotation is left (0.0) disregard request.
         if 1 < self._imagerotation.size:
             self._imagerotation = np.delete(self._imagerotation, -1)
 

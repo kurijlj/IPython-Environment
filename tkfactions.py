@@ -32,7 +32,7 @@
 import tkfviews as tkfv
 from PIL import Image
 from os.path import isfile
-from tkfutils import is_image_format_supported
+from tkfutils import (Message, is_image_format_supported)
 
 
 # =============================================================================
@@ -118,11 +118,21 @@ class DefaultAction(ProgramAction):
         # Initialize views.
         self._mainscreen = tkfv.TkiAppMainWindow(controller=self)
 
+    def dispatch(self, sender, event):
+        """A method to mediate messages between GUI objects.
+        """
+
+        if Message.cmchngd == event:
+            if hasattr(sender, 'colormode'):
+                print(sender.colormode)
+            else:
+                print('{0}: Sender does not have \'colormode\' property.'
+                      .format(self._programName))
+
     def execute(self):
         # Do some basic sanity checks first.
         if self._filelist[0] is None:
-            print('{0}: Missing image file.'
-                  .format(self._programName))
+            print('{0}: Missing image file.'.format(self._programName))
             self._exit_app()
 
         # First check if given files exist at all.
@@ -173,7 +183,6 @@ class DefaultAction(ProgramAction):
 
         # Print some info to the command line.
         print('{0}: Starting GUI ...'.format(self._programName))
-        print(self._filelist)
 
         # Initialize all models.
 

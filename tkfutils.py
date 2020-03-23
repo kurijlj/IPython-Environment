@@ -30,7 +30,8 @@
 
 from enum import Enum  # Required by ImageFromats.
 from imghdr import what  # Required by is_mage_format_supported().
-from collection import namedtuple  # Required by SelectionExtent custom class.
+from sys import float_info as fi  # Required by MIN_FLOAT and MAX_FLOAT
+from collections import namedtuple  # Required by SelectionExtent custom class.
 
 
 # =============================================================================
@@ -39,6 +40,9 @@ from collection import namedtuple  # Required by SelectionExtent custom class.
 
 # Centimeters per inch.
 CM_PER_IN = 2.54
+
+MIN_FLOAT = fi.min
+MAX_FLOAT = fi.max
 
 
 # =============================================================================
@@ -68,7 +72,17 @@ class ImageColorMode(Enum):
     grayscale = 'grayscale'
     red = 'R'
     green = 'G'
-    red = 'R'
+    blue = 'B'
+
+
+class Message(Enum):
+    """An utility class to enumarate messages that can be exchanged between GUI
+    elements via mediator (controller) object.
+    """
+
+    cmchngd = 0  # The image color mode has changed.
+    imgrt = 1    # Rotate the image.
+    unimgrt = 2  # Undo image rotation.
 
 
 def checktype(tp, var, vardsc):
