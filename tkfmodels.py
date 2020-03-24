@@ -107,8 +107,16 @@ class QAFilm(object):
         # It is up to user to ensure that proper image data is passed.
         self._imagedata = imagedata
         self._controller = controller
+        # Parameter used to track display color mode of the image.
+        self._colormode = ImageColorMode.fullcolor
         # Array used to accumulate subsequent rotations of the image.
         self._imagerotation = np.array([0.0], np.single)
+
+    def change_color_mode(self, colormode):
+        # Set display color mode of the image. Parameter colormode must be of
+        # the type ImageColorMode.
+        checktype(ImageColorMode, colormode, 'Color mode')
+        self._colormode = colormode
 
     def rotate(self, angle):
         # By calling rotate method we are not doing actual rotation of an

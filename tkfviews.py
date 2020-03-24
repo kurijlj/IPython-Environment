@@ -37,6 +37,7 @@ from tkfutils import (
         MAX_FLOAT,
         Message,
         ImageColorMode,
+        checktype,
         points_to_centimeters
     )
 from matplotlib.backends.backend_tkagg import (
@@ -73,6 +74,9 @@ class TkiInputFloat(tki.Frame):
         #                 Default value is set to MAX_FLOAT;
         #        command: A callback method for pasing input values.
         #                 Default value is None.
+        #       variable: Coupled tkinter variable of type DoubleVar used to
+        #                 track enetred float values. Default value is set
+        #                 to 0.0 .
 
         label = None
         buttontext = None
@@ -102,6 +106,12 @@ class TkiInputFloat(tki.Frame):
         else:
             self._command = None
 
+        if 'variable' in kwargs:
+            self._variable = kwargs.pop('variable')
+            checktype(tki.DoubleVar, self._variable, 'Angle of rotation')
+        else:
+            self._variable = None
+
         # Pass the rest of arguments to superclass.
         tki.Frame.__init__(self, *args, **kwargs)
 
@@ -113,6 +123,9 @@ class TkiInputFloat(tki.Frame):
 
         # Set variable to keep track of input values.
         self._str_val = tki.StringVar()
+
+        if self._variable:
+            self._variable.set(0.0)
 
         tki.Entry(entry_group, width=12, textvariable=self._str_val)\
             .pack(side=tki.LEFT, fill=tki.Y, padx=1, pady=1)
@@ -131,11 +144,14 @@ class TkiInputFloat(tki.Frame):
             pass
 
         # We only accept values in range [self._bottom, self._top].
-        if self._command:
-            if val < self._bottom or val > self._top:
-                # Out of range so rest to initial value.
-                val = 0.0
+        if val < self._bottom or val > self._top:
+            # Out of range so reset to initial value.
+            val = 0.0
 
+        if self._variable:
+            self._variable.set(val)
+
+        if self._command:
             self._command(val)
 
         # Reset entry value.
@@ -331,14 +347,18 @@ class AppControlsView(tki.Frame):
                     variable=self._imagecolormode
                 ).pack(side=tki.TOP, fill=tki.X)
 
-        # Set image rotation control.
+        # Set image rotation control. First set parameter to keep track of
+        # user inputed rotation angles of displayed film image.
+        self._last_rotation = tki.DoubleVar()
+        self._last_rotation.set(0.0)
         TkiInputFloat(
                 top_frame,
                 label='Image rotation:',
                 buttontext='Rotate',
                 bottomlimit=-359.0,
                 toplimit=359.0,
-                command=self._rotate_image
+                command=self._rotate_image,
+                variable=self._last_rotation
             ).pack(side=tki.TOP, fill=tki.X)
 
         # Set undo button.
@@ -362,24 +382,40 @@ class AppControlsView(tki.Frame):
         """
 
         if self.controller and hasattr(self.controller, 'dispatch'):
-            self.controller.dispatch(self, Message.cmchngd)
+            colormodes = {
+                    'fullcolor': ImageColorMode.fullcolor,
+                    'grayscale': ImageColorMode.grayscale,
+                    'R': ImageColorMode.red,
+                    'G': ImageColorMode.green,
+                    'B': ImageColorMode.blue
+                }
+            self.controller.dispatch(
+                    self,
+                    Message.cmchngd,
+                    colormode=colormodes[self._imagecolormode.get()]
+                )
 
-    def _rotate_image(self, angle):
+    def _rotate_image(self, value):
         """A callback method for "Image rotation" control.
         """
 
-        if angle and self.controller and hasattr(self.controller, 'dispatch'):
-            pass
+        if value and self.controller and hasattr(self.controller, 'dispatch'):
+            self.controller.dispatch(self, Message.imgrt, angle=value)
 
     def _undo_image_rotation(self):
         """A callback method for "Undo rotation" control.
         """
 
-        pass
+        if self.controller and hasattr(self.controller, 'dispatch'):
+            self.controller.dispatch(self, Message.unimgrt)
 
     @property
     def colormode(self):
         return self._imagecolormode.get()
+
+    @property
+    def lastrotation(self):
+        return self._last_rotation.get()
 
 
 class TkiAppMainWindow(tki.Tk):

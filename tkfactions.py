@@ -30,6 +30,7 @@
 
 
 import tkfviews as tkfv
+import tkfmodels as models
 from PIL import Image
 from os.path import isfile
 from tkfutils import (Message, is_image_format_supported)
@@ -113,21 +114,34 @@ class DefaultAction(ProgramAction):
         self._filelist = filelist
 
         # Define all models.
-        self.model = None
+        self.qafilmmodel = None
 
         # Initialize views.
-        self._mainscreen = tkfv.TkiAppMainWindow(controller=self)
+        self._mainscreen = None
 
-    def dispatch(self, sender, event):
+    def dispatch(self, sender, event, **kwargs):
         """A method to mediate messages between GUI objects.
         """
 
         if Message.cmchngd == event:
-            if hasattr(sender, 'colormode'):
-                print(sender.colormode)
+            if 'colormode' in kwargs:
+                self.qafilmmodel.change_color_mode(kwargs['colormode'])
+                print(self.qafilmmodel._colormode)
             else:
-                print('{0}: Sender does not have \'colormode\' property.'
+                print('{0}: \'colormode\' parameter is missing.'
                       .format(self._programName))
+
+        if Message.imgrt == event:
+            if 'angle' in kwargs:
+                self.qafilmmodel.rotate(kwargs['angle'])
+                print(self.qafilmmodel._imagerotation)
+            else:
+                print('{0}: \'angle\' parameter is missing.'
+                      .format(self._programName))
+
+        if Message.unimgrt == event:
+            self.qafilmmodel.undo_rotation()
+            print(self.qafilmmodel._imagerotation)
 
     def execute(self):
         # Do some basic sanity checks first.
@@ -172,10 +186,12 @@ class DefaultAction(ProgramAction):
                 self._exit_app()
 
         # We have a proper iradiated image file. Load the image data.
+        print('{0}: Loading data image ...'.format(self._programName))
         dataimage = Image.open(self._filelist[0])
 
         if self._filelist[1] is not None:
             # We have proper preiradiated image file. Load it too.
+            print('{0}: Loading control image ...'.format(self._programName))
             controlimage = Image.open(self._filelist[1])
 
         else:
@@ -185,6 +201,10 @@ class DefaultAction(ProgramAction):
         print('{0}: Starting GUI ...'.format(self._programName))
 
         # Initialize all models.
+        self.qafilmmodel = models.QAFilm(dataimage, self)
+
+        # Initialize views.
+        self._mainscreen = tkfv.TkiAppMainWindow(controller=self)
 
         # We have all neccessary files. Start the GUI.
         self._mainscreen.title(self._programName)
@@ -195,6 +215,7 @@ class DefaultAction(ProgramAction):
         print('{0}: Freeing allocated memory ...'.format(self._programName))
 
         # Do the cleanup and exit application.
+        del self.qafilmmodel
         dataimage.close()
 
         if controlimage is not None:
