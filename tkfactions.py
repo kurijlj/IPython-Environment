@@ -33,11 +33,11 @@ import tkfviews as tkfv
 import tkfmodels as models
 from PIL import Image
 from os.path import isfile
-from tkfutils import (Message, is_image_format_supported)
+from tkfutils import (ImageColorMode, Message, is_image_format_supported)
 
 
 # =============================================================================
-# Global constants
+# Actions specific global constants
 # =============================================================================
 
 
@@ -120,28 +120,30 @@ class DefaultAction(ProgramAction):
         self._mainscreen = None
 
     def dispatch(self, sender, event, **kwargs):
-        """A method to mediate messages between GUI objects.
+        """A method to mediate messages between app objects.
         """
 
         if Message.cmchngd == event:
             if 'colormode' in kwargs:
                 self.qafilmmodel.change_color_mode(kwargs['colormode'])
-                print(self.qafilmmodel._colormode)
+                self._mainscreen.update(self.qafilmmodel)  # Update screen.
             else:
                 print('{0}: \'colormode\' parameter is missing.'
                       .format(self._programName))
 
         if Message.imgrt == event:
             if 'angle' in kwargs:
-                self.qafilmmodel.rotate(kwargs['angle'])
-                print(self.qafilmmodel._imagerotation)
+                # self.qafilmmodel.rotate(kwargs['angle'])
+                # self._mainscreen.update()  # Update screen.
+                print(kwargs['angle'])
             else:
                 print('{0}: \'angle\' parameter is missing.'
                       .format(self._programName))
 
         if Message.unimgrt == event:
-            self.qafilmmodel.undo_rotation()
-            print(self.qafilmmodel._imagerotation)
+            # self.qafilmmodel.undo_rotation()
+            # self._mainscreen.update()  # Update screen.
+            print('Undo rotation')
 
     def execute(self):
         # Do some basic sanity checks first.
@@ -202,13 +204,14 @@ class DefaultAction(ProgramAction):
 
         # Initialize all models.
         self.qafilmmodel = models.QAFilm(dataimage, self)
+        self.qafilmmodel.change_color_mode(ImageColorMode.fullcolor)
 
         # Initialize views.
         self._mainscreen = tkfv.TkiAppMainWindow(controller=self)
 
         # We have all neccessary files. Start the GUI.
         self._mainscreen.title(self._programName)
-        self._mainscreen.update()  # Update screen.
+        self._mainscreen.update(self.qafilmmodel)
         self._mainscreen.mainloop()
 
         # Print to command line that we are freeing memory and closing app.

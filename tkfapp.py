@@ -34,12 +34,12 @@ import tkfactions as tkfa
 
 
 # =============================================================================
-# Global constants
+# Application specific global constants
 # =============================================================================
 
 
 # =============================================================================
-# App specific utility classes and functions
+# Application specific utility classes and functions
 # =============================================================================
 
 def format_epilog(epilogAddition, bugMail):

@@ -30,7 +30,7 @@
 
 import numpy as np
 from PIL import Image  # Required by image rotation in the QAFilm class
-from tkfutils import (checktype, ImageColorMode)
+from tkfutils import (SelectionExtents, ImageColorMode, checktype)
 
 # =============================================================================
 # Models specific utility classes and functions
@@ -115,7 +115,7 @@ class QAFilm(object):
     def change_color_mode(self, colormode):
         # Set display color mode of the image. Parameter colormode must be of
         # the type ImageColorMode.
-        checktype(ImageColorMode, colormode, 'Color mode')
+        checktype(ImageColorMode, colormode, 'Colormode')
         self._colormode = colormode
 
     def rotate(self, angle):
@@ -134,7 +134,7 @@ class QAFilm(object):
         if 1 < self._imagerotation.size:
             self._imagerotation = np.delete(self._imagerotation, -1)
 
-    def pixels_from_selection(self, bounds, colormode):
+    def pixels_from_selection(self, bounds):
         # Method to return selection from image as numpy array. Selection
         # extents are defined by "bounds" variable which is of type
         # SelectionExtents. Variable "colormode" is used to specify which data
@@ -153,16 +153,16 @@ class QAFilm(object):
                 fillcolor='white'
             )
 
-        if ImageColorMode.grayscale == colormode:
+        if ImageColorMode.grayscale == self._colormode:
             raise NotImplementedError('Feature not implemented yet.')
-        elif ImageColorMode.red == colormode:
+        elif ImageColorMode.red == self._colormode:
             pixels = np.asarray(img_rt.getchannel('R'))
-        elif ImageColorMode.green == colormode:
+        elif ImageColorMode.green == self._colormode:
             pixels = np.asarray(img_rt.getchannel('G'))
-        elif ImageColorMode.blue == colormode:
+        elif ImageColorMode.blue == self._colormode:
             pixels = np.asarray(img_rt.getchannel('B'))
         else:
-            pixels = np.asarray(img_rt._imagedata)
+            pixels = np.asarray(img_rt)
 
         selection = pixels[
                 bounds.top:bounds.bottom+1,
@@ -178,3 +178,31 @@ class QAFilm(object):
         if 'dpi' in self._imagedata.info:
             result = self._imagedata.info['dpi']
         return result
+
+    @property
+    def colormode(self):
+        return self._colormode
+
+    @property
+    def size(self):
+        # Returns image size in pixels as SelectionExtents object. This relates
+        # to original image, without applied transformations.
+        result = SelectionExtents(
+                top=int(0),
+                left=int(0),
+                bottom=self._imagedata.height,
+                right=self._imagedata.width
+            )
+        return result
+
+    @property
+    def width(self):
+        # Returns image width in pixels. This relates to original image,
+        # without applied transformations.
+        return self._imagedata.width
+
+    @property
+    def height(self):
+        # Returns image width in pixels. This relates to original image,
+        # without applied transformations.
+        return self._imagedata.height

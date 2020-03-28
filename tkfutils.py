@@ -80,9 +80,10 @@ class Message(Enum):
     elements via mediator (controller) object.
     """
 
-    cmchngd = 0  # The image color mode has changed.
-    imgrt = 1    # Rotate the image.
-    unimgrt = 2  # Undo image rotation.
+    cmchngd = 0   # The image color mode has changed.
+    imgrt = 1     # Rotate the image.
+    unimgrt = 2   # Undo image rotation.
+    updtview = 3  # Update view.
 
 
 def checktype(tp, var, vardsc):

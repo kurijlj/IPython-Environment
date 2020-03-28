@@ -31,6 +31,9 @@
 
 import tkinter as tki
 import tkinter.ttk as ttk
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from matplotlib import (cbook, use)
 from tkfutils import (
         MIN_FLOAT,
@@ -41,11 +44,16 @@ from tkfutils import (
         points_to_centimeters
     )
 from matplotlib.backends.backend_tkagg import (
-        # FigureCanvasTkAgg,
+        FigureCanvasTkAgg,
         NavigationToolbar2Tk
     )
 
 use("TkAgg")
+plt.style.use('bmh')
+
+
+# from matplotlib.backend_bases import MouseButton
+# from matplotlib.widgets import RectangleSelector
 
 
 # =============================================================================
@@ -287,6 +295,93 @@ class UserView(tki.Frame):
         tki.Frame.update(self)
 
 
+class FilmView(tki.Frame):
+    """ Custom widget base class for displaying film image.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        # Pass the rest of initialization to the superclass.
+        tki.Frame.__init__(self, *args, **kwargs)
+
+        # Initialize the figure.
+        self._figure = plt.Figure()
+        FigureCanvasTkAgg(self._figure, self.master)
+        self._figure.canvas.get_tk_widget().pack(fill=tki.BOTH, expand=True)
+        self._figure.canvas.draw()
+
+        # Initialize axes.
+        self._axes = self._figure.add_subplot(111)
+
+        # Add toolbar to each view so user can zoom, take screenshots, etc.
+        self._toolbar = NavigationToolbar2Tk(
+                self._figure.canvas,
+                self
+            )
+        self._toolbar.pack_propagate(0)
+
+        # Update toolbar display.
+        self._toolbar.update()
+
+    def _update(self, qafilm):
+
+        # First clear axes.
+        self._axes.clear()
+
+        title = None
+        cmap = None
+
+        # Set partial title and colormode.
+        colormodes = {
+                ImageColorMode.fullcolor: 'Fullcolor image',
+                ImageColorMode.grayscale: 'Grayscale image',
+                ImageColorMode.red: 'Red channel',
+                ImageColorMode.green: 'Green channel',
+                ImageColorMode.blue: 'Blue channel'
+            }
+
+        title = colormodes[qafilm.colormode]
+        if 'Fullcolor image' != title:
+            cmap = cm.gray
+
+        # Set default axes units.
+        units_str = '[px]'
+
+        # Try to set proper scale for axes (in centimeters), if dpi data
+        # supplied and the full title.
+        if qafilm.image_dpi:
+            units_str = '[cm]'
+            title = '{0} [dpi: {1}]'.format(title, qafilm.image_dpi)
+
+            ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:.2f}'.format(
+                points_to_centimeters(qafilm.image_dpi[0], float(x))
+                ))
+            self._axes.xaxis.set_major_formatter(ticks_x)
+
+            ticks_y = ticker.FuncFormatter(lambda y, pos: '{0:.2f}'.format(
+                points_to_centimeters(qafilm.image_dpi[1], float(y))
+                ))
+            self._axes.yaxis.set_major_formatter(ticks_y)
+
+        # Set title.
+        self._axes.set_title(title)
+
+        # Set units label.
+        self._axes.set_xlabel(units_str)
+        self._axes.set_ylabel(units_str)
+
+        # Show plot.
+        viewdata = qafilm.pixels_from_selection(qafilm.size)
+        self._axes.imshow(viewdata, cmap=cmap)
+        self._figure.canvas.draw()
+
+        # Update superclass.
+        tki.Tk.update(self)
+
+    def update(self, qafilm):
+        self._update(qafilm)
+
+
 class AppControlsView(tki.Frame):
     """ Custom widget class for displaying and taking input from user
     controlls (e.g. fields, buttons, radiobuttonsw, etc.).
@@ -294,19 +389,27 @@ class AppControlsView(tki.Frame):
 
     def __init__(self, *args, **kwargs):
 
+        # Reference to a controller object must be passed as key-word agrument.
+        # Controller object's class must implement dispatch method takeing
+        # following arguments dispatch(sender, message, **kwargs).
+        if 'controller' in kwargs:
+            self.controller = kwargs.pop('controller')
+            if not self.controller or not hasattr(self.controller, 'dispatch'):
+                raise TypeError(
+                        'Dispatch method not implemented by'
+                        ' object\'s class ({0}).'
+                        .format(type(self.controller))
+                    )
+        else:
+            # No reference to controller object.
+            self.controller = None
+
         # Reference to the root widget must be passed as key-word agrument.
         if 'mainwindow' in kwargs:
             self._mainwindow = kwargs.pop('mainwindow')
         else:
             # No reference to the root widget.
             self._mainwindow = None
-
-        # Reference to a controller object must be passed as key-word agrument.
-        if 'controller' in kwargs:
-            self.controller = kwargs.pop('controller')
-        else:
-            # No reference to controller object.
-            self.controller = None
 
         # Pass the rest of initialization to the superclass.
         tki.Frame.__init__(self, *args, **kwargs)
@@ -327,8 +430,8 @@ class AppControlsView(tki.Frame):
         # Set image color mode controls. First set parameter to keep track of
         # user selected color mode of displayed film image.
         self._imagecolormode = tki.StringVar()
+        # Set some initial value.
         self._imagecolormode.set(ImageColorMode.fullcolor.value)
-        self._select_mode()  # Send message to a controller.
 
         colormodes = {
                 'fullcolor': ImageColorMode.fullcolor.value,
@@ -381,7 +484,7 @@ class AppControlsView(tki.Frame):
         checked. It invokes actual method that turns color mode display on/off.
         """
 
-        if self.controller and hasattr(self.controller, 'dispatch'):
+        if hasattr(self.master, 'dispatch'):
             colormodes = {
                     'fullcolor': ImageColorMode.fullcolor,
                     'grayscale': ImageColorMode.grayscale,
@@ -399,14 +502,14 @@ class AppControlsView(tki.Frame):
         """A callback method for "Image rotation" control.
         """
 
-        if value and self.controller and hasattr(self.controller, 'dispatch'):
+        if value and hasattr(self.master, 'dispatch'):
             self.controller.dispatch(self, Message.imgrt, angle=value)
 
     def _undo_image_rotation(self):
         """A callback method for "Undo rotation" control.
         """
 
-        if self.controller and hasattr(self.controller, 'dispatch'):
+        if hasattr(self.master, 'dispatch'):
             self.controller.dispatch(self, Message.unimgrt)
 
     @property
@@ -417,6 +520,10 @@ class AppControlsView(tki.Frame):
     def lastrotation(self):
         return self._last_rotation.get()
 
+    def change_colormode(self, mode):
+        checktype(ImageColorMode, mode, 'Colormode')
+        self._imagecolormode.set(mode.value)
+
 
 class TkiAppMainWindow(tki.Tk):
     """ Application's main window class.
@@ -424,18 +531,26 @@ class TkiAppMainWindow(tki.Tk):
 
     def __init__(self, *args, **kwargs):
 
-        # Pass the rest of initialization to the superclass.
-        tki.Tk.__init__(self, className='TkiAppMAinWindow')
-
         # Since objects instantiated from class are intended to be top level
         # widgets there is no reason to pass reference to master object.
 
         # Reference to a controller object must be passed as key-word agrument.
+        # Controller object's class must implement dispatch method takeing
+        # following arguments dispatch(sender, message, **kwargs).
         if 'controller' in kwargs:
-            self.controller = kwargs['controller']
+            self.controller = kwargs.pop('controller')
+            if not self.controller or not hasattr(self.controller, 'dispatch'):
+                raise TypeError(
+                        'Dispatch method not implemented by'
+                        ' object\'s class ({0}).'
+                        .format(type(self.controller))
+                    )
         else:
             # No reference to controller object.
             self.controller = None
+
+        # Pass the rest of initialization to the superclass.
+        tki.Tk.__init__(self, className='TkiAppMAinWindow')
 
         self.resizable(True, True)
         # self.resizable(False, False)
@@ -444,31 +559,43 @@ class TkiAppMainWindow(tki.Tk):
         # Place your widgets here.
         # ======================================================================
 
-        self._userview = UserView(
-                self,
-                controller=self.controller
-            )
-        self._userview.pack(side=tki.LEFT, fill=tki.Y)
+        # self._userview = UserView(
+        #         self,
+        #         controller=self.controller
+        #     )
+        # self._userview.pack(side=tki.LEFT, fill=tki.Y)
 
-        # ======================================================================
+        # Set up data view widgets and pack.
+        self._qafilmview = FilmView(self)
+        self._qafilmview.pack(side=tki.LEFT, fill=tki.Y)
 
         # Set up some space between test widgets and control widgets.
-        ttk.Frame(self)\
-            .pack(side=tki.LEFT, fill=tki.X, expand=True)
+        ttk.Frame(self).pack(side=tki.LEFT, fill=tki.Y, expand=True)
 
         # Set up control widgets and pack.
         self._controlpanel = AppControlsView(
                 self,
-                mainwindow=self,
-                controller=self.controller
+                controller=self,
+                mainwindow=self
             )
         self._controlpanel.pack(side=tki.RIGHT, fill=tki.Y)
 
-    def _update(self):
+        # ======================================================================
+
+    def _update(self, qafilm):
         """Method to update display of main window.
         """
-        self._userview.update()
-
-    def update(self):
-        self._update()
+        self._controlpanel.change_colormode(qafilm.colormode)
+        self._qafilmview.update(qafilm)
         tki.Tk.update(self)
+
+    def dispatch(self, sender, event, **kwargs):
+        """A method to mediate messages between GUI objects and GUI objects
+        and the controller.
+        """
+
+        # So far we send all messages to the controller.
+        self.controller.dispatch(sender, event, **kwargs)
+
+    def update(self, qafilm):
+        self._update(qafilm)
