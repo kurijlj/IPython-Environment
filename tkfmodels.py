@@ -30,7 +30,11 @@
 
 import numpy as np
 from PIL import Image  # Required by image rotation in the QAFilm class
-from tkfutils import (SelectionExtents, ImageColorMode, checktype)
+from tkfutils import (
+        SelectionExtents,
+        ImageColorMode,
+        checktype
+    )
 
 # =============================================================================
 # Models specific utility classes and functions
@@ -154,7 +158,7 @@ class QAFilm(object):
             )
 
         if ImageColorMode.grayscale == self._colormode:
-            raise NotImplementedError('Feature not implemented yet.')
+            pixels = np.asarray(img_rt.convert('L'))
         elif ImageColorMode.red == self._colormode:
             pixels = np.asarray(img_rt.getchannel('R'))
         elif ImageColorMode.green == self._colormode:

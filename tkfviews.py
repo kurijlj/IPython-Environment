@@ -34,7 +34,8 @@ import tkinter.ttk as ttk
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from matplotlib import (cbook, use)
+# from matplotlib import (cbook, use)
+from matplotlib import use
 from tkfutils import (
         MIN_FLOAT,
         MAX_FLOAT,
@@ -170,59 +171,14 @@ class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
     """ TODO: Add class description.
     """
 
-    def __init__(self, canvas, window, image_dpi=None):
-        self.canvas = canvas
-        self.window = window
-        self._image_dpi = image_dpi
-
-        # Pass the rest of initialization to the superclass.
+    def __init__(self, canvas, window):
+        # Pass initialization to the superclass.
         super().__init__(canvas, window)
 
     def mouse_move(self, event):
         self._set_cursor(event)
-
-        if event.inaxes and event.inaxes.get_navigate():
-
-            try:
-                xdata = event.xdata
-                ydata = event.ydata
-                x = int(xdata)
-                y = int(ydata)
-
-                if self._image_dpi:
-                    xcm = points_to_centimeters(
-                        self._image_dpi[0],
-                        float(xdata)
-                    )
-                    ycm = points_to_centimeters(
-                        self._image_dpi[1],
-                        float(ydata)
-                    )
-                    s = 'x: {0:.2f} cm [{1:d} pxs], y: {2:.2f} cm [{3:d} pxs],\
- value: '.format(xcm, x, ycm, y)
-                else:
-                    s = 'x: {0:d}, y: {1:d}, value: '.format(x, y)
-            except (ValueError, OverflowError):
-                pass
-            else:
-                artists = [a for a in event.inaxes._mouseover_set
-                           if a.contains(event) and a.get_visible()]
-
-                if artists:
-                    a = cbook._topmost_artist(artists)
-                    if a is not event.inaxes.patch:
-                        data = a.get_cursor_data(event)
-                        if data is not None:
-                            data_str = a.format_cursor_data(data)
-                            if data_str is not None:
-                                s = s + ' ' + data_str
-
-                if len(self.mode):
-                    self.set_message('%s, %s' % (self.mode, s))
-                else:
-                    self.set_message(s)
-        else:
-            self.set_message(self.mode)
+        # We don't want any position message in the toolbar.
+        self.set_message('')
 
 
 class UserView(tki.Frame):
@@ -306,7 +262,7 @@ class FilmView(tki.Frame):
 
         # Initialize the figure.
         self._figure = plt.Figure()
-        FigureCanvasTkAgg(self._figure, self.master)
+        FigureCanvasTkAgg(self._figure, self)
         self._figure.canvas.get_tk_widget().pack(fill=tki.BOTH, expand=True)
         self._figure.canvas.draw()
 
@@ -314,9 +270,9 @@ class FilmView(tki.Frame):
         self._axes = self._figure.add_subplot(111)
 
         # Add toolbar to each view so user can zoom, take screenshots, etc.
-        self._toolbar = NavigationToolbar2Tk(
+        self._toolbar = GKFilmQANavigationToolbar(
                 self._figure.canvas,
-                self
+                self,
             )
         self._toolbar.pack_propagate(0)
 
@@ -558,12 +514,6 @@ class TkiAppMainWindow(tki.Tk):
         # ======================================================================
         # Place your widgets here.
         # ======================================================================
-
-        # self._userview = UserView(
-        #         self,
-        #         controller=self.controller
-        #     )
-        # self._userview.pack(side=tki.LEFT, fill=tki.Y)
 
         # Set up data view widgets and pack.
         self._qafilmview = FilmView(self)

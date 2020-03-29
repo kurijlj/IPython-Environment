@@ -133,16 +133,15 @@ class DefaultAction(ProgramAction):
 
         if Message.imgrt == event:
             if 'angle' in kwargs:
-                # self.qafilmmodel.rotate(kwargs['angle'])
-                # self._mainscreen.update()  # Update screen.
-                print(kwargs['angle'])
+                self.qafilmmodel.rotate(kwargs['angle'])
+                self._mainscreen.update(self.qafilmmodel)  # Update screen.
             else:
                 print('{0}: \'angle\' parameter is missing.'
                       .format(self._programName))
 
         if Message.unimgrt == event:
-            # self.qafilmmodel.undo_rotation()
-            # self._mainscreen.update()  # Update screen.
+            self.qafilmmodel.undo_rotation()
+            self._mainscreen.update(self.qafilmmodel)  # Update screen.
             print('Undo rotation')
 
     def execute(self):
