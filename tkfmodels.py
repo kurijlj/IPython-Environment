@@ -51,8 +51,12 @@ class QAFilm(object):
     """
 
     def __init__(self, imagedata, controller):
+
         # It is up to user to ensure that proper image data is passed.
-        self._imagedata = imagedata
+
+        # List contining original image and rotated copies of
+        # the original image.
+        self._imagedata = [imagedata]
         self._controller = controller
         # Parameter used to track display color mode of the image.
         self._colormode = ImageColorMode.fullcolor
@@ -66,20 +70,46 @@ class QAFilm(object):
         self._colormode = colormode
 
     def rotate(self, angle):
-        # By calling rotate method we are not doing actual rotation of an
-        # image, we are just recording the angle by wich to rotate a copy of
-        # the image when accessing image pixels using pixels_from_selection()
-        # method. This is done for better image preview after rotation, because
-        # we set flag "expand" to "True" on rotate() method call. Subsequent
-        # image rotations are recorded as an array and final image rotation is
-        # calculated as sum of all subsequent image rotations.
+        # Since we are using following options when doing image rotation:
+        # resample=Image.NEAREST and expand=True, for better image privew we are
+        # actually accumulating all subsequent rotations of an image in the
+        # container of type np.array.and then apply cumulative rotation value to
+        # the original image.
+
+        # First discard previously rotated image.
+        if 1 < len(self._imagerotation):
+            self._imagedata.pop()
+
         self._imagerotation = np.append(self._imagerotation, angle)
+
+        # Calculate cumulative rotation angle regarding to original
+        # image position, and apply this value for obtaining the latest image
+        # preview.
+        print(rotation_angle)
+        self._imagedata.append(self._imagedata[-1].rotate(
+                angle=-rotation_angle,  # negative sign to rotate clockwise
+                resample=Image.NEAREST,
+                expand=True,
+                fillcolor='white'
+            ))
 
     def undo_rotation(self):
         # Removes last rotation (last element of the array). If only initial
         # angle of rotation is left (0.0) disregard request.
-        if 1 < self._imagerotation.size:
+        if 1 < len(self._imagerotation):
+
+            # First disregard previous rotation value and rotated image.
             self._imagerotation = np.delete(self._imagerotation, -1)
+            self._imagedata.pop()
+
+            # Calculate new image preview.
+            rotation_angle = self._imagerotation.sum()
+            self._imagedata.append(self._imagedata[-1].rotate(
+                    angle=-rotation_angle,  # negative sign to rotate clockwise
+                    resample=Image.NEAREST,
+                    expand=True,
+                    fillcolor='white'
+                ))
 
     def pixels_from_selection(self, bounds):
         # Method to return selection from image as numpy array. Selection
@@ -91,26 +121,19 @@ class QAFilm(object):
         pixels = None
         selection = None
 
-        # First roatate image according to rotation history data array.
-        img_rt = self._imagedata.rotate(
-                angle=-self._imagerotation.sum(),  # negative sign to rotate
-                                                   # clockwise
-                resample=Image.NEAREST,
-                expand=True,
-                fillcolor='white'
-            )
-
+        # First extract full complete image data according to colormode.
         if ImageColorMode.grayscale == self._colormode:
-            pixels = np.asarray(img_rt.convert('L'))
+            pixels = np.asarray(self._imagedata[-1].convert('L'))
         elif ImageColorMode.red == self._colormode:
-            pixels = np.asarray(img_rt.getchannel('R'))
+            pixels = np.asarray(self._imagedata[-1].getchannel('R'))
         elif ImageColorMode.green == self._colormode:
-            pixels = np.asarray(img_rt.getchannel('G'))
+            pixels = np.asarray(self._imagedata[-1].getchannel('G'))
         elif ImageColorMode.blue == self._colormode:
-            pixels = np.asarray(img_rt.getchannel('B'))
+            pixels = np.asarray(self._imagedata[-1].getchannel('B'))
         else:
-            pixels = np.asarray(img_rt)
+            pixels = np.asarray(self._imagedata[-1])
 
+        # Then extract section according to given bounds.
         selection = pixels[
                 bounds.top:bounds.bottom+1,
                 bounds.left:bounds.right+1
@@ -122,8 +145,8 @@ class QAFilm(object):
     def image_dpi(self):
         # Read value of an image dpi.
         result = None
-        if 'dpi' in self._imagedata.info:
-            result = self._imagedata.info['dpi']
+        if 'dpi' in self._imagedata[-1].info:
+            result = self._imagedata[-1].info['dpi']
         return result
 
     @property
@@ -132,24 +155,24 @@ class QAFilm(object):
 
     @property
     def size(self):
-        # Returns image size in pixels as SelectionExtents object. This relates
-        # to original image, without applied transformations.
+        # Returns image size in pixels as SelectionExtents object. It relates
+        # to size of the transformed image.
         result = SelectionExtents(
                 top=int(0),
                 left=int(0),
-                bottom=self._imagedata.height,
-                right=self._imagedata.width
+                bottom=self._imagedata[-1].height,
+                right=self._imagedata[-1].width
             )
         return result
 
     @property
     def width(self):
-        # Returns image width in pixels. This relates to original image,
-        # without applied transformations.
-        return self._imagedata.width
+        # Returns image width in pixels. It relates to the width of
+        # the transformed image.
+        return self._imagedata[-1].width
 
     @property
     def height(self):
-        # Returns image width in pixels. This relates to original image,
-        # without applied transformations.
-        return self._imagedata.height
+        # Returns image height in pixels. It realtes to the height of
+        # the transformed image.
+        return self._imagedata[-1].height
