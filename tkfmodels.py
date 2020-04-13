@@ -45,63 +45,6 @@ from tkfutils import (
 # Model classes
 # =============================================================================
 
-class User(object):
-    """ A demo class representing user with general data about user.
-    """
-
-    def __init__(self, un='user', psswd='p4s5w0rd', fn=None, ln=None):
-        self._username = un
-        self._password = psswd
-        self._firstname = fn
-        self._lastname = ln
-
-    def __repr__(self):
-        str_type = type(self).__name__
-        str_un = 'Username: {0}'.format(self._username)
-        str_psswd = 'Password: {0}'.format(self._password)
-
-        if self._firstname:
-            str_fn = 'First Name: {0}'.format(self._firstname)
-        else:
-            str_fn = 'First Name: N/A'
-
-        if self._lastname:
-            str_ln = 'Last Name: {0}'.format(self._lastname)
-        else:
-            str_ln = 'Last Name: N/A'
-
-        return str_type + '(\n' + str_un + ',\n' + str_psswd + ',\n' +\
-            str_fn + ',\n' + str_ln + '\n)'
-
-    def changepassword(self, pw):
-        checktype(str, pw, 'Password')
-        self._password = pw
-
-    def changefirstname(self, fn):
-        checktype(str, fn, 'First name')
-        self._firstname = fn
-
-    def changelastname(self, ln):
-        checktype(str, ln, 'Last name')
-        self._lastname = ln
-
-    @property
-    def username(self):
-        return self._username
-
-    @property
-    def password(self):
-        return self._password
-
-    @property
-    def firstname(self):
-        return self._firstname
-
-    @property
-    def lastname(self):
-        return self._lastname
-
-
 class QAFilm(object):
     """ An abstract base class used to represent scanned dosimetric film image
     and a set of common methods to access and manipulate film data.
