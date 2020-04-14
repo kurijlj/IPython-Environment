@@ -181,8 +181,8 @@ class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
         self.set_message('')
 
 
-class FilmView(tki.Frame):
-    """ Custom widget base class for displaying film image.
+class PlotView(tki.Frame):
+    """ Custom widget base class for displaying matlplotlib plot.
     """
 
     def __init__(self, *args, **kwargs):
@@ -198,6 +198,23 @@ class FilmView(tki.Frame):
 
         # Initialize axes.
         self._axes = self._figure.add_subplot(111)
+
+    def _update(self):
+        # Update superclass.
+        tki.Tk.update(self)
+
+    def update(self):
+        self._update()
+
+
+class FilmView(PlotView):
+    """ Custom widget base class for displaying film image.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        # Pass the rest of initialization to the superclass.
+        super().__init__(*args, **kwargs)
 
         # Add toolbar to each view so user can zoom, take screenshots, etc.
         self._toolbar = GKFilmQANavigationToolbar(
@@ -256,16 +273,51 @@ class FilmView(tki.Frame):
         self._axes.set_xlabel(units_str)
         self._axes.set_ylabel(units_str)
 
-        # Show plot.
+        # Show film image.
         viewdata = qafilm.pixels_from_selection(qafilm.size)
         self._axes.imshow(viewdata, cmap=cmap)
         self._figure.canvas.draw()
 
         # Update superclass.
-        tki.Tk.update(self)
+        super()._update()
 
     def update(self, qafilm):
         self._update(qafilm)
+
+
+class HistogramView(PlotView):
+    """ Custom widget class for displaying histogram data.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        # Pass the rest of initialization to the superclass.
+        super().__init__(*args, **kwargs)
+
+    def _update(self):
+
+        # Update superclass.
+        super()._update()
+
+    def update(self):
+        self._update()
+
+
+class ProfileView(PlotView):
+    """ Custom widget class for displaying film profile curve.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        # Pass the rest of initialization to the superclass.
+        super().__init__(*args, **kwargs)
+
+    def _update(self):
+        # Update superclass.
+        super()._update()
+
+    def update(self):
+        self._update()
 
 
 class AppControlsView(tki.Frame):
@@ -448,6 +500,8 @@ class TkiAppMainWindow(tki.Tk):
         # Set up data view widgets and pack.
         self._qafilmview = FilmView(self)
         self._qafilmview.pack(side=tki.LEFT, fill=tki.Y)
+        self._hstview = HistogramView(self)
+        self._hstview.pack(side=tki.LEFT, fill=tki.Y)
 
         # Set up some space between test widgets and control widgets.
         ttk.Frame(self).pack(side=tki.LEFT, fill=tki.Y, expand=True)
