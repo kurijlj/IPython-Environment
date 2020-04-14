@@ -142,7 +142,6 @@ class DefaultAction(ProgramAction):
         if Message.unimgrt == event:
             self.qafilmmodel.undo_rotation()
             self._mainscreen.update(self.qafilmmodel)  # Update screen.
-            print('Undo rotation')
 
     def execute(self):
         # Do some basic sanity checks first.

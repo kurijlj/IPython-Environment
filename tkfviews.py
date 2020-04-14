@@ -416,13 +416,13 @@ class TkiAppMainWindow(tki.Tk):
     """
 
     def __init__(self, *args, **kwargs):
-
         # Since objects instantiated from class are intended to be top level
         # widgets there is no reason to pass reference to master object.
 
         # Reference to a controller object must be passed as key-word agrument.
-        # Controller object's class must implement dispatch method takeing
+        # Controller object's class must implement dispatch method taking
         # following arguments dispatch(sender, message, **kwargs).
+
         if 'controller' in kwargs:
             self.controller = kwargs.pop('controller')
             if not self.controller or not hasattr(self.controller, 'dispatch'):
