@@ -167,6 +167,113 @@ class TkiInputFloat(tki.Frame):
         self._str_val.set('')
 
 
+class EdgeDetectInput(tki.Frame):
+    """ Custom widget to collect user input of float values.
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        # Following arguments we use locally and rest we send to superclass:
+        #        command: A callback method for pasing input values.
+        #                 Default value is None.
+
+        if 'command' in kwargs:
+            self._command = kwargs.pop('command')
+        else:
+            self._command = None
+
+        # Pass the rest of arguments to superclass.
+        tki.Frame.__init__(self, *args, **kwargs)
+
+        # Set input values limits.
+        self._bottom = 0.0
+        self._top = MAX_FLOAT
+
+        # Set variables to keep track of input values.
+        self._sigma = tki.StringVar()
+        self._sigma.set('1.0')
+        self._lowtr = tki.StringVar()
+        self._lowtr.set('')
+        self._hightr = tki.StringVar()
+        self._hightr.set('')
+
+        # Initialize and arrange elemnts on the frame.
+        tki.Label(self, text='Detect edges:', anchor='w').\
+            pack(side=tki.TOP, fill=tki.X)
+
+        # Frame to group and align entry field and command button.
+        entry_group = ttk.Frame(self)
+        entry_group.pack(side=tki.BOTTOM, fill=tki.X)
+
+        # Input fields and labels.
+        sigma_group = ttk.Frame(entry_group)
+        sigma_group.pack(side=tki.TOP, fill=tki.X)
+        low_group = ttk.Frame(entry_group)
+        low_group.pack(side=tki.TOP, fill=tki.X)
+        high_group = ttk.Frame(entry_group)
+        high_group.pack(side=tki.TOP, fill=tki.X)
+
+        tki.Label(sigma_group, text='sigma:', anchor='e')\
+            .pack(side=tki.LEFT, fill=tki.X)
+        tki.Entry(sigma_group, width=12, textvariable=self._sigma)\
+            .pack(side=tki.RIGHT, fill=tki.Y, padx=1, pady=1)
+        tki.Label(low_group, text='low:', anchor='e')\
+            .pack(side=tki.LEFT, fill=tki.X)
+        tki.Entry(low_group, width=12, textvariable=self._lowtr)\
+            .pack(side=tki.RIGHT, fill=tki.Y, padx=1, pady=1)
+        tki.Label(high_group, text='high:', anchor='e')\
+            .pack(side=tki.LEFT, fill=tki.X)
+        tki.Entry(high_group, width=12, textvariable=self._hightr)\
+            .pack(side=tki.RIGHT, fill=tki.Y, padx=1, pady=1)
+
+        # Execute button.
+        tki.Button(entry_group, text='Detect', command=self._button_pressed)\
+            .pack(side=tki.BOTTOM, fill=tki.X)
+
+    def _button_pressed(self):
+        sigma = 1.0
+        lowtr = -1.0
+        hightr = -1.0
+
+        # Try to convert string values to float.
+        try:
+            sigma = float(self._sigma.get())
+        except ValueError:
+            # We just ignore values that are not of float type.
+            pass
+
+        try:
+            lowtr = float(self._lowtr.get())
+        except ValueError:
+            # We just ignore values that are not of float type.
+            pass
+
+        try:
+            hightr = float(self._hightr.get())
+        except ValueError:
+            # We just ignore values that are not of float type.
+            pass
+
+        # We only accept values in range [self._bottom, self._top].
+        if sigma < self._bottom or sigma > self._top:
+            # Out of range so reset to neutral value.
+            sigma = 1.0
+            self._sigma.set('1.0')
+
+        if lowtr < self._bottom or lowtr > self._top:
+            # Out of range so reset to neutral value.
+            lowtr = None
+            self._lowtr.set('')
+
+        if hightr < self._bottom or hightr > self._top:
+            # Out of range so reset to neutral value.
+            hightr = None
+            self._hightr.set('')
+
+        if self._command:
+            self._command(sigma, lowtr, hightr)
+
+
 class GKFilmQANavigationToolbar(NavigationToolbar2Tk):
     """ TODO: Add class description.
     """
@@ -291,13 +398,42 @@ class HistogramView(PlotView):
 
     def __init__(self, *args, **kwargs):
 
+        self._bins = None
+        self._data = None
+
+        if 'bins' in kwargs:
+            self._bins = kwargs.pop('bins')
+        else:
+            self._bins = 256
+
+        if 'hstdata' in kwargs:
+            self._data = kwargs.pop('hstdata')
+
         # Pass the rest of initialization to the superclass.
         super().__init__(*args, **kwargs)
 
+        defht = self._figure.get_figheight()
+        self._figure.set_figheight(defht*0.10)
+
     def _update(self):
+
+        if self._bins and self._data:
+            self._axes.clear()
+            self._axes.hist(self._data, self._bins)
+            self._axes.set_xlim(left=0, right=self._bins)
+            self._axes.tick_params(axis="x", labelbottom=False)
+            self._axes.set_xticks([])
+            self._axes.tick_params(axis="y", labelleft=False)
+            self._axes.set_yticks([])
+            self._figure.canvas.draw()
 
         # Update superclass.
         super()._update()
+
+    def show_histogram(self, data, nbins):
+        self._data = data
+        self._bins = nbins
+        self._update()
 
     def update(self):
         self._update()
@@ -402,6 +538,10 @@ class AppControlsView(tki.Frame):
                 variable=self._last_rotation
             ).pack(side=tki.TOP, fill=tki.X)
 
+        # Set edge detection control.
+        EdgeDetectInput(top_frame, command=self._detect_edges)\
+            .pack(side=tki.TOP, fill=tki.X)
+
         # Set undo button.
         ttk.Button(
                 top_frame,
@@ -443,8 +583,21 @@ class AppControlsView(tki.Frame):
         if value and hasattr(self.master, 'dispatch'):
             self.controller.dispatch(self, Message.imgrt, angle=value)
 
+    def _detect_edges(self, sigma, lowtr, hightr):
+        """A callback method for "Edge detect" control.
+        """
+
+        if hasattr(self.master, 'dispatch'):
+            self.controller.dispatch(
+                    self,
+                    Message.edgdet,
+                    sigma=sigma,
+                    lowtr=lowtr,
+                    hightr=hightr
+                )
+
     def _undo_image_rotation(self):
-        """A callback method for "Undo rotation" control.
+        """A callback method for "Undo image rotation" control.
         """
 
         if hasattr(self.master, 'dispatch'):
@@ -500,8 +653,8 @@ class TkiAppMainWindow(tki.Tk):
         # Set up data view widgets and pack.
         self._qafilmview = FilmView(self)
         self._qafilmview.pack(side=tki.LEFT, fill=tki.Y)
-        self._hstview = HistogramView(self)
-        self._hstview.pack(side=tki.LEFT, fill=tki.Y)
+        # self._hstview = HistogramView(self)
+        # self._hstview.pack(side=tki.LEFT, fill=tki.Y)
 
         # Set up some space between test widgets and control widgets.
         ttk.Frame(self).pack(side=tki.LEFT, fill=tki.Y, expand=True)

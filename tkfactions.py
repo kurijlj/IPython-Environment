@@ -139,6 +139,25 @@ class DefaultAction(ProgramAction):
                 print('{0}: \'angle\' parameter is missing.'
                       .format(self._programName))
 
+        if Message.edgdet == event:
+            if 'sigma' in kwargs and 'lowtr' in kwargs and 'hightr' in kwargs:
+                print(kwargs['sigma'], kwargs['lowtr'], kwargs['hightr'])
+                self.qafilmmodel.detect_edges(
+                        kwargs['sigma'],
+                        kwargs['lowtr'],
+                        kwargs['hightr']
+                    )
+                self._mainscreen.update(self.qafilmmodel)  # Update screen.
+            else:
+                for par, label in {
+                            kwargs['sigma']: 'sigma',
+                            kwargs['lowtr']: 'low threshold',
+                            kwargs['sigma']: 'high threshold'
+                        }.items():
+                    if not par:
+                        print('{0}: \'{1}\' parameter is missing.'
+                              .format(self._programName, label))
+
         if Message.unimgrt == event:
             self.qafilmmodel.undo_rotation()
             self._mainscreen.update(self.qafilmmodel)  # Update screen.

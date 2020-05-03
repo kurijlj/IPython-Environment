@@ -84,6 +84,7 @@ class Message(Enum):
     imgrt = 1     # Rotate the image.
     unimgrt = 2   # Undo image rotation.
     updtview = 3  # Update view.
+    edgdet = 4    # Detect edges
 
 
 def checktype(tp, var, vardsc):

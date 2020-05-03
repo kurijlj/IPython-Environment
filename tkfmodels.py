@@ -46,6 +46,8 @@ from tkfutils import (
         ImageColorMode,
         checktype
     )
+from skimage.feature import canny  # Required for edge detection
+from skimage.filters import threshold_otsu
 
 # =============================================================================
 # Models specific utility classes and functions
@@ -103,6 +105,29 @@ class QAFilm(object):
                 expand=True,
                 fillcolor='white'
             ))
+
+    def detect_edges(self, sigma, lowtr, hightr):
+
+        # First we do a dummy image rotation just to be able to undo. This
+        # should be removed in the release version.
+        self._imagerotation = np.append(self._imagerotation, 0.0)
+
+        # data = 255 - np.asarray(self._imagedata[-1].getchannel('R'))
+        # edges = canny(
+        #         data,
+        #         sigma=sigma,
+        #         low_threshold=lowtr,
+        #         high_threshold=hightr
+        #     )
+        self._imagedata.append(Image.fromarray(canny(
+                np.asarray(self._imagedata[-1].getchannel('R')),
+                sigma=sigma,
+                low_threshold=lowtr,
+                high_threshold=hightr
+            )))
+        # self._imagedata.append(Image.fromarray(threshold_otsu(
+        #         np.asarray(self._imagedata[-1].getchannel('R'))
+        #     )))
 
     def undo_rotation(self):
         # Removes last rotation (last element of the array). If only initial
