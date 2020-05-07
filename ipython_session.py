@@ -2586,3 +2586,252 @@ ax2.plot(img2_hough_circle_centres[:,0], img2_hough_circle_centres[:,1], 'r.')
 ax2.imshow(img2_edges)
 img2_hough_circle_centres
 quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+import numpy as np
+from matplotlib import pyplot as plt
+from PIL import Image
+import filmdosimetry as fd
+img1 = Image.open('./test_film_1.png')
+img2 = Image.open('./test_film_2.tiff')
+img1_cnt = fd.find_fiducials(img1, 0.5, 10, 50)
+img1_cnt = fd.find_fiducials(img1, 0.5, 10, 50)
+img1.__class__
+img2.__class__
+type(img1)
+dir(img1)
+dir(img1.png)
+dir(img1.info)
+img1.info.keys()
+img1_cnt = fd.find_fiducials(img1, 0.5, 10, 50)
+img1_cnt = fd.find_fiducials(img1, 0.5, 10, 50)
+img1.info['dpi']
+img2.info['dpi']
+img1_cnt = fd.find_fiducials(img1, 0.5, 10, 50)
+img1_cnt1 = fd.find_fiducials(img1, 0.5, 10, 50)
+img1_cnt2 = fd.find_fiducials(img1, 0.5, 10, 50)
+img1_cnt2 = fd.find_fiducials(img1, 1.0, 10, 50)
+img1_cnt2 = fd.find_fiducials(img1, 1.5, 10, 50)
+img1_cnt2 = fd.find_fiducials(img1, 1.0, 10, 50)
+img1_cnt3 = fd.find_fiducials(img1, 1.5, 10, 50)
+img1_cnt1
+fig, (ax1, ax2) = plt.subplots(1, 2, 1)
+fig, (ax1, ax2) = plt.subplots(1, 2)
+ax1.plot(img1_cnt1[:,0], img1_cnt1[:,1], 'r.')
+ax1.plot(img1_cnt2[:,0], img1_cnt2[:,1], 'g.')
+ax1.plot(img1_cnt3[:,0], img1_cnt3[:,1], 'b.')
+ax1.imshow(img1.getchannel('R'))
+img1_cnt2
+ax1.imshow(img1.getchannel('R'), cmap='grayscale')
+ax1.imshow(img1.getchannel('R'), cmap='gray')
+img2_cnt1 = fd.find_fiducials(img2, 0.5, 10, 50)
+img2_cnt2 = fd.find_fiducials(img2, 1.0, 10, 50)
+img2_cnt3 = fd.find_fiducials(img2, 1.5, 10, 50)
+ax1.plot(img2_cnt1[:,0], img2_cnt1[:,1], 'r.')
+ax1.plot(img2_cnt2[:,0], img2_cnt2[:,1], 'g.')
+ax1.plot(img2_cnt3[:,0], img2_cnt3[:,1], 'b.')
+ax1.clear()
+ax1.plot(img1_cnt1[:,0], img1_cnt1[:,1], 'r.')
+ax1.plot(img1_cnt2[:,0], img1_cnt2[:,1], 'g.')
+ax1.plot(img1_cnt3[:,0], img1_cnt3[:,1], 'b.')
+ax1.imshow(img1.getchannel('R'), cmap='gray')
+ax2.plot(img2_cnt1[:,0], img2_cnt1[:,1], 'r.')
+ax2.plot(img2_cnt2[:,0], img2_cnt2[:,1], 'g.')
+ax2.plot(img2_cnt3[:,0], img2_cnt3[:,1], 'b.')
+ax2.imshow(img2.getchannel('R'), cmap='gray')
+get_ipython().run_line_magic('clear', '')
+img1_cnt1 = fd.find_fiducials(img1, 0.5, 5, 100)
+img1_cnt2 = fd.find_fiducials(img1, 1.5, 5, 100)
+img1_cnt2 = fd.find_fiducials(img1, 1.0, 5, 100)
+img1_cnt3 = fd.find_fiducials(img1, 1.5, 5, 100)
+ax1.plot(img1_cnt1[:,0], img1_cnt1[:,1], 'r.')
+ax1.plot(img1_cnt2[:,0], img1_cnt2[:,1], 'g.')
+ax1.plot(img1_cnt3[:,0], img1_cnt3[:,1], 'b.')
+ax1.imshow(img1.getchannel('R'), cmap='gray')
+img2_cnt1 = fd.find_fiducials(img2, 0.5, 5, 100)
+img2_cnt2 = fd.find_fiducials(img2, 1.0, 5, 100)
+img2_cnt3 = fd.find_fiducials(img2, 1.5, 5, 100)
+ax2.plot(img2_cnt1[:,0], img2_cnt1[:,1], 'r.')
+ax2.plot(img2_cnt2[:,0], img2_cnt2[:,1], 'g.')
+ax2.plot(img2_cnt3[:,0], img2_cnt3[:,1], 'b.')
+ax2.imshow(img2.getchannel('R'), cmap='gray')
+img1_cnt1 = fd.find_fiducials(img1, 0.8, 10, 50)
+img1_cnt2 = fd.find_fiducials(img1, 1.0, 10, 50)
+img1_cnt3 = fd.find_fiducials(img1, 1.2, 10, 50)
+img2_cnt1 = fd.find_fiducials(img2, 0.8, 10, 50)
+img2_cnt2 = fd.find_fiducials(img2, 1.0, 10, 50)
+img2_cnt3 = fd.find_fiducials(img2, 1.2, 10, 50)
+ax1.clear()
+ax2.clear()
+ax1.plot(img1_cnt1[:,0], img1_cnt1[:,1], 'r.')
+ax1.plot(img1_cnt2[:,0], img1_cnt2[:,1], 'g.')
+ax1.plot(img1_cnt3[:,0], img1_cnt3[:,1], 'b.')
+ax1.imshow(img1.getchannel('R'), cmap='gray')
+ax2.plot(img2_cnt1[:,0], img2_cnt1[:,1], 'r.')
+ax2.plot(img2_cnt2[:,0], img2_cnt2[:,1], 'g.')
+ax2.plot(img2_cnt3[:,0], img2_cnt3[:,1], 'b.')
+ax2.imshow(img2.getchannel('R'), cmap='gray')
+type(img1_cnt1)
+for i, point in enumerate(img1_cnt1):
+    print(1, point)
+    
+img1_cnt1.size
+for i, point in enumerate(img1_cnt1):
+    print(i, point)
+    
+np.sqrt(4)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+import numpy as np
+from matplotlib import pyplot as plt
+from PIL import Image
+import filmdosimetry as fd
+img1 = Image.open('./test_film_1.png')
+img2 = Image.open('./test_film_2.tiff')
+img1_cnt1 = fd.find_fiducials(img1, 0.8, 10, 50)
+img1_cnt1
+enumerate_neighbors(img1_cnt, 50)
+enumerate_neighbors(img1_cnt, 50)
+quit()
+get_ipython().run_line_magic('logstart', './ipython_session.py append')
+get_ipython().run_line_magic('matplotlib', '')
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+get_ipython().run_line_magic('clear', '')
+import numpy as np
+from matplotlib import pyplot as plt
+from PIL import Image
+import filmdosimetry as fd
+img1 = Image.open('./test_film_1.png')
+img2 = Image.open('./test_film_2.tiff')
+img1_cnt1 = fd.find_fiducials(img1, 0.8, 10, 50)
+enumerate_neighbors(img1_cnt, 50)
+fd.enumerate_neighbors(img1_cnt, 50)
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt1, 50)
+img1_cnt1
+img1_cnt1.shape
+img1_cnt1.shape
+fd.enumerate_neighbors(img1_cnt1, 50)
+pow(2, 2)
+pow(3, 2)
+fd.enumerate_neighbors(img1_cnt1, 50)
+img1_cnt1
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt1, 100)
+fd.enumerate_neighbors(img1_cnt1, 1000)
+img1_cnt1
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt1, 100)
+fd.enumerate_neighbors(img1_cnt1, 50)
+img1_cnt1
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt1, 50)
+img1_cnt1 = fd.find_fiducials(img1, 0.8, 10, 50)
+fd.enumerate_neighbors(img1_cnt1, 50)
+img1_cnt2 = fd.find_fiducials(img1, 1.0, 10, 50)
+fd.enumerate_neighbors(img1_cnt2, 50)
+img1_cnt3 = fd.find_fiducials(img1, 1.2, 10, 50)
+fd.enumerate_neighbors(img1_cnt3, 50)
+img1_cnt2
+img1_cnt3
+img1_cnt1 = fd.find_fiducials(img1, 1.0, 10, 50)
+img1_cnt2 = fd.find_fiducials(img1, 1.1, 10, 50)
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt2, 50)
+img1_cnt1
+img1_cnt2
+img2_cnt1 = fd.find_fiducials(img2, 1.0, 10, 50)
+img2_cnt2 = fd.find_fiducials(img2, 1.1, 10, 50)
+img2_cnt1
+img2_cnt2
+fd.enumerate_neighbors(img2_cnt1, 30)
+fd.enumerate_neighbors(img2_cnt2, 30)
+sort(fd.enumerate_neighbors(img2_cnt2, 30))
+fd.enumerate_neighbors(img2_cnt2, 30).sort()
+img2_cnt2.sort()
+img2_cnt2
+img2_cnt1.sort()
+img2_cnt1
+vals, counts = np.unique(fd.enumerate_neighbors(img1_cnt1, 50), return_counts=True)
+vals
+counts
+vals, counts = np.unique(fd.enumerate_neighbors(img1_cnt1, 50)[:,1], return_counts=True)
+vals
+counts
+vals, counts = np.unique(fd.enumerate_neighbors(img1_cnt2, 50)[:,1], return_counts=True)
+vals
+counts
+vals, counts = np.unique(fd.enumerate_neighbors(img2_cnt1, 30)[:,1], return_counts=True)
+vals
+vals, counts = np.unique(fd.enumerate_neighbors(img2_cnt2, 30)[:,1], return_counts=True)
+vals
+img1_cnt1
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt1, 50)
+fd.enumerate_neighbors(img1_cnt2, 50)
+vals, counts = np.unique(fd.enumerate_neighbors(img1_cnt1, 50), return_counts=True)
+vals
+vals, counts = np.unique(fd.enumerate_neighbors(img2_cnt1, 30), return_counts=True)
+fd.enumerate_neighbors(img2_cnt1, 30)
+fd.enumerate_neighbors(img2_cnt2, 30)
+vals, counts = np.unique(fd.enumerate_neighbors(img1_cnt1, 50)[:,0], return_counts=True)
+vals
+set(fd.enumerate_neighbors(img2_cnt2, 30))
+set(fd.enumerate_neighbors(img2_cnt2, 30))
+fd.enumerate_neighbors(img2_cnt2, 30)
+fd.enumerate_neighbors(img2_cnt1, 30)
+result = fd.enumerate_neighbors(img2_cnt1, 30)
+result.sort()
+result
+result = set()
+for point in fd.enumerate_neighbors(img2_cnt1, 30):
+    result.append(point)
+    
+for point in fd.enumerate_neighbors(img2_cnt1, 30):
+    result.add(point)
+    
+for point in fd.enumerate_neighbors(img2_cnt1, 30):
+    result.add((point))
+    
+a = set()
+a.add(1.0)
+a.add(2.0)
+a.add(3.0)
+a.add(2.0)
+a
+fd.enumerate_neighbors(img2_cnt1, 30)
+a = set()
+for point in fd.enumerate_neighbors(img2_cnt1, 30):
+    if point[0] not in a:
+        a.add(point[0])
+        print(point)
+        
+find_fiducials(img1, 1.0, 10, 50)
+fd.find_fiducials(img1, 1.0, 10, 50)
+fd.find_fiducials(img2, 1.0, 10, 50)
+img1_fids = fd.find_fiducials(img1, 1.0, 10, 50)
+img2_fids = fd.find_fiducials(img2, 1.0, 10, 50)
+fig, (ax1, ax2) = plt.subplots(1, 2)
+ax1.plot(img1_fids[:,0], img1_fids[:,1], 'g.')
+ax2.plot(img2_fids[:,0], img2_fids[:,1], 'g.')
+ax1.imshow(img1)
+ax2.imshow(img2)
+ax1.imshow(img1, cmap='gray')
+ax2.imshow(img2, cmap='gray')
+fig, (ax1, ax2) = plt.subplots(1, 2)
+ax1.plot(img1_fids[:,0], img1_fids[:,1], 'g.')
+ax2.plot(img2_fids[:,0], img2_fids[:,1], 'g.')
+ax1.imshow(img1, cmap='gray')
+ax2.imshow(img2, cmap='gray')
+ax1.imshow(img1.getchannel('R'), cmap='gray')
+ax2.imshow(img2.getchannel('R'), cmap='gray')
+quit()

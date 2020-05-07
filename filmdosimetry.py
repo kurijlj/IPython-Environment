@@ -2,15 +2,70 @@
 # -*- coding: utf-8 -*-
 
 
+# =============================================================================
+# Modules import section
+# =============================================================================
+
 import numpy as np
-# from PIL import Image
 from PIL import ImageFilter
+from sys import float_info as fi  # Required by MIN_FLOAT and MAX_FLOAT
 from matplotlib import pyplot as plt
 from matplotlib.colors import LightSource
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import ndimage
-# from skimage import filters
 
+
+# =============================================================================
+# Global constants
+# =============================================================================
+
+# Centimeters per inch and inches per centimeter.
+CM_PER_IN = 2.54
+IN_PER_CM = 1 / CM_PER_IN
+
+MIN_FLOAT = fi.min
+MAX_FLOAT = fi.max
+
+
+# =============================================================================
+# General utility classes and functions
+# =============================================================================
+
+def checktype(tp, var, vardsc):
+    """Utility routine used to check if given variable (var) is of requested
+    type (tp). If not it raises TypeError exception with a appropriate message.
+    Variable description (vardsc) is used for formatting more descriptive error
+    messages on rising exception.
+    """
+
+    if var is not None and type(var) is not tp:
+        raise TypeError('{0} must be {1} or NoneType, not {2}'.format(
+            vardsc,
+            tp.__name__,
+            type(var).__name__
+        ))
+
+
+def calc_cluster_centers(array, radius):
+    result = list()
+    for i, a in enumerate(array):
+        acc = 1
+        x = a[0]
+        y = a[1]
+        for j, b in enumerate(array):
+            if i != j:
+                r = np.sqrt(pow(b[0]-a[0], 2) + pow(b[1]-a[1], 2))
+                if radius >= r:
+                    acc = acc + 1
+                    x = x + b[0]
+                    y = y + b[1]
+        result.append([x/acc, y/acc])
+    return np.asarray(result)
+
+
+# =============================================================================
+# Library classes and functions
+# =============================================================================
 
 def display_objects(objs):
     for ax, title, img, cm in objs:
@@ -52,7 +107,6 @@ def show_topography(img, chnl, br=0, ve=0.5, cm=0):
         pass
     ls = LightSource(azdeg=45, altdeg=45)
     fig, axes = plt.subplots(1, 2, figsize=(9.0, 4.0))
-    # fig.tight_layout()
     fig.canvas.set_window_title(title + ' Channel Topography - ' +
                                 img.filename)
     axes[0].axis('off')
@@ -88,9 +142,7 @@ def plot_channel_histogram(img, chnl):
     hst = hst / hst[maxvalindex]
 
     fig, axes = plt.subplots(1, 2, figsize=(9.0, 4.0))
-    # fig.tight_layout()
     fig.canvas.set_window_title(title + 'Channel Histogram - ' + img.filename)
-    # axes[0].axis('off')
     axes[0].set_title(title + 'Channel')
     axes[0].imshow(np.asarray(imgc), cmap='gray')
     axes[1].set_title('Channel Histogram')
@@ -116,7 +168,6 @@ def plot_3d_histogram(img):
     hst['B'] = hst['B'] / hst['B'][maxi]
 
     fig = plt.figure(figsize=(9.0, 4.0))
-    # fig.tight_layout()
     fig.canvas.set_window_title('3D Color Histogram - ' + img.filename)
     axes = []
     axes.append(fig.add_subplot(1, 2, 1))
@@ -135,7 +186,7 @@ def plot_3d_histogram(img):
     axes[1].set_title('3D Color Histogram')
 
 
-def edge_detect(img):
+def sobel_edge_detect(img):
     filt = ndimage.sobel(np.asarray(img))
     fig, axes = plt.subplots(1, 2)
     fig.canvas.set_window_title('Sobel Edge Detect - ' + img.filename)
@@ -147,6 +198,56 @@ def edge_detect(img):
     axes[1].imshow(filt)
 
 
+def find_fiducials(image, sigma, lowtr, hightr):
+    from skimage import feature
+    from skimage.transform import hough_circle, hough_circle_peaks
+
+    # First do basic sanity check. # If values cannot be converted to float it
+    # rises a ValueError.
+    sigma = float(sigma)
+    lowtr = float(lowtr)
+    hightr = float(hightr)
+
+    # Radiochromic film is most sensitive in the red channel.
+    redch = image.getchannel('R')
+
+    edges = feature.canny(np.asarray(redch), sigma, lowtr, hightr)
+
+    # Determine radius of the fiducial in pixels out of known radius size in
+    # milimeters and image dpi. First check if image contains dpi value.
+    if 'dpi' not in image.info:
+        raise KeyError('Image contains no dpi data or no image provided.')
+
+    dpi = image.info['dpi']
+    radius_cm = 0.2
+    radius_px = radius_cm * IN_PER_CM * dpi[0]
+
+    # Now we can run Hough algorithm to find all circles in the image with the
+    # given radius.
+    hough_res = hough_circle(edges, radius_px)
+
+    # Extract most prominent radii.
+    circ_peaks = hough_circle_peaks(
+            hough_res,
+            np.arange(radius_px),
+            total_num_peaks=50
+        )
+
+    # Pack result in a 2D numpy array (array of coordinates).
+    points = np.column_stack((circ_peaks[1], circ_peaks[2]))
+
+    # Calculate average cluster coordinates.
+    cluster_centers = list()
+    x_coords = set()
+    for point in calc_cluster_centers(points, radius_px):
+        if point[0] not in x_coords:
+            x_coords.add(point[0])
+            cluster_centers.append(point)
+
+    # Return array of circle center coordinates.
+    return np.asarray(cluster_centers)
+
+
 def channel_threshold(img, chnl, val):
     return np.asarray(img.getchannel(chnl)) > val
 
@@ -156,10 +257,8 @@ def show_channel_threshold(img, chnl, val):
     mask = data > val
     fig, axes = plt.subplots(1, 2)
     fig.canvas.set_window_title('Threshold - ' + img.filename)
-    # axes[0].axis('off')
     axes[0].set_title(chnl + ' Channel')
     axes[0].imshow(data, cmap=plt.cm.gray)
-    # axes[1].axis('off')
     axes[1].set_title('Mask')
     axes[1].imshow(mask, cmap=plt.cm.gray)
 
@@ -240,8 +339,6 @@ def plot_chnl_row_profile(img, chnl, row, wl=11, wnd='hanning', pad=0):
     fig.canvas.set_window_title(title + ' Channel Row Profile - '
                                 + img.filename)
     axes[0].set_title(title + ' Channel')
-    # axes[0].imshow(c, cmap=plt.cm.gray,
-    #                extent=[0, img.size[0], 0, img.size[1]])
     axes[0].imshow(c, cmap=plt.cm.gray)
 
     # Draw row position indicator
