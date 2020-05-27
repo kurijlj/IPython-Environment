@@ -31,6 +31,7 @@ import argparse
 from os.path import isfile
 from pydicom import dcmread
 from pydicom import filereader
+from colored import fg, attr
 
 
 # =============================================================================
@@ -321,19 +322,89 @@ class DefaultAction(ProgramAction):
 
         # We are dealing with the DICOM file so we can open it and test
         # for presence of flags.
-        tags = ('SOPClassUID', 'PatientID')
+        # tags = ('SOPClassUID', 'PatientID')
+        tags = {
+                (0x0010, 0x0030): 'PatientBirthDate',
+                (0x0020, 0x0011): 'SeriesNumber',
+                (0x0008, 0x103E): 'SeriesDescription',
+                (0x0020, 0x000E): 'SeriesInstanceUID',
+                (0x0008, 0x0021): 'SeriesDate',
+                (0x0008, 0x0031): 'SeriesTime',
+                (0x0008, 0x0020): 'StudyDate',
+                (0x0008, 0x0030): 'StudyTime',
+                (0x0020, 0x000D): 'StudyInstanceUID',
+                (0x0008, 0x0018): 'SOPInstanceUID',
+                (0x0008, 0x0022): 'AcquisitionDate',
+                (0x0008, 0x0032): 'AcquisitionTime',
+                (0x0020, 0x3403): 'ModifiedImageDate',
+                (0x0020, 0x3405): 'ModifiedImageTime',
+                (0x0008, 0x0012): 'InstanceCreationDate',
+                (0x0008, 0x0013): 'InstanceCreationTime',
+                (0x0008, 0x0005): 'SpecificCharacterSet',
+                (0x0008, 0x0060): 'Modality',
+                (0x0008, 0x0070): 'Manufacturer',
+                (0x0008, 0x1010): 'Station Name',
+                (0x0008, 0x1090): 'ManufacturerModelName',
+                (0x0018, 0x0050): 'SliceThickness',
+                (0x0018, 0x0088): 'SpacingBetweenSlices',
+                (0x0018, 0x0090): 'DataCollectionDiameter',
+                (0x0018, 0x1020): 'SoftwareVersions',
+                (0x0018, 0x1030): 'ProtocolName',
+                (0x0018, 0x1100): 'ReconstructionDiameter',
+                (0x0018, 0x5100): 'PatientPosition',
+                (0x0018, 0x0080): 'RepetitionTime',
+                (0x0018, 0x0081): 'EchoTime',
+                (0x0018, 0x0086): 'EchoNumbers',
+                (0x0020, 0x0012): 'AcquisitionNumber',
+                (0x300A, 0x00C8): 'ReferenceImageNumber',
+                (0x0020, 0x0032): 'ImagePositionPatient',
+                (0x0020, 0x0037): 'ImageOrientationPatient',
+                (0x0020, 0x1040): 'PositionReferenceIndicator',
+                (0x0020, 0x1041): 'SliceLocation',
+                (0x0028, 0x0002): 'SamplesPerPixel',
+                (0x0028, 0x0004): 'PhotometricInterpretation',
+                (0x0028, 0x0010): 'Rows',
+                (0x0028, 0x0011): 'Columns',
+                (0x0028, 0x0030): 'PixelSpacing',
+                (0x0028, 0x0100): 'BitsAllocated',
+                (0x0028, 0x0101): 'BitsStored',
+                (0x0028, 0x0102): 'HighBit',
+                (0x0028, 0x0103): 'PixelRepresentation',
+                (0x0028, 0x0120): 'PixelPaddingValue',
+                (0x0028, 0x1050): 'WindowCenter',
+                (0x0028, 0x1051): 'WindowWidth',
+                (0x0028, 0x1052): 'RescaleIntercept',
+                (0x0028, 0x1053): 'RescaleSlope',
+                (0x0028, 0x1054): 'RescaleType'
+            }
+        failed = int(0)
+
         dataset = dcmread(self._dicom_file)
-        for tag in tags:
-            if not hasattr(dataset, tag):
+        for tag in tags.keys():
+            if not hasattr(dataset, tags[tag]):
                 print(
-                        '{0}: Tag \'{1}\': PASSED'
-                        .format(self._dicom_file, tag)
+                        '{0}: Tag \'{1:26s}\': {2}FAILED{3}'.format(
+                            self._dicom_file,
+                            tags[tag],
+                            fg('red'),
+                            attr('reset')
+                        )
                     )
             else:
+                failed = failed + 1
                 print(
-                        '{0}: Tag \'{1}\': FAILED'
-                        .format(self._dicom_file, tag)
+                        '{0}: Tag \'{1:26s}\': {2}PASSED{3}'.format(
+                            self._dicom_file,
+                            tags[tag],
+                            fg('green'),
+                            attr('reset')
+                        )
                     )
+        # Calculate pass and fail ratio in percents.
+        print('{0}: Failed with {1:.0f}%.'.format(
+                self._dicom_file,
+                (len(tags.items()) - failed) / len(tags.items()) * 100.0
+            ))
 
         self._exit_app()
 
