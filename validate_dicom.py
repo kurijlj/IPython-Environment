@@ -31,7 +31,7 @@ import argparse
 from os.path import isfile
 from pydicom import dcmread
 from pydicom import filereader
-from colored import fg, attr
+from colorama import init, Fore, Back, Style
 
 
 # =============================================================================
@@ -343,7 +343,7 @@ class DefaultAction(ProgramAction):
                 (0x0008, 0x0005): 'SpecificCharacterSet',
                 (0x0008, 0x0060): 'Modality',
                 (0x0008, 0x0070): 'Manufacturer',
-                (0x0008, 0x1010): 'Station Name',
+                (0x0008, 0x1010): 'StationName',
                 (0x0008, 0x1090): 'ManufacturerModelName',
                 (0x0018, 0x0050): 'SliceThickness',
                 (0x0018, 0x0088): 'SpacingBetweenSlices',
@@ -379,6 +379,9 @@ class DefaultAction(ProgramAction):
             }
         failed = int(0)
 
+        # Initiaslize colorama module
+        init()
+
         dataset = dcmread(self._dicom_file)
         for tag in tags.keys():
             if not hasattr(dataset, tags[tag]):
@@ -386,22 +389,23 @@ class DefaultAction(ProgramAction):
                         '{0}: Tag \'{1:26s}\': {2}FAILED{3}'.format(
                             self._dicom_file,
                             tags[tag],
-                            fg('red'),
-                            attr('reset')
+                            Fore.RED,
+                            Style.RESET_ALL
                         )
                     )
-            else:
                 failed = failed + 1
+            else:
                 print(
                         '{0}: Tag \'{1:26s}\': {2}PASSED{3}'.format(
                             self._dicom_file,
                             tags[tag],
-                            fg('green'),
-                            attr('reset')
+                            Fore.GREEN,
+                            Style.RESET_ALL
                         )
                     )
+
         # Calculate pass and fail ratio in percents.
-        print('{0}: Failed with {1:.0f}%.'.format(
+        print('{0}: Passed with {1:.0f}%.'.format(
                 self._dicom_file,
                 (len(tags.items()) - failed) / len(tags.items()) * 100.0
             ))
