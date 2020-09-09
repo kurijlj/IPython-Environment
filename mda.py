@@ -147,22 +147,29 @@ class ReadError(Enum):
     """ Add class description here.
     """
 
-    TOO_MANY_COLUMNS = "Too many columns."
-    EMPTY_DATA_SET = "Empty file."
-    ROW_WIDTH_TOO_SMALL = "Row width too small."
-    ROW_WIDTH_TOO_BIG = "Row width too big."
+    EMPTY_FILE = 'Empty file.'
+    NO_DATA = 'No table data could be found.'
+    TOO_MANY_COLUMNS = 'Too many data columns.'
+    ROW_WIDTH_TOO_SMALL = 'Row width too small.'
+    ROW_WIDTH_TOO_BIG = 'Row width too big.'
 
 
-class DataReader():
+class CSVDataReader():
     """ Add class description here.
     """
 
     def __init__(self, max_col_count=26):
         # Set maximum allowed column count per dataset to 26.
-        self._max_col_count = max_col_count
+        self.max_col_count = max_col_count
 
-        # Set counters and error logging attributes.
-        self.file_name = None  # Name of file containing data in the CSV format.
+        # Initialize attributes.
+        self._clear_error_log()
+
+    def _clear_error_log(self):
+        """Resets all error attributes and prepares reader for new reading.
+        """
+
+        self.file_name = None  # Name of file containing data.
         self.headers = None  # Tuple holding data column headers.
         self.error_count = 0  # Counts errors encountered while reading data.
         self.errors = dict()  # Map of row numbers and encountered errors.
@@ -170,69 +177,213 @@ class DataReader():
         self.row_count = -1  # Number of red rows.
         self.column_count = -1  # Number of red columns.
 
-    def _clear_error_log(self):
-        """Resets all error attributes and prepares reader for new reading.
-        """
-
-        self.file_name = None
-        self.headers = None
-        self.error_count = 0
-        self.errors = dict()
-        self.last_error = None
-        self.row_count = -1
-        self.column_count = -1
-
-    def is_file_empty(self, file_name):
-        """Tests if file designated with the file_name is an empty file or not.
+    def _is_empty(self, data_file):
+        """Tests if passed file contains any data at all.
 
         It returns True if file is empty, othervise returns False.
         """
 
-        with open(file_name, 'r') as data_file:
-            # read first character
-            one_char = data_file.read(1)
+        state = False
 
-            # if not fetched then file is empty
-            if not one_char:
-               return True
+        # Save current position of the read/write pointer and move pointer to
+        # the beginning of the file.
+        old_pos = data_file.tell()
+        data_file.seek(0)
 
-        return False
+        # Read first character.
+        one_char = data_file.read(1)
 
-    def _csv_data_shape(self, file_name):
+        # If not fetched then file is empty.
+        if not one_char:
+            state = True
+            self.error_count += 1
+            self.last_error = str(ReadError.EMPTY_FILE)
+            self.errors[0] = self.last_error
+
+        # Restore file pointer position.
+        data_file.seek(old_pos)
+
+        return state
+
+    def _has_header(self, data_file):
+        """Check if given CSV file contains column header by means of calling
+        has_header() method of the Sniffer class from csv module.
+
+        It returns True if file has a header, othervise returns False.
+        """
+
+        state = False
+
+        # Save current position of the read/write pointer and move pointer to
+        # the beginning of the file.
+        old_pos = data_file.tell()
+        data_file.seek(0)
+
+        try:
+            state = csv.Sniffer().has_header(data_file.read(1024))
+
+        except csv.Error as e:
+            self.error_count += 1
+            self.last_error = e
+            self.errors[0] = self.last_error
+
+        # Restore file pointer position.
+        data_file.seek(old_pos)
+
+        return state
+
+    def _data_shape(self, data_file, delimiter):
         """Counts rows and columns of the given file.
 
         It returns tuple of format (row_count, column_count).
         """
 
-        pass
+        row_count = 0
+        column_count = 0
 
-    def data_shape(self):
-        """Returns shape (row_count, column_count) of the data set as tuple.
+        # Save current position of the read/write pointer and move pointer to
+        # the beginning of the file.
+        old_pos = data_file.tell()
+        data_file.seek(0)
+
+        datareader = csv.reader(data_file, delimiter=delimiter)
+        for row in datareader:
+            # If this is first row beeing red count number of fields it
+            # contains and use that number as number of columns in the dataset.
+            if 0 == row_count:
+                column_count = len(row)
+
+            # For each row in datareader increase counter by one.
+            row_count += 1
+
+        # Restore file pointer position.
+        data_file.seek(old_pos)
+
+        # If file has header we have to decrease row count  by one.
+        if self._has_header(data_file):
+            row_count -= 1
+
+        # If either of the row_count or column_count is equal to 0 we consider
+        # take the data set as empty.
+        if 1 > row_count or 1 > column_count:
+            self.error_count += 1
+            self.last_error = str(ReadError.NO_DATA)
+            self.errors[0] = self.last_error
+
+        return (row_count, column_count)
+
+    def read_data(self, file_name, delimiter=','):
+        """Tries to read CSV data from a file designated with a passed file
+        name.
+
+        It returns two dimensional array representing data set. If the data set
+        contains header it is stored in the header attribute of the
+        CSVDataReader instance.
+
+        If it encounters errors while reading file it returns None and propper
+        error log is set. This error log can be exained by error_count, errors
+        and last_error attributes, where:
+            1. error_count represents number of errors encountered while
+            reading file;
+            2. errors is dictionary representing map of the error strings of
+            encountered errors with indexes (starting from 1) of rows in the
+            file beeing red where the errors have occured. If the error have
+            occured in the header error string is mapped to the zero;
+            3. last_error is an error string of the last encountered error.
         """
 
-        pass
+        # Reset attributes and clear error log.
+        self._clear_error_log()
+        self.file_name = file_name
 
-    def csv_has_headers(self, file_name):
-        """Check if given CSV file contains column headers by means of calling
-        has_header() method of the Sniffer class from csv module.
-        """
+        # Initialize data container.
+        data = None
 
-        has_headers = False
+        with open(self.file_name) as f:
+            # If f is an empty file abort further reading.
+            if self._is_empty(f):
+                return data
 
-        with open(file_name, 'r') as data_file:
-            try:
-                has_headers = csv.Sniffer().has_header(df.read(1024))
+            # Try to determina data set shape (number of rows and columns).
+            self.row_count, self.column_count = self._data_shape(
+                    f,
+                    delimiter
+                )
 
-            except csv.Error as e:
+            # If f is an empty data set abort further reading.
+            if self.row_count < 1 or self.column_count < 1:
+                return data
+
+            has_header = self._has_header(f)
+
+            # Since we don't process data sets with more columns than
+            # number of columns set on the intialization of the
+            # instance (max_col_count), check if column_count is
+            # greater than set limit. If not continue with reading
+            # the file, othervise set error log and abort further
+            # reading.
+            if self.max_col_count < self.column_count:
                 self.error_count += 1
-                self.last_error = e
-                self.errors[-1] = self.last_error
+                self.last_error = str(ReadError.TOO_MANY_COLUMNS)
+                self.errors[0] = self.last_error
+                return data
 
-        return has_headers
+            # Allocate memory for storing data.
+            data = np.zeros(
+                    (self.row_count, self.column_count),
+                    dtype=float
+                )
+
+            datareader = csv.reader(f, delimiter=delimiter)
+            ri = 0  # Row index.
+
+            for row in datareader:
+                if has_header and 0 == ri:
+                    self.headers = tuple(row)
+
+                else:
+                    # Check row width, measured in number of fields. If row
+                    # has less or more fileds than column_count, assume
+                    # error and skip reading the row. Fill row fields in the
+                    # data table with MIN_FLOAT.
+                    if self.column_count != len(row):
+                        if self.column_count > len(row):
+                            self.last_error = str(
+                                    ReadError.ROW_WIDTH_TOO_SMALL
+                                )
+
+                        else:
+                            self.last_error = str(ReadError.ROW_WIDTH_TOO_BIG)
+
+                        self.error_count += 1
+                        self.errors[ri + 1] = self.last_error
+
+                        # Column index.
+                        for ci in range(self.column_count):
+                            data[ri - 1, ci] = MIN_FLOAT
+
+                    else:
+                        # Column index.
+                        for ci in range(self.column_count):
+                            try:
+                                data[ri - 1, ci] = float(row[ci])
+
+                            # If we encounter error converting data set field
+                            # into float fill that field in data table with
+                            # the MIN_FLOAT.
+                            except ValueError as e:
+                                self.error_count += 1
+                                self.last_error = e
+                                self.errors[ri + 1] = self.last_error
+                                data[ri - 1, ci] = MIN_FLOAT
+
+                ri += 1  # Increase row index.
+
+        return data
 
     def read_from_csv(self, fn, fs=','):
 
-        # Reset counters and error flags.
+        # Reset counters and error flags.with open("x.txt") as f:
         self.file_name = fn
         self.headers = None
         self.error_count = 0
@@ -284,7 +435,7 @@ class DataReader():
             # row_count > 0) proceed to reading dataset.
             if 1 > self.row_count or 1 > self.column_count:
                 self.error_count += 1
-                self.last_error = ReadError.EMPTY_DATA_SET
+                self.last_error = ReadError.NO_DATA
 
             else:
                 # Allocate memory for storing data.
@@ -343,8 +494,37 @@ class DataReader():
         # Close file pointer after reading data.
         df.close()
 
-        def print_error_report(self):
-            pass
+    def print_error_report(self):
+        """Prints summary error report of encountered errors to the stdout.
+        """
+
+        if not self.file_name:
+            # No file was red or reader state was reset.
+            print('No file was red.')
+            return  # Bail out.
+
+        print(
+                'Summary of reading file \'{0}\':'
+                .format(self.file_name)
+            )
+        print(
+                '=======================================================' +
+                '========================\n'
+            )
+        if self.error_count:
+            print(
+                    'Errors encountered: {0}.'
+                    .format(self.error_count)
+                )
+            print(
+                    'Last encountered error: {0}.'
+                    .format(self.last_error)
+                )
+            for key, val in self.errors.items():
+                print('\'{0}\' in row {1}.'.format(val, key))
+
+        else:
+            print('No errors encountered.')
 
 
 # =============================================================================
@@ -481,7 +661,8 @@ class CommandLineApp(object):
         else:
             delimiter = ','
 
-            if arguments.delimiter: delimiter = arguments.delimiter
+            if arguments.delimiter:
+                delimiter = arguments.delimiter
 
             self._action = _formulate_action(
                     DefaultAction,
@@ -560,28 +741,38 @@ class DefaultAction(ProgramAction):
 
             self._exit_app()
 
-        data_reader = DataReader()
-        data_reader.read_from_csv(fn=self._data_file, fs=self._delimiter)
+        data_reader = CSVDataReader()
+        print('\n')
+        data_reader.print_error_report()
+        print('\n')
+        data = data_reader.read_data(self._data_file, self._delimiter)
+        headers = None
+        if data_reader.headers:
+            headers = data_reader.headers
+        data_reader.print_error_report()
+        print('\n')
 
-        print(
-                '{0}: Summary of reading file \'{1}\':\n'
-                .format(self._programName, self._data_file)
-            )
-        print(
-                '===========================================================' +
-                '====================\n'
-            )
-        if data_reader.error_count:
-            print('Errors encountered: {0}.\n'.format(data_reader.error_count))
-            print(
-                    'Last encountered error: {0}.\n'
-                    .format(data_reader.last_error)
-                )
-            if data_reader.errors:
-                print(data_reader.errors)
+        #data_reader.read_from_csv(fn=self._data_file, fs=self._delimiter)
 
-        else:
-            print('No errors encountered.\n')
+        #print(
+        #        '{0}: Summary of reading file \'{1}\':\n'
+        #        .format(self._programName, self._data_file)
+        #    )
+        #print(
+        #        '===========================================================' +
+        #        '====================\n'
+        #    )
+        #if data_reader.error_count:
+        #    print('Errors encountered: {0}.\n'.format(data_reader.error_count))
+        #    print(
+        #            'Last encountered error: {0}.\n'
+        #            .format(data_reader.last_error)
+        #        )
+        #    if data_reader.errors:
+        #        print(data_reader.errors)
+
+        #else:
+        #    print('No errors encountered.\n')
 
         self._exit_app()
 
