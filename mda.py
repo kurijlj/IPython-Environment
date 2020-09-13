@@ -143,7 +143,7 @@ def _formulate_action(Action, **kwargs):
 # =============================================================================
 
 
-class ReadError(Enum):
+class ReadErrorO(Enum):
     """ Add class description here.
     """
 
@@ -152,6 +152,58 @@ class ReadError(Enum):
     TOO_MANY_COLUMNS = 'Too many data columns.'
     ROW_WIDTH_TOO_SMALL = 'Row width too small.'
     ROW_WIDTH_TOO_BIG = 'Row width too big.'
+
+
+class ReadError():
+    """ Add class description here.
+    """
+
+    EMPTY_FILE = 'Empty file'
+    NO_DATA = 'No table data could be found'
+    TOO_MANY_COLUMNS = 'Too many data columns'
+    ROW_WIDTH_TOO_SMALL = 'Row width too small'
+    ROW_WIDTH_TOO_BIG = 'Row width too big'
+
+    def __init__(self, error_code):
+        error_codes = (
+                self.EMPTY_FILE,
+                self.NO_DATA,
+                self.TOO_MANY_COLUMNS,
+                self.ROW_WIDTH_TOO_SMALL,
+                self.ROW_WIDTH_TOO_BIG
+            )
+        if not error_code in error_codes:
+            raise ValueError('Trying to assign unsupported value.')
+        self._error_code = error_code
+
+    def __repr__(self):
+
+        str_val = None
+
+        if self.EMPTY_FILE == self._error_code:
+            str_val = '.EMPTY_FILE'
+        elif self.NO_DATA == self._error_code:
+            str_val = '.NO_DATA'
+        elif self.TOO_MANY_COLUMNS == self._error_code:
+            str_val = '.TOO_MANY_COLUMNS'
+        elif self.ROW_WIDTH_TOO_SMALL == self._error_code:
+            str_val = '.ROW_WIDTH_TOO_SMALL'
+        else:
+            str_val = '.ROW_WIDTH_TOO_BIG'
+
+        return self.__class__.__name__ + str_val
+
+    def __str__(self):
+        return self._error_code
+
+    def __eq__(self, other):
+        return bool(self._error_code == other.val)
+
+    @property
+    def val(self):
+        """ Add function docstring here.
+        """
+        return self._error_code
 
 
 class CSVDataReader():
@@ -163,12 +215,6 @@ class CSVDataReader():
         self.max_col_count = max_col_count
 
         # Initialize attributes.
-        self._clear_error_log()
-
-    def _clear_error_log(self):
-        """Resets all error attributes and prepares reader for new reading.
-        """
-
         self.file_name = None  # Name of file containing data.
         self.headers = None  # Tuple holding data column headers.
         self.error_count = 0  # Counts errors encountered while reading data.
@@ -176,6 +222,18 @@ class CSVDataReader():
         self.last_error = None  # Last encountered error string.
         self.row_count = -1  # Number of red rows.
         self.column_count = -1  # Number of red columns.
+
+    def _clear_error_log(self):
+        """Resets all error attributes and prepares reader for new reading.
+        """
+
+        self.file_name = None
+        self.headers = None
+        self.error_count = 0
+        self.errors = list()
+        self.last_error = None
+        self.row_count = -1
+        self.column_count = -1
 
     def _is_empty(self, data_file):
         """Tests if passed file contains any data at all.
@@ -197,7 +255,7 @@ class CSVDataReader():
         if not one_char:
             state = True
             self.error_count += 1
-            self.last_error = str(ReadError.EMPTY_FILE)
+            self.last_error = ReadError.EMPTY_FILE
             self.errors.append((0, self.last_error))
 
         # Restore file pointer position.
@@ -267,7 +325,7 @@ class CSVDataReader():
         # take the data set as empty.
         if 1 > row_count or 1 > column_count:
             self.error_count += 1
-            self.last_error = str(ReadError.NO_DATA)
+            self.last_error = ReadError.NO_DATA
             self.errors.append(0, self.last_error)
 
         return (row_count, column_count)
@@ -324,7 +382,7 @@ class CSVDataReader():
             # reading.
             if self.max_col_count < self.column_count:
                 self.error_count += 1
-                self.last_error = str(ReadError.TOO_MANY_COLUMNS)
+                self.last_error = ReadError.TOO_MANY_COLUMNS
                 self.errors.append(0, self.last_error)
                 return data
 
@@ -348,12 +406,10 @@ class CSVDataReader():
                     # data table with MIN_FLOAT.
                     if self.column_count != len(row):
                         if self.column_count > len(row):
-                            self.last_error = str(
-                                    ReadError.ROW_WIDTH_TOO_SMALL
-                                )
+                            self.last_error = ReadError.ROW_WIDTH_TOO_SMALL
 
                         else:
-                            self.last_error = str(ReadError.ROW_WIDTH_TOO_BIG)
+                            self.last_error = ReadError.ROW_WIDTH_TOO_BIG
 
                         self.error_count += 1
                         self.errors.append((ri + 1, self.last_error))
@@ -380,119 +436,6 @@ class CSVDataReader():
                 ri += 1  # Increase row index.
 
         return data
-
-    def read_from_csv(self, fn, fs=','):
-
-        # Reset counters and error flags.with open("x.txt") as f:
-        self.file_name = fn
-        self.headers = None
-        self.error_count = 0
-        self.errors = list()
-        self.last_error = None
-        self.row_count = 0
-        self.column_count = 0
-
-        df = open(self.file_name)
-
-        # Check if data file comes with column headers.
-        try:
-            has_headers = csv.Sniffer().has_header(df.read(1024))
-
-        except csv.Error as e:
-            # If not set, instantiate errors as dictionary.
-            if not self.errors:
-                self.errors = list()
-
-            self.error_count += 1
-            self.last_error = e
-            self.errors.append((-1, self.last_error))
-            has_headers = False
-
-        # Reset file position.
-        df.seek(0)
-
-        # Lets count rows and columns first
-        datareader = csv.reader(df, delimiter=fs)
-        for row in datareader:
-            if 0 == self.row_count:
-                # Set column number from the first row.
-                self.column_count = len(row)
-            self.row_count += 1
-        df.seek(0)  # Reset file position.
-
-        # If file contains headers we have to decrease row count  by one.
-        if has_headers:
-            self.row_count -= 1
-
-        # We accept datasets only up to 26 columns, so if the dataset contains
-        # more than that number of columns set corresponding error flags.
-        if self._max_col_count < self.column_count:
-            self.error_count += 1
-            self.last_error = ReadError.TOO_MANY_COLUMNS
-
-        else:
-            # If not dealing with an empty data file (column_count > 0 and
-            # row_count > 0) proceed to reading dataset.
-            if 1 > self.row_count or 1 > self.column_count:
-                self.error_count += 1
-                self.last_error = ReadError.NO_DATA
-
-            else:
-                # Allocate memory for storing data.
-                data = np.zeros(
-                        (self.row_count, self.column_count),
-                        dtype=float
-                    )
-
-                datareader = csv.reader(df, delimiter=fs)
-                ri = 0  # Row index.
-                for row in datareader:
-                    if has_headers and 0 == ri:
-                        self.headers = tuple(row)
-
-                    else:
-                        # Check row width, measured in number of fields. If row
-                        # has less or more fileds than column_count, assume
-                        # error and skip row. Fill the dataset with MIN_FLOAT.
-                        if self.column_count != len(row):
-                            # If not set instantiate errors as dictionary.
-                            if not self.errors:
-                                self.errors = list()
-
-                            if self.column_count > len(row):
-                                self.last_error = ReadError.ROW_WIDTH_TOO_SMALL
-
-                            else:
-                                self.last_error = ReadError.ROW_WIDTH_TOO_BIG
-
-                            self.error_count += 1
-                            self.errors.append((ri, self.last_error))
-
-                            # Column index
-                            for ci in range(self.column_count):
-                                data[ri - 1, ci] = MIN_FLOAT
-
-                        else:
-                            # Column index
-                            for ci in range(self.column_count):
-                                try:
-                                    data[ri - 1, ci] = float(row[ci])
-                                except ValueError as e:
-                                    # If not set instantiate errors as
-                                    # dictionary.
-                                    if not self.errors:
-                                        self.errors = list()
-
-                                    self.last_error = e
-                                    self.error_count += 1
-                                    self.errors.append((ri, self.last_error))
-                                    data[ri - 1, ci] = MIN_FLOAT
-
-                    ri += 1  # Increase row index.
-                df.seek(0)  # Reset file position.
-
-        # Close file pointer after reading data.
-        df.close()
 
     def print_error_report(self):
         """Prints summary error report of encountered errors to the stdout.
@@ -521,7 +464,7 @@ class CSVDataReader():
                     .format(self.last_error)
                 )
             for error in self.errors:
-                print('\'{0}\' in row {1}.'.format(error[1], error[0]))
+                print('Row {0}: {1}.'.format(error[0], error[1]))
 
         else:
             print('No errors encountered.')
