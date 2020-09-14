@@ -50,7 +50,6 @@
 # Modules import section
 # =============================================================================
 
-from enum import Enum  # Required by ReadErrors.
 from os.path import isfile
 from sys import float_info as fi  # Required by MIN_FLOAT and MAX_FLOAT
 import csv
@@ -92,7 +91,7 @@ class ProgramAction():
         pass
 
 
-def _format_epilog(epilogAddition, bugMail):
+def _format_epilog(epilogue_addition, bug_mail):
     """Formatter for generating help epilogue text. Help epilogue text is an
     additional description of the program that is displayed after the
     description of the arguments. Usually it consists only of line informing
@@ -105,53 +104,42 @@ def _format_epilog(epilogAddition, bugMail):
     value for epilog parameter when constructing parser object.
     """
 
-    fmtMail = None
-    fmtEpilog = None
+    fmt_mail = None
+    fmt_epilogue = None
 
-    if epilogAddition is None and bugMail is None:
+    if epilogue_addition is None and bug_mail is None:
         return None
 
-    if bugMail is not None:
-        fmtMail = 'Report bugs to <{bugMail}>.'.format(bugMail=bugMail)
+    if bug_mail is not None:
+        fmt_mail = 'Report bugs to <{bug_mail}>.'.format(bug_mail=bug_mail)
     else:
-        fmtMail = None
+        fmt_mail = None
 
-    if epilogAddition is None:
-        fmtEpilog = fmtMail
+    if epilogue_addition is None:
+        fmt_epilogue = fmt_mail
 
-    elif fmtMail is None:
-        fmtEpilog = epilogAddition
+    elif fmt_mail is None:
+        fmt_epilogue = epilogue_addition
 
     else:
-        fmtEpilog = '{addition}\n\n{mail}'.format(
-                addition=epilogAddition,
-                mail=fmtMail
+        fmt_epilogue = '{addition}\n\n{mail}'.format(
+            addition=epilogue_addition,
+            mail=fmt_mail
             )
 
-    return fmtEpilog
+    return fmt_epilogue
 
 
-def _formulate_action(Action, **kwargs):
+def _formulate_action(action, **kwargs):
     """Factory method to create and return proper action object.
     """
 
-    return Action(**kwargs)
+    return action(**kwargs)
 
 
 # =============================================================================
 # Data classes
 # =============================================================================
-
-
-class ReadErrorO(Enum):
-    """ Add class description here.
-    """
-
-    EMPTY_FILE = 'Empty file.'
-    NO_DATA = 'No table data could be found.'
-    TOO_MANY_COLUMNS = 'Too many data columns.'
-    ROW_WIDTH_TOO_SMALL = 'Row width too small.'
-    ROW_WIDTH_TOO_BIG = 'Row width too big.'
 
 
 class ReadError():
@@ -163,47 +151,6 @@ class ReadError():
     TOO_MANY_COLUMNS = 'Too many data columns'
     ROW_WIDTH_TOO_SMALL = 'Row width too small'
     ROW_WIDTH_TOO_BIG = 'Row width too big'
-
-    def __init__(self, error_code):
-        error_codes = (
-                self.EMPTY_FILE,
-                self.NO_DATA,
-                self.TOO_MANY_COLUMNS,
-                self.ROW_WIDTH_TOO_SMALL,
-                self.ROW_WIDTH_TOO_BIG
-            )
-        if not error_code in error_codes:
-            raise ValueError('Trying to assign unsupported value.')
-        self._error_code = error_code
-
-    def __repr__(self):
-
-        str_val = None
-
-        if self.EMPTY_FILE == self._error_code:
-            str_val = '.EMPTY_FILE'
-        elif self.NO_DATA == self._error_code:
-            str_val = '.NO_DATA'
-        elif self.TOO_MANY_COLUMNS == self._error_code:
-            str_val = '.TOO_MANY_COLUMNS'
-        elif self.ROW_WIDTH_TOO_SMALL == self._error_code:
-            str_val = '.ROW_WIDTH_TOO_SMALL'
-        else:
-            str_val = '.ROW_WIDTH_TOO_BIG'
-
-        return self.__class__.__name__ + str_val
-
-    def __str__(self):
-        return self._error_code
-
-    def __eq__(self, other):
-        return bool(self._error_code == other.val)
-
-    @property
-    def val(self):
-        """ Add function docstring here.
-        """
-        return self._error_code
 
 
 class CSVDataReader():
@@ -280,9 +227,9 @@ class CSVDataReader():
         try:
             state = csv.Sniffer().has_header(data_file.read(1024))
 
-        except csv.Error as e:
+        except csv.Error as err:
             self.error_count += 1
-            self.last_error = e
+            self.last_error = err
             self.errors.append((0, self.last_error))
 
         # Restore file pointer position.
@@ -308,7 +255,7 @@ class CSVDataReader():
         for row in datareader:
             # If this is first row beeing red count number of fields it
             # contains and use that number as number of columns in the dataset.
-            if 0 == row_count:
+            if row_count == 0:
                 column_count = len(row)
 
             # For each row in datareader increase counter by one.
@@ -323,7 +270,7 @@ class CSVDataReader():
 
         # If either of the row_count or column_count is equal to 0 we consider
         # take the data set as empty.
-        if 1 > row_count or 1 > column_count:
+        if row_count < 1 or column_count < 1:
             self.error_count += 1
             self.last_error = ReadError.NO_DATA
             self.errors.append(0, self.last_error)
@@ -357,22 +304,22 @@ class CSVDataReader():
         # Initialize data container.
         data = None
 
-        with open(self.file_name) as f:
+        with open(self.file_name) as data_file:
             # If f is an empty file abort further reading.
-            if self._is_empty(f):
+            if self._is_empty(data_file):
                 return data
 
             # Try to determina data set shape (number of rows and columns).
             self.row_count, self.column_count = self._data_shape(
-                    f,
-                    delimiter
+                data_file,
+                delimiter
                 )
 
             # If f is an empty data set abort further reading.
             if self.row_count < 1 or self.column_count < 1:
                 return data
 
-            has_header = self._has_header(f)
+            has_header = self._has_header(data_file)
 
             # Since we don't process data sets with more columns than
             # number of columns set on the intialization of the
@@ -388,15 +335,15 @@ class CSVDataReader():
 
             # Allocate memory for storing data.
             data = np.zeros(
-                    (self.row_count, self.column_count),
-                    dtype=float
+                (self.row_count, self.column_count),
+                dtype=float
                 )
 
-            datareader = csv.reader(f, delimiter=delimiter)
-            ri = 0  # Row index.
+            datareader = csv.reader(data_file, delimiter=delimiter)
+            row_index = 0  # Row index.
 
             for row in datareader:
-                if has_header and 0 == ri:
+                if has_header and row_index == 0:
                     self.headers = tuple(row)
 
                 else:
@@ -412,28 +359,34 @@ class CSVDataReader():
                             self.last_error = ReadError.ROW_WIDTH_TOO_BIG
 
                         self.error_count += 1
-                        self.errors.append((ri + 1, self.last_error))
+                        self.errors.append((row_index + 1, self.last_error))
 
                         # Column index.
-                        for ci in range(self.column_count):
-                            data[ri - 1, ci] = MIN_FLOAT
+                        for column_index in range(self.column_count):
+                            data[row_index - 1, column_index] = MIN_FLOAT
 
                     else:
                         # Column index.
-                        for ci in range(self.column_count):
+                        for column_index in range(self.column_count):
                             try:
-                                data[ri - 1, ci] = float(row[ci])
+                                data[
+                                    row_index - 1,
+                                    column_index
+                                    ] = float(row[column_index])
 
                             # If we encounter error converting data set field
                             # into float fill that field in data table with
                             # the MIN_FLOAT.
-                            except ValueError as e:
+                            except ValueError as err:
                                 self.error_count += 1
-                                self.last_error = e
-                                self.errors.append((ri + 1, self.last_error))
-                                data[ri - 1, ci] = MIN_FLOAT
+                                self.last_error = err
+                                self.errors.append((
+                                    row_index + 1,
+                                    self.last_error
+                                    ))
+                                data[row_index - 1, column_index] = MIN_FLOAT
 
-                ri += 1  # Increase row index.
+                row_index += 1  # Increase row index.
 
         return data
 
@@ -447,27 +400,57 @@ class CSVDataReader():
             return  # Bail out.
 
         print(
-                'Summary of reading file \'{0}\':'
-                .format(self.file_name)
+            'Summary of reading file \'{0}\':'
+            .format(self.file_name)
             )
         print(
-                '=======================================================' +
-                '========================\n'
+            '================================================================='
+            + '==============\n'
             )
         if self.error_count:
             print(
-                    'Errors encountered: {0}.'
-                    .format(self.error_count)
+                'Errors encountered: {0}.'
+                .format(self.error_count)
                 )
             print(
-                    'Last encountered error: {0}.'
-                    .format(self.last_error)
+                'Last encountered error: {0}.'
+                .format(self.last_error)
                 )
             for error in self.errors:
                 print('Row {0}: {1}.'.format(error[0], error[1]))
 
         else:
             print('No errors encountered.')
+
+
+def print_to_stdout(data, headers=None):
+    """ Add function description here.
+    """
+
+    row_count, column_count = data.shape
+    row_index, column_index = 0, 0
+
+    # Generate columns headers if none.
+    if not headers:
+        headers = list()
+        for column_index in range(column_count):
+            headers.append('Column ' + str(column_index + 1))
+
+    # Reset column index.
+    column_index = 0
+
+    # Print header.
+    print('Row\t', end='')
+    for column_title in headers:
+        print(column_title + '\t', end='')
+    print('')
+
+    # Print data.
+    for row_index in range(row_count):
+        print(str(row_index + 1) + '\t', end='')
+        for column_index in range(column_count):
+            print(str(data[row_index, column_index]) + '\t', end='')
+        print('')
 
 
 # =============================================================================
@@ -499,12 +482,12 @@ class CommandLineApp(object):
         self.authorName = authorName
         self.authorMail = authorMail
 
-        fmtEpilog = _format_epilog(epilog, authorMail)
+        fmt_epilogue = _format_epilog(epilog, authorMail)
 
         self._parser = argparse.ArgumentParser(
                 prog=programName,
                 description=programDescription,
-                epilog=fmtEpilog,
+                epilog=fmt_epilogue,
                 formatter_class=argparse.RawDescriptionHelpFormatter
             )
 
@@ -694,28 +677,7 @@ class DefaultAction(ProgramAction):
             headers = data_reader.headers
         data_reader.print_error_report()
         print('\n')
-
-        #data_reader.read_from_csv(fn=self._data_file, fs=self._delimiter)
-
-        #print(
-        #        '{0}: Summary of reading file \'{1}\':\n'
-        #        .format(self._programName, self._data_file)
-        #    )
-        #print(
-        #        '===========================================================' +
-        #        '====================\n'
-        #    )
-        #if data_reader.error_count:
-        #    print('Errors encountered: {0}.\n'.format(data_reader.error_count))
-        #    print(
-        #            'Last encountered error: {0}.\n'
-        #            .format(data_reader.last_error)
-        #        )
-        #    if data_reader.errors:
-        #        print(data_reader.errors)
-
-        #else:
-        #    print('No errors encountered.\n')
+        print_to_stdout(data, headers)
 
         self._exit_app()
 
