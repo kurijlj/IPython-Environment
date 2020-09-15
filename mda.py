@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""TODO: Put module docstring HERE.
+"""
 
 # ============================================================================
 # Copyright (C) 2020 Ljubomir Kurij <kurijlj@gmail.com>
@@ -85,10 +87,8 @@ class ProgramAction():
         self._exit_app = exitf
 
     def execute(self):
-        """Put method documentation here.
+        """TODO: Put method docstring HERE.
         """
-
-        pass
 
 
 def _format_epilog(epilogue_addition, bug_mail):
@@ -143,7 +143,7 @@ def _formulate_action(action, **kwargs):
 
 
 class ReadError():
-    """ Add class description here.
+    """TODO: Put class docstring HERE.
     """
 
     EMPTY_FILE = 'Empty file'
@@ -154,7 +154,7 @@ class ReadError():
 
 
 class CSVDataReader():
-    """ Add class description here.
+    """TODO: Put class docstring HERE.
     """
 
     def __init__(self, max_col_count=26):
@@ -424,7 +424,7 @@ class CSVDataReader():
 
 
 def print_to_stdout(data, headers=None):
-    """ Add function description here.
+    """TODO: Put function docstring HERE.
     """
 
     row_count, column_count = data.shape
@@ -457,7 +457,7 @@ def print_to_stdout(data, headers=None):
 # Command line app class
 # =============================================================================
 
-class CommandLineApp(object):
+class CommandLineApp():
     """Actual command line app object containing all relevant application
     information (NAME, VERSION, DESCRIPTION, ...) and which instantiates
     action that will be executed depending on the user input from
@@ -466,27 +466,27 @@ class CommandLineApp(object):
 
     def __init__(
                 self,
-                programName=None,
-                programDescription=None,
-                programLicense=None,
-                versionString=None,
-                yearString=None,
-                authorName=None,
-                authorMail=None,
+                program_name=None,
+                program_description=None,
+                program_license=None,
+                version_string=None,
+                year_string=None,
+                author_name=None,
+                author_mail=None,
                 epilog=None
             ):
 
-        self.programLicense = programLicense
-        self.versionString = versionString
-        self.yearString = yearString
-        self.authorName = authorName
-        self.authorMail = authorMail
+        self.program_license = program_license
+        self.version_string = version_string
+        self.year_string = year_string
+        self.author_name = author_name
+        self.author_mail = author_mail
 
-        fmt_epilogue = _format_epilog(epilog, authorMail)
+        fmt_epilogue = _format_epilog(epilog, author_mail)
 
         self._parser = argparse.ArgumentParser(
-                prog=programName,
-                description=programDescription,
+                prog=program_name,
+                description=program_description,
                 epilog=fmt_epilogue,
                 formatter_class=argparse.RawDescriptionHelpFormatter
             )
@@ -496,17 +496,19 @@ class CommandLineApp(object):
         # somewhere before adding arguments. Since we want to store all
         # application relevant data in our application object we use
         # this list for that purpose.
-        self._argumentGroups = []
+        self._argument_groups = []
+
+        self._action = None
 
     @property
-    def programName(self):
+    def program_name(self):
         """Utility function that makes accessing program name attribute
         neat and hides implementation details.
         """
         return self._parser.prog
 
     @property
-    def programDescription(self):
+    def program_description(self):
         """Utility function that makes accessing program description
         attribute neat and hides implementation details.
         """
@@ -523,14 +525,14 @@ class CommandLineApp(object):
             raise NameError('Missing arguments group title.')
 
         group = self._parser.add_argument_group(title, description)
-        self._argumentGroups.append(group)
+        self._argument_groups.append(group)
 
         return group
 
     def _group_by_title(self, title):
         group = None
 
-        for item in self._argumentGroups:
+        for item in self._argument_groups:
             if title == item.title:
                 group = item
                 break
@@ -556,9 +558,8 @@ class CommandLineApp(object):
                         'Trying to reference nonexisten argument group.'
                     )
 
-            else:
-                kwargsr = {k: kwargs[k] for k in kwargs.keys() if 'group' != k}
-                group.add_argument(*args, **kwargsr)
+            kwargsr = {k: kwargs[k] for k in kwargs.keys() if 'group' != k}
+            group.add_argument(*args, **kwargsr)
 
     def parse_args(self, args=None, namespace=None):
         """Wrapper for parse_args method of a parser object. It also
@@ -578,10 +579,10 @@ class CommandLineApp(object):
             self._action = _formulate_action(
                 ShowVersionAction,
                 prog=self._parser.prog,
-                ver=self.versionString,
-                year=self.yearString,
-                author=self.authorName,
-                license=self.programLicense,
+                ver=self.version_string,
+                year=self.year_string,
+                author=self.author_name,
+                license=self.program_license,
                 exitf=self._parser.exit)
 
         else:
@@ -614,13 +615,16 @@ class ProgramUsageAction(ProgramAction):
     """
 
     def __init__(self, parser, exitf):
-        self._usageMessage = \
+        super().__init__(exitf)
+        self._usage_message = \
             '{usage}Try \'{prog} --help\' for more information.'\
             .format(usage=parser.format_usage(), prog=parser.prog)
-        self._exit_app = exitf
 
     def execute(self):
-        print(self._usageMessage)
+        """TODO: Put method docstring HERE.
+        """
+
+        print(self._usage_message)
         self._exit_app()
 
 
@@ -630,13 +634,16 @@ class ShowVersionAction(ProgramAction):
     """
 
     def __init__(self, prog, ver, year, author, license, exitf):
-        self._versionMessage = \
+        super().__init__(exitf)
+        self._version_message = \
             '{0} {1} Copyright (C) {2} {3}\n{4}'\
             .format(prog, ver, year, author, license)
-        self._exit_app = exitf
 
     def execute(self):
-        print(self._versionMessage)
+        """TODO: Put method docstring HERE.
+        """
+
+        print(self._version_message)
         self._exit_app()
 
 
@@ -647,37 +654,38 @@ class DefaultAction(ProgramAction):
     """
 
     def __init__(self, prog, exitf, data_file, delimiter):
-        self._programName = prog
-        self._exit_app = exitf
+        super().__init__(exitf)
+        self._program_name = prog
         self._data_file = data_file
         self._delimiter = delimiter
 
     def execute(self):
+        """TODO: Put method docstring HERE.
+        """
+
         # Do some basic sanity checks first.
         if self._data_file is None:
-            print('{0}: Missing data file.'.format(self._programName))
+            print('{0}: Missing data file.'.format(self._program_name))
             self._exit_app()
 
         # First check if given files exist at all.
         if not isfile(self._data_file):
             print(
-                    '{0}: File \'{1}\' does not exist or is directory.'
-                    .format(self._programName, self._data_file)
+                '{0}: File \'{1}\' does not exist or is directory.'
+                .format(self._program_name, self._data_file)
                 )
 
             self._exit_app()
 
         data_reader = CSVDataReader()
-        print('\n')
-        data_reader.print_error_report()
-        print('\n')
+        print(
+            '{0}: Reading file \'{1}\'.\n\n'
+            .format(self._program_name, self._data_file)
+            )
         data = data_reader.read_data(self._data_file, self._delimiter)
-        headers = None
-        if data_reader.headers:
-            headers = data_reader.headers
+        headers = data_reader.headers
         data_reader.print_error_report()
         print('\n')
-        print_to_stdout(data, headers)
 
         self._exit_app()
 
@@ -688,20 +696,20 @@ class DefaultAction(ProgramAction):
 
 if __name__ == '__main__':
     program = CommandLineApp(
-        programDescription='Small Python script used to inspaect \
+        program_description='Small Python script used to inspaect \
             and analyse 2D graph data.\n\
             Mandatory arguments to long options are mandatory for \
             short options too.'.replace('\t', ''),
-        programLicense='License GPLv3+: GNU GPL version 3 or later \
+        program_license='License GPLv3+: GNU GPL version 3 or later \
             <http://gnu.org/licenses/gpl.html>\n\
             This is free software: you are free to change and \
             redistribute it.\n\
             There is NO WARRANTY, to the extent permitted by \
             law.'.replace('\t', ''),
-        versionString='0.1',
-        yearString='2020',
-        authorName='Ljubomir Kurij',
-        authorMail='ljubomir_kurij@protonmail.com',
+        version_string='0.1',
+        year_string='2020',
+        author_name='Ljubomir Kurij',
+        author_mail='ljubomir_kurij@protonmail.com',
         epilog=None)
 
     program.add_argument_group('general options')
